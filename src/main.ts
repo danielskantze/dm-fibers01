@@ -34,7 +34,7 @@ function main(canvas: HTMLCanvasElement) {
 
   function draw() {
     const time = (performance.now() - startTime) / 1000;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 4; i++) {
       stage_simulate.draw(gl, simulateStage, time, frame);
       // stage_test.draw(gl, testStage);
       stage_accumulate.draw(gl, accumulateStage, numParticles);

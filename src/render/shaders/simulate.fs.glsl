@@ -44,6 +44,15 @@ vec2 hash22(vec2 p)
 
 }
 
+vec3 hash33( vec3 p )      // this hash is not production ready, please
+{                        // replace this by something better
+	p = vec3( dot(p,vec3(127.1,311.7, 74.7)),
+			  dot(p,vec3(269.5,183.3,246.1)),
+			  dot(p,vec3(113.5,271.9,124.6)));
+
+	return -1.0 + 2.0*fract(sin(p)*43758.5453123);
+}
+
 
 //
 // Description : Array and textureless GLSL 2D simplex noise function.
@@ -120,9 +129,49 @@ float snoise(vec2 v) {
 // Noise
 // ------------------------------------------------------------
 
+float gnoise( in vec3 x )
+{
+    // grid
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+    
+    // quintic interpolant
+    vec3 u = f*f*f*(f*(f*6.0-15.0)+10.0);
+    
+    // gradients
+    vec3 ga = hash33( i+vec3(0.0,0.0,0.0) );
+    vec3 gb = hash33( i+vec3(1.0,0.0,0.0) );
+    vec3 gc = hash33( i+vec3(0.0,1.0,0.0) );
+    vec3 gd = hash33( i+vec3(1.0,1.0,0.0) );
+    vec3 ge = hash33( i+vec3(0.0,0.0,1.0) );
+    vec3 gf = hash33( i+vec3(1.0,0.0,1.0) );
+    vec3 gg = hash33( i+vec3(0.0,1.0,1.0) );
+    vec3 gh = hash33( i+vec3(1.0,1.0,1.0) );
+    
+    // projections
+    float va = dot( ga, f-vec3(0.0,0.0,0.0) );
+    float vb = dot( gb, f-vec3(1.0,0.0,0.0) );
+    float vc = dot( gc, f-vec3(0.0,1.0,0.0) );
+    float vd = dot( gd, f-vec3(1.0,1.0,0.0) );
+    float ve = dot( ge, f-vec3(0.0,0.0,1.0) );
+    float vf = dot( gf, f-vec3(1.0,0.0,1.0) );
+    float vg = dot( gg, f-vec3(0.0,1.0,1.0) );
+    float vh = dot( gh, f-vec3(1.0,1.0,1.0) );
+	
+    // interpolation
+    return va + 
+           u.x*(vb-va) + 
+           u.y*(vc-va) + 
+           u.z*(ve-va) + 
+           u.x*u.y*(va-vb-vc+vd) + 
+           u.y*u.z*(va-vc-ve+vg) + 
+           u.z*u.x*(va-vb-ve+vf) + 
+           u.x*u.y*u.z*(-va+vb+vc-vd+ve-vf-vg+vh);
+}
+
 float fbm(vec2 x)
 {    
-    float H = 0.5;
+    float H = 0.71;
     float G = exp2(-H);
     float f = 1.0;
     float a = 1.0;
@@ -149,37 +198,72 @@ float sinBounce(float x) {
   return p;
 }
 
-float angleAt(vec2 coord) {
-  float drift = 0.1 * snoise(vec2(u_time * 0.01));
-  float px = 1.25 * (coord.x + drift);
-  float py = .33 * (coord.y + drift);
-  vec2 p = vec2(px, py);
+float angleAt_old(vec2 coord) {
+  //vec2 scale = vec2(1.25, .33);
+  float bt = sinBounce(u_time);
+  float scaleFactor = 0.9 + .1 * bt; //0.2;
+  float driftFactor = .3 + .1 * bt; //0.1;
+  vec2 scale = vec2(1.25, .33) * scaleFactor;
+  vec2 drift = driftFactor * 0.1 * vec2(
+    snoise(vec2(u_time * 0.1)),
+    snoise(vec2(u_time * 0.1 + 1.3))
+  );
+  vec2 p = vec2(coord + drift) * scale;
   return snoise(p + 0.1 *vec2(
-    fbm(p + vec2(drift, 0.0)),
-    fbm(p + vec2(5.2, drift + 1.3))
+    fbm(p + drift),
+    fbm(p + drift + vec2(5.2 + 0.1 * bt))
+  ));
+}
+
+float angleAt(vec2 coord) {
+  //vec2 scale = vec2(1.25, .33);
+  float bt = sinBounce(u_time);
+  float scaleFactor = 0.5 + .1 * bt; //0.2;
+  float driftFactor = 0.3 + .1 * bt; //0.1;
+  vec2 scale = vec2(1.25, .33) * scaleFactor;
+  vec2 drift = driftFactor * 0.1 * vec2(
+    snoise(vec2(u_time * 0.1)),
+    snoise(vec2(u_time * 0.1 + 1.3))
+  );
+  vec2 p = vec2(coord + drift) * scale;
+  return gnoise(vec3(
+    fbm(p),
+    fbm(p + vec2(5.2 + 0.01 * bt)),
+    u_time * 0.11
   ));
 }
 
 vec3 palette1(float t) {
   return cosPalette(t,
-    vec3(0.9, 0.5, 0.5),
+    vec3(0.5, 0.5, 0.5),
     vec3(0.5, 0.5, 0.5),
     vec3(1.0, 1.0, 1.0),
-    vec3(0.0, 0.10, 0.30)
+    vec3(0.0, 0.90,  0.90)
   );
 }
 
+vec3 palette2(float t) {
+  return vec3(.9, 0.9, 0.9);
+}
+
 vec4 colorAt(vec2 coord) {
-  float cscale = 0.1;// + 1.5 * sinBounce(u_time); 
+  float cscale = .1 + 0.1 * sinBounce(u_time); 
   float drift = u_time * 0.001;
   float px = drift + cscale * coord.x;
   float py = drift + cscale * coord.y;
   //float alpha = fbm(vec2(px + 49.9 * 2.0, py + 29.5 * 1.9));
   float alpha = hash12(vec2(px, py));
   return vec4(
-    palette1(fbm(vec2(px, py))),
+    palette1(gnoise(vec3(
+      vec2(px, py),
+      u_time * 0.05
+    ))),
     alpha * 0.1
   );
+}
+
+bool boundsCheck(vec2 position) {
+  return position.x > -1.0 && position.x < 1.0 && position.y > -1.0 && position.y < 1.0;
 }
 
 void main() {
@@ -192,14 +276,15 @@ void main() {
 
     if (u_frame > 0) {
       properties = texelFetch(u_properties_texture, ivec2(gl_FragCoord.xy), 0);
+      position = texelFetch(u_position_texture, ivec2(gl_FragCoord.xy), 0);
+      color = texelFetch(u_color_texture, ivec2(gl_FragCoord.xy), 0);
     }
 
     // position need to provide coordinates in clip space (-1.0 to 1.0)
-    if (u_frame == 0 || properties.z > properties.w) {
+    if (u_frame == 0 || properties.z > properties.w || !boundsCheck(position.xy)) {
       // new particle
-      float lifetime = hash12(coord) * 512.0 + 512.0;
+      float lifetime = (hash12(coord) * 512.0 + 512.0) * 10.0;
       float age = 0.0;
-      color = colorAt(coord);
       properties = vec4(
         radius * hash12(coord + vec2(u_time, 0.0)),
         0.0,
@@ -212,15 +297,16 @@ void main() {
         1.0);
     } else {
       // existing particle
-      position = texelFetch(u_position_texture, ivec2(gl_FragCoord.xy), 0);
       float angle = angleAt(position.xy);
-      color = texelFetch(u_color_texture, ivec2(gl_FragCoord.xy), 0);
-      vec2 delta = vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
-      position.xy = position.xy + delta;
+      vec2 step = vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
       float p = clamp(properties.z / properties.w, 0.0, 1.0);
       float t = sinBounce(p);
-      properties.y = properties.x * t;
-      properties.z = properties.z + 1.0;
+
+      color = colorAt(coord);
+      color.a = mix(color.a, color.a * 0.1, t);
+      position.xy = position.xy + step * max(1.0, properties.y * .25);
+      properties.y = properties.x * t; // radius
+      properties.z = properties.z + max(1.0, properties.y * .25); // age
     }
 
 
