@@ -193,7 +193,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform4f(u.strokeDrift.location, 0.03, 0.01, 0.1, 0.1);
     gl.uniform4f(u.colorNoise.location, 0.1, 0.1, 0.001, 0.05);
 
-    gl.uniform3fv(u.cosPalette1.location, [0.5, 0.1, 0.3]);
+    gl.uniform3fv(u.cosPalette1.location, [0.5, 0.5, 0.5]);
     gl.uniform3fv(u.cosPalette2.location, [0.5, 0.5, 0.5]);
     gl.uniform3fv(u.cosPalette3.location, [1.0, 1.0, 1.0]);
     gl.uniform3fv(u.cosPalette4.location, [0.0, 0.9, 0.9]);
