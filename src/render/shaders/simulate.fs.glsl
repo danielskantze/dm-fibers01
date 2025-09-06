@@ -10,6 +10,15 @@ uniform vec2 u_screen_size;
 uniform float u_time;
 uniform int u_frame;
 
+uniform vec4 u_stroke_noise_p;
+uniform vec4 u_stroke_drift_p;
+uniform vec4 u_color_noise_p;
+
+uniform vec3 u_cos_palette_1;
+uniform vec3 u_cos_palette_2;
+uniform vec3 u_cos_palette_3;
+uniform vec3 u_cos_palette_4;
+
 uniform sampler2D u_position_texture;
 uniform sampler2D u_color_texture;
 uniform sampler2D u_properties_texture;
@@ -218,12 +227,12 @@ float angleAt_old(vec2 coord) {
 float angleAt(vec2 coord) {
   //vec2 scale = vec2(1.25, .33);
   float bt = sinBounce(u_time);
-  float scaleFactor = 0.5 + .1 * bt; //0.2;
-  float driftFactor = 0.3 + .1 * bt; //0.1;
-  vec2 scale = vec2(1.25, .33) * scaleFactor;
-  vec2 drift = driftFactor * 0.1 * vec2(
-    snoise(vec2(u_time * 0.1)),
-    snoise(vec2(u_time * 0.1 + 1.3))
+  float scaleFactor = u_stroke_noise_p.x + u_stroke_noise_p.y * bt; //0.2;
+  float driftFactor = u_stroke_drift_p.x + u_stroke_drift_p.y * bt; //0.1;
+  vec2 scale = vec2(u_stroke_noise_p.z, u_stroke_noise_p.w) * scaleFactor;
+  vec2 drift = driftFactor * vec2(
+    snoise(vec2(u_time * u_stroke_drift_p.z)),
+    snoise(vec2(u_time * u_stroke_drift_p.w + 1.3))
   );
   vec2 p = vec2(coord + drift) * scale;
   return gnoise(vec3(
@@ -235,10 +244,10 @@ float angleAt(vec2 coord) {
 
 vec3 palette1(float t) {
   return cosPalette(t,
-    vec3(0.5, 0.5, 0.5),
-    vec3(0.5, 0.5, 0.5),
-    vec3(1.0, 1.0, 1.0),
-    vec3(0.0, 0.90,  0.90)
+    u_cos_palette_1,
+    u_cos_palette_2,
+    u_cos_palette_3,
+    u_cos_palette_4
   );
 }
 
@@ -247,8 +256,8 @@ vec3 palette2(float t) {
 }
 
 vec4 colorAt(vec2 coord) {
-  float cscale = .1 + 0.1 * sinBounce(u_time); 
-  float drift = u_time * 0.001;
+  float cscale = u_color_noise_p.x + u_color_noise_p.y * sinBounce(u_time); 
+  float drift = u_time * u_color_noise_p.z;
   float px = drift + cscale * coord.x;
   float py = drift + cscale * coord.y;
   //float alpha = fbm(vec2(px + 49.9 * 2.0, py + 29.5 * 1.9));
@@ -256,7 +265,7 @@ vec4 colorAt(vec2 coord) {
   return vec4(
     palette1(gnoise(vec3(
       vec2(px, py),
-      u_time * 0.05
+      u_time * u_color_noise_p.w
     ))),
     alpha * 0.1
   );

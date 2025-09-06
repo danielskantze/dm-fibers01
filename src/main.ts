@@ -18,7 +18,7 @@ function configureCanvas(canvas: HTMLCanvasElement) {
 function main(canvas: HTMLCanvasElement) {
   configureCanvas(canvas);
   const startTime = performance.now();
-  const numParticles = 10000;
+  const numParticles = 50000;
   const gl = canvas.getContext("webgl2")!
   const ext = gl.getExtension("EXT_color_buffer_float");
   if (!ext) {
@@ -34,7 +34,7 @@ function main(canvas: HTMLCanvasElement) {
 
   function draw() {
     const time = (performance.now() - startTime) / 1000;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       stage_simulate.draw(gl, simulateStage, time, frame);
       // stage_test.draw(gl, testStage);
       stage_accumulate.draw(gl, accumulateStage, numParticles);
@@ -59,3 +59,17 @@ function main(canvas: HTMLCanvasElement) {
 }
 
 export default main;
+
+// TODO:
+// - Add UI for tweaking
+//     * Clear button
+//     * Seed
+//     * Num particles
+//     * Control palette (initally cosine palette params, later types)
+//     * Strokes: Scale & drift
+//     * Coloring: Scale & drift
+
+// Implementation steps:
+// 1. Implement uniforms for all props and set from typescript code
+// 2. Implement simple ui (test realtime changes)
+// 3. Implement fancy ui

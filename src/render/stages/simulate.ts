@@ -19,6 +19,15 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const particlesTextureSizeLocation = gl.getUniformLocation(program, "u_particles_texture_size");
             const screenSizeLocation = gl.getUniformLocation(program, "u_screen_size");
             const frameLocation = gl.getUniformLocation(program, "u_frame");
+
+            const strokeNoisePLocation = gl.getUniformLocation(program, "u_stroke_noise_p");
+            const strokeDriftPLocation = gl.getUniformLocation(program, "u_stroke_drift_p");
+            const colorNoisePLocation = gl.getUniformLocation(program, "u_color_noise_p");
+            const cosPalette1Location = gl.getUniformLocation(program, "u_cos_palette_1");
+            const cosPalette2Location = gl.getUniformLocation(program, "u_cos_palette_2");
+            const cosPalette3Location = gl.getUniformLocation(program, "u_cos_palette_3");
+            const cosPalette4Location = gl.getUniformLocation(program, "u_cos_palette_4");
+
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
             };
@@ -51,6 +60,34 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                     location: frameLocation,
                     slot: 6,
                 },
+                strokeNoise: {
+                  location: strokeNoisePLocation,
+                  slot: 7,
+                },
+                strokeDrift: {
+                  location: strokeDriftPLocation,
+                  slot: 8,
+                },
+                colorNoise: {
+                  location: colorNoisePLocation,
+                  slot: 9,
+                },
+                cosPalette1: {
+                  location: cosPalette1Location,
+                  slot: 10
+                },
+                cosPalette2: {
+                  location: cosPalette2Location,
+                  slot: 11
+                },
+                cosPalette3: {
+                  location: cosPalette3Location,
+                  slot: 12
+                },
+                cosPalette4: {
+                  location: cosPalette4Location,
+                  slot: 13
+                }
             };
             return { program, attributes, uniforms } as ShaderProgram;
         }),
@@ -151,6 +188,15 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform1i(u.positionTex.location, u.positionTex.slot);
     gl.uniform1i(u.colorTex.location, u.colorTex.slot);
     gl.uniform1i(u.propertiesTex.location, u.propertiesTex.slot);
+
+    gl.uniform4f(u.strokeNoise.location, 0.5, 0.1, 1.55, 0.33);
+    gl.uniform4f(u.strokeDrift.location, 0.03, 0.01, 0.1, 0.1);
+    gl.uniform4f(u.colorNoise.location, 0.1, 0.1, 0.001, 0.05);
+
+    gl.uniform3fv(u.cosPalette1.location, [0.5, 0.1, 0.3]);
+    gl.uniform3fv(u.cosPalette2.location, [0.5, 0.5, 0.5]);
+    gl.uniform3fv(u.cosPalette3.location, [1.0, 1.0, 1.0]);
+    gl.uniform3fv(u.cosPalette4.location, [0.0, 0.9, 0.9]);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sources[0].texture);
