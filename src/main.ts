@@ -4,6 +4,8 @@ import * as stage_post from "./render/stages/post";
 import * as stage_simulate from "./render/stages/simulate";
 import * as stage_accumulate from "./render/stages/accumulate";
 import { WebGLTextureError } from "./types/error";
+import { UniformComponents, type Uniform } from "./types/gl/uniforms";
+import ControlFactory from "./ui/controls";
 
 function configureCanvas(canvas: HTMLCanvasElement) {
   const width = window.innerWidth;
@@ -15,10 +17,30 @@ function configureCanvas(canvas: HTMLCanvasElement) {
   canvas.style.height = `${height}px`;
 }
 
-function main(canvas: HTMLCanvasElement) {
+function createUniformControls(factory: ControlFactory, uniforms: Uniform[]) {
+  for (const u of uniforms) {
+    const { ui } = u;
+    if (ui) {
+      const {name, min, max, step} = u.ui!;
+      const numComponents = UniformComponents[u.type!]!;
+      if (numComponents > 1) {
+        const values = u.value as number[];
+        factory.createVector(name, values, (i, v) => { values[i] = v; }, min, max, step);
+      } else {
+        const value = u.value as number;
+        factory.createScalar(name, value, (v) => { u.value = v; }, min, max, step);
+      }
+    }
+  }
+}
+
+function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   configureCanvas(canvas);
-  const startTime = performance.now();
+  let isRunning = true;
+  let elapsedTime = 0;
+  let startTime = performance.now();
   const numParticles = 50000;
+  const controlFactory = new ControlFactory(document, controls);
   const gl = canvas.getContext("webgl2")!
   const ext = gl.getExtension("EXT_color_buffer_float");
   if (!ext) {
@@ -32,8 +54,26 @@ function main(canvas: HTMLCanvasElement) {
   
   let frame = 0;
 
+  createUniformControls(controlFactory, simulateStage.parameters);
+  controlFactory.createButton("Clear", () => {
+    resize();
+  });
+  controlFactory.createButton("Pause", () => {
+    isRunning = !isRunning;
+    if (!isRunning) {
+      elapsedTime = (performance.now() - startTime) / 1000;
+    } else {
+      startTime = performance.now();
+      draw();
+    }
+  });
+
+
   function draw() {
-    const time = (performance.now() - startTime) / 1000;
+    if (!isRunning) {
+      return;
+    }
+    const time = elapsedTime + (performance.now() - startTime) / 1000;
     for (let i = 0; i < 2; i++) {
       stage_simulate.draw(gl, simulateStage, time, frame);
       // stage_test.draw(gl, testStage);

@@ -64,6 +64,7 @@ function create(gl: WebGL2RenderingContext, input: Stage, width: number, height:
         },
         input,
         targets: [targetTexture],
+        parameters: [],
     };
 }
 

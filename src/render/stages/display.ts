@@ -34,6 +34,7 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
         },
         input,
         targets: [],
+        parameters: [],
     };
 }
 

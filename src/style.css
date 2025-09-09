@@ -1,8 +1,69 @@
+input[type=text] {
+  border: none;
+  border-radius: 3px;
+}
+
+
+/* input range styling */
+
+input[type=range] {
+  -webkit-appearance: none;
+  margin: 0.4rem 0;
+  width: 100%;
+}
+input[type=range]:focus {
+  outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 0.5rem;
+  cursor: pointer;
+  box-shadow: none;
+  background: #000;
+  border-radius: 100px;
+  border: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  height: 1rem;
+  width: 1rem;
+  border-radius: 100px;
+  border: 2px solid #000;
+  background: #fff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -0.25rem;
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #666;
+}
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 0.5rem;
+  cursor: pointer;
+  box-shadow: none;
+  background: #000;
+  border-radius: 100px;
+  border: none;
+}
+input[type=range]::-moz-range-thumb {
+  height: 1rem;
+  width: 1rem;
+  border-radius: 100px;
+  border: 2px solid #000;
+  background: #fff;
+  cursor: pointer;
+  margin-top: -0.25rem;
+}
+
 html, body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
+}
+
+body * {
+  box-sizing: border-box;
 }
 
 #app {
@@ -15,6 +76,103 @@ html, body {
 }
 
 #canvas {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
+
+#controls {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 0.5rem;
+  border-top-left-radius: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+button,
+#controls {
+  /*font-family: 'Courier New', Courier, monospace;*/
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.button > button,
+.parameter {
+  background: white;
+  color: black;
+  padding: 3px 0px 3px 9px;
+  border-radius: 6px;
+  margin: 2px;
+  width: 250px;
+}
+.button {
+  margin: 2px 0;
+}
+.parameter > label {
+  display: block;
+  margin-top: 2px;
+}
+.parameter > input {
+  display: block;
+  width: 100%;
+}
+.parameter .digits {
+  margin-left: 8px;
+  width: 2.75rem;
+  text-align: right;
+  background-color: #ddd;
+}
+
+.vector {
+  background-color: #fff;
+  margin: 0.125rem 0;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 0.125rem 0.625rem 0.125rem 0px;
+}
+
+.vector[data-collapsed="1"]::before {
+  content: "+";
+  font-size: 16px;
+  border-radius: 10px;
+  padding: 0px 6px;
+  background-color: #fff;
+}
+
+.vector[data-collapsed="1"] .parameter {
+  display: none;
+}
+
+.vector[data-collapsed="0"]::before {
+  content: "-";
+  font-size: 16px;
+  border-radius: 10px;
+  padding: 0px 6px;
+  background-color: #fff;
+}
+
+.vector .parameter {
+  display: flex;
+  flex-direction: row;
+  text-decoration: none;
+}
+
+.vector .parameter label {
+  margin-right: 0.5rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
+}
+
+.button > button {
+  margin: 0;
+  border: none;
+  width: 100%;
+  background-color: #ddd;
+  font-weight: 600;
+  letter-spacing: 0.033rem;
+  color: #000;
+}
+

@@ -4,6 +4,7 @@ import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
+import type { Uniform } from "../../types/gl/uniforms";
 import type { Stage, StageOutput, Resources, BufferedStageOutput } from "../../types/stage";
 import fShaderSource from "../shaders/simulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
@@ -59,34 +60,83 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 frame: {
                     location: frameLocation,
                     slot: 6,
-                },
+                },                
                 strokeNoise: {
                   location: strokeNoisePLocation,
                   slot: 7,
+                  ui: {
+                    name: "Stroke Noise",
+                    min: -5.0,
+                    max: 5.0,
+                  },
+                  value: [0.5, 0.1, 1.55, 0.33],
+                  type: "vec4"
                 },
                 strokeDrift: {
                   location: strokeDriftPLocation,
                   slot: 8,
+                  ui: {
+                    name: "Stroke Drift",
+                    min: -1.0,
+                    max: 1.0,
+                  },
+                  value: [0.03, 0.01, 0.1, 0.1],
+                  type: "vec4"
                 },
                 colorNoise: {
                   location: colorNoisePLocation,
                   slot: 9,
+                  ui: {
+                    name: "Color Noise & Drift",
+                    min: 0.0,
+                    max: 1.0,
+                  },                  
+                  value: [0.1, 0.1, 0.001, 0.05],
+                  type: "vec4"
                 },
                 cosPalette1: {
                   location: cosPalette1Location,
-                  slot: 10
+                  slot: 10,
+                  ui: {
+                    name: "Palette 1",
+                    min: 0.0,
+                    max: 1.0,
+                  },                  
+                  value: [0.5, 0.5, 0.5],
+                  type: "vec3"
                 },
                 cosPalette2: {
                   location: cosPalette2Location,
-                  slot: 11
+                  slot: 11,
+                  ui: {
+                    name: "Palette 2",
+                    min: 0.0,
+                    max: 1.0,
+                  },   
+                  value: [0.5, 0.5, 0.5],
+                  type: "vec3"
                 },
                 cosPalette3: {
                   location: cosPalette3Location,
-                  slot: 12
+                  slot: 12,
+                  ui: {
+                    name: "Palette 3",
+                    min: 0.0,
+                    max: 1.0,
+                  },                  
+                  value: [1.0, 1.0, 1.0],
+                  type: "vec3"
                 },
                 cosPalette4: {
                   location: cosPalette4Location,
-                  slot: 13
+                  slot: 13,
+                  ui: {
+                    name: "Palette 4",
+                    min: 0.0,
+                    max: 1.0,
+                  },                  
+                  value: [0.0, 0.9, 0.9],
+                  type: "vec3"
                 }
             };
             return { program, attributes, uniforms } as ShaderProgram;
@@ -137,6 +187,11 @@ function create(gl: WebGL2RenderingContext, numParticles: number): Stage {
     const output = [
         createOutput(gl, width, height, "simulate_output_1"), 
         createOutput(gl, width, height, "simulate_output_2")] as BufferedStageOutput;
+    const uniforms = shaders.simulate!.uniforms;
+    const parameters = Object.keys(uniforms)
+      .map((k) => (uniforms[k]))
+      .filter((u: Uniform) => (!!u.ui));
+    parameters.sort((a: Uniform, b: Uniform) => (a.ui!.name.localeCompare(b.ui!.name)));
     return {
         name: "simulate",
         resources: {
@@ -146,6 +201,7 @@ function create(gl: WebGL2RenderingContext, numParticles: number): Stage {
         },
         input: null,
         targets: output[0].textures,
+        parameters,
     };
 }
 
@@ -189,14 +245,14 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform1i(u.colorTex.location, u.colorTex.slot);
     gl.uniform1i(u.propertiesTex.location, u.propertiesTex.slot);
 
-    gl.uniform4f(u.strokeNoise.location, 0.5, 0.1, 1.55, 0.33);
-    gl.uniform4f(u.strokeDrift.location, 0.03, 0.01, 0.1, 0.1);
-    gl.uniform4f(u.colorNoise.location, 0.1, 0.1, 0.001, 0.05);
+    gl.uniform4fv(u.strokeNoise.location, u.strokeNoise.value as number[]);
+    gl.uniform4fv(u.strokeDrift.location, u.strokeDrift.value as number[]);
+    gl.uniform4fv(u.colorNoise.location, u.colorNoise.value as number[]);
 
-    gl.uniform3fv(u.cosPalette1.location, [0.5, 0.5, 0.5]);
-    gl.uniform3fv(u.cosPalette2.location, [0.5, 0.5, 0.5]);
-    gl.uniform3fv(u.cosPalette3.location, [1.0, 1.0, 1.0]);
-    gl.uniform3fv(u.cosPalette4.location, [0.0, 0.9, 0.9]);
+    gl.uniform3fv(u.cosPalette1.location, u.cosPalette1.value as number[]);
+    gl.uniform3fv(u.cosPalette2.location, u.cosPalette2.value as number[]);
+    gl.uniform3fv(u.cosPalette3.location, u.cosPalette3.value as number[]);
+    gl.uniform3fv(u.cosPalette4.location, u.cosPalette4.value as number[]);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sources[0].texture);

@@ -2,7 +2,7 @@ import type { Buffers } from "./gl/buffers";
 import type { FrameBuffer } from "./gl/framebuffer";
 import type { ShaderPrograms } from "./gl/shaders";
 import type { Texture } from "./gl/textures";
-import type { Uniforms } from "./gl/uniforms";
+import type { Uniform, Uniforms } from "./gl/uniforms";
 
 type StageOutput = {
     name: string;
@@ -25,6 +25,7 @@ type Stage = {
     resources: Resources;
     input: Stage | null;
     targets: Texture[];
+    parameters: Uniform[];
 }
 
 export type { Stage, StageOutput, BufferedStageOutput, Resources };
