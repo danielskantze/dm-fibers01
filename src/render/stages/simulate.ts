@@ -216,7 +216,7 @@ function resize(gl: WebGL2RenderingContext, numParticles: number, stage: Stage) 
     stage.resources.output = output;
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, drawSize?: [number, number]) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: BufferedStageOutput };
     const { simulate } = shaders;
     const { quad } = buffers;
@@ -227,8 +227,8 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     const framebufferAttachments = Array.from({ length: targets.length }, (_, i) => getFramebufferAttachment(gl, i));
     const framebuffer = output[writeIndex].framebuffer!.framebuffer;
     const u = simulate.uniforms;
-
-    gl.viewport(0, 0, targets[0].width, targets[0].height); // all targets have the same size
+    const targetSize = drawSize ? drawSize : [targets[0].width, targets[0].height];
+    gl.viewport(0, 0, targetSize[0], targetSize[1]); // all targets have the same size
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -238,7 +238,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     
     gl.useProgram(simulate.program);
     gl.uniform1f(u.time.location, time);
-    gl.uniform2i(u.particlesTextureSize.location, sources[0].width, sources[0].height);
+    gl.uniform2i(u.particlesTextureSize.location, targetSize[0], targetSize[1]);
     gl.uniform2f(u.screenSize.location, gl.canvas.width, gl.canvas.height);
     gl.uniform1i(u.frame.location, frame);
     gl.uniform1i(u.positionTex.location, u.positionTex.slot);

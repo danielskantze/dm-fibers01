@@ -13,7 +13,7 @@ export const UniformComponents: Record<UniformType, number> = {
   int: 1
 };
 
-type UniformUI = {
+export type UniformUI = {
   name: string;
   min?: number;
   max?: number;

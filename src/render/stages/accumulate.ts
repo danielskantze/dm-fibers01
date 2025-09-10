@@ -50,7 +50,7 @@ function create(gl: WebGL2RenderingContext, input: Stage, width: number, height:
     const shaders = loadShaders(gl);
     const targetTexture = createTexture(gl, width, height, "RGBA");
     const framebuffer = createFrameBuffer(gl, width, height, [targetTexture]);
-
+    // Create flipflop age buffer, 1-channel texture
     return {
         name: "accumulate",
         resources: {

@@ -1,3 +1,5 @@
+import type { Uniform } from "../types/gl/uniforms";
+
 const VECTOR_COMPONENTS = ["x", "y", "z", "w"];
 
 function vecCompName(i: number) {
@@ -7,6 +9,11 @@ function vecCompName(i: number) {
   return VECTOR_COMPONENTS[i];
 }
 
+function sanitizeName(name: string) {
+  return name.toLowerCase().split(" ").join("-");
+}
+
+export type ControlFactoryUniform = Omit<Uniform, "location" | "slot">;
 class ControlFactory {
   private idSeq: number;
   private doc: HTMLDocument;
@@ -23,8 +30,11 @@ class ControlFactory {
     const label: HTMLLabelElement = this.doc.createElement("label");
     const input: HTMLInputElement = this.doc.createElement("input");
     const text: HTMLInputElement = this.doc.createElement("input");
+    const id: string = sanitizeName(name);
     text.setAttribute("disabled", "disabled");
     text.setAttribute("type", "text");
+    text.setAttribute("name", "d_" + id);
+    input.setAttribute("name", "r_" + id);
     this.idSeq++;
     input.type = "range";
     if (min !== undefined) {

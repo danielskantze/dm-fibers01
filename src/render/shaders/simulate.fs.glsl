@@ -27,6 +27,18 @@ layout(location = 0) out vec4 out_position;
 layout(location = 1) out vec4 out_color;
 layout(location = 2) out vec4 out_properties;
 
+// geometry texture 
+// - vec4 position (x, y)
+
+// color texture
+// - vec4 color (r, g, b, a)
+
+// properties texture
+// - float angle
+// - float radius
+// - float age
+// - float lifetime
+
 
 const uint k = 1103515245U;  // GLIB C
 
@@ -311,13 +323,20 @@ void main() {
       float p = clamp(properties.z / properties.w, 0.0, 1.0);
       float t = sinBounce(p);
 
-      color = colorAt(coord);
-      color.a = mix(color.a, color.a * 0.1, t);
+      float maxStroke = 1.5;
       position.xy = position.xy + step * max(1.0, properties.y * .25);
-      properties.y = properties.x * t; // radius
+      properties.y = properties.x * maxStroke * t; // radius
       properties.z = properties.z + max(1.0, properties.y * .25); // age
+
+      color = colorAt(coord);
+      //float tA = max(0.0, properties.y - 1.0) / maxStroke;
+      color.a = 0.1; //mix(color.a, 0.001, min(1.0, 2.0 * tA * tA));
     }
 
+    // - x - float angle (0-1)
+    // - y - float radius 
+    // - z - float age
+    // - w - float lifetime
 
     // Write the new data to the corresponding output variables
     out_position = position;
