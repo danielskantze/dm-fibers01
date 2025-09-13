@@ -1,12 +1,14 @@
 // TODO: Compose all input textures into a single texture
 import { createParticleBuffer } from "../../gl/buffers";
-import { createFrameBuffer } from "../../gl/framebuffers";
+import { createFrameBuffer, createMultisamplerFrameBuffer } from "../../gl/framebuffers";
 import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
-import type { Resources, Stage, StageOutput } from "../../types/stage";
+import type { MultiSampleAntiAlias, Resources, Stage, StageOutput } from "../../types/stage";
 import vShaderSource from "../shaders/accumulate.vs.glsl?raw";
 import fShaderSource from "../shaders/accumulate.fs.glsl?raw";
+import type { Texture } from "../../types/gl/textures";
+import { createRenderBuffer } from "../../gl/renderbuffer";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
@@ -16,6 +18,8 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const propertiesLocation = gl.getUniformLocation(program, "u_properties_texture");
             const screenSizeLocation = gl.getUniformLocation(program, "u_screen_size");
             const particlesTextureSizeLocation = gl.getUniformLocation(program, "u_particles_texture_size");
+            const frameLocation = gl.getUniformLocation(program, "u_frame");
+            const timeLocation = gl.getUniformLocation(program, "u_time");
             const attributes = {
                 index: gl.getAttribLocation(program, "a_index"),
             };
@@ -40,63 +44,117 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                     location: particlesTextureSizeLocation,
                     slot: 4,
                 },
+                frame: {
+                  location: frameLocation,
+                  slot: 5,
+                },
+                time: {
+                  location: timeLocation,
+                  slot: 6,
+                }
             };
             return { program, attributes, uniforms } as ShaderProgram;
         }),
     };
 }
 
-function create(gl: WebGL2RenderingContext, input: Stage, width: number, height: number, numParticles: number): Stage {
+function create(gl: WebGL2RenderingContext, input: Stage, width: number, height: number, numParticles: number, msaa?: number): Stage {
     const shaders = loadShaders(gl);
-    const targetTexture = createTexture(gl, width, height, "RGBA");
-    const framebuffer = createFrameBuffer(gl, width, height, [targetTexture]);
+    const output = createOutput(gl, width, height, "accumulate_output") as StageOutput;
+    const multisampler = msaa ? createMultisampler(gl, width, height, msaa) : undefined;
+    
+    // Clear the new framebuffer to a known state (0,0,0,0)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, output.framebuffer!.framebuffer);
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    
     // Create flipflop age buffer, 1-channel texture
     return {
         name: "accumulate",
         resources: {
             buffers: { particles: createParticleBuffer(gl, numParticles) },
             shaders,
-            output: {
-                name: "accumulate_output",
-                textures: [targetTexture],
-                framebuffer,
-            } as StageOutput,
+            output,
+            multisampler
         },
         input,
-        targets: [targetTexture],
+        targets: output.textures,
         parameters: [],
     };
 }
 
-function resize(gl: WebGL2RenderingContext, width: number, height: number, stage: Stage) {
-    const targetTexture = createTexture(gl, width, height, "RGBA");
-    const framebuffer = createFrameBuffer(gl, width, height, [targetTexture]);
-    const output = stage.resources.output as StageOutput;
-    output.framebuffer = framebuffer;
-    stage.targets[0] = targetTexture;
+function createTargetTextures(gl: WebGL2RenderingContext, width: number, height: number): Texture[] {
+    const mainTexture = createTexture(gl, width, height, "RGBA");
+    const startTimeTexture = createTexture(gl, width, height, "R32F", "updated_time", true); 
+    const targetTextures = [
+        mainTexture,
+        startTimeTexture,
+    ];
+    return targetTextures;
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, numParticles: number) {
+function createOutput(gl: WebGL2RenderingContext, width: number, height: number, name: string) {
+    const textures = createTargetTextures(gl, width, height);
+    const framebuffer = createFrameBuffer(gl, width, height, textures);
+    return { name, textures, framebuffer} as StageOutput;
+}
+
+function createMultisampler(gl: WebGL2RenderingContext, width: number, height: number, samples: number) {
+    const renderbuffer = createRenderBuffer(gl, samples, gl.RGBA8, width, height);
+    const framebuffer = createMultisamplerFrameBuffer(gl, width, height, renderbuffer);
+    const multisampler: MultiSampleAntiAlias = {
+        samples,
+        internalformat: gl.RGBA8,
+        width,
+        height,
+        renderbuffer,
+        framebuffer,
+    }
+    return multisampler;
+}
+
+
+function resize(gl: WebGL2RenderingContext, width: number, height: number, stage: Stage) {
+    const output = createOutput(gl, width, height, "accumulate_output");
+    stage.resources.multisampler?.samples
+    if (stage.resources.multisampler) {
+        const multisampler = createMultisampler(gl, width, height, stage.resources.multisampler.samples);
+        stage.resources.multisampler = multisampler;
+    }
+    stage.resources.output = output;
+
+    // Clear the new framebuffer to a known state (0,0,0,0)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, output.framebuffer!.framebuffer);
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
+function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, numParticles: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
     const { accumulate } = shaders;
     const { particles } = buffers;
+
+    const framebuffer = output.framebuffer!.framebuffer;
     const u = accumulate.uniforms;
     const input = stage.input!;
-    gl.viewport(0, 0, stage.targets[0].width, stage.targets[0].height);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, output.framebuffer!.framebuffer);
-
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
+    // --- Common Setup for Both Passes ---
     gl.useProgram(accumulate.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, particles);
-
+    gl.viewport(0, 0, stage.targets[0].width, stage.targets[0].height);
+    
+    // Bind textures and set uniforms once
     gl.uniform1i(u.positionTex.location, u.positionTex.slot);
     gl.uniform1i(u.colorTex.location, u.colorTex.slot);
     gl.uniform1i(u.propertiesTex.location, u.propertiesTex.slot);
     gl.uniform2f(u.screenSize.location, stage.targets[0].width, stage.targets[0].height);
     gl.uniform2i(u.particlesTextureSize.location, input.targets[0].width, input.targets[0].height);
+    gl.uniform1i(u.frame.location, frame);
+    gl.uniform1f(u.time.location, time);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[0].texture);
@@ -107,9 +165,46 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, numParticles: number) {
 
     gl.enableVertexAttribArray(accumulate.attributes.index);
     gl.vertexAttribIPointer(accumulate.attributes.index, 1, gl.INT, 0, 0);
-    gl.drawArrays(gl.POINTS, 0, numParticles);
     
+    if (stage.resources.multisampler) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, stage.resources.multisampler.framebuffer.framebuffer);
+    } else {
+        //gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    }
+    // --- Pass 1: Draw Colors (with blending) ---
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0,  gl.NONE]);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.drawArrays(gl.POINTS, 0, numParticles);
+
+    if (stage.resources.multisampler) {
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, stage.resources.multisampler.framebuffer.framebuffer);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer);
+        gl.readBuffer(gl.COLOR_ATTACHMENT0);
+        gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+        gl.blitFramebuffer(
+            0, 
+            0, 
+            stage.targets[0].width, 
+            stage.targets[0].height, 
+            0, 
+            0, 
+            stage.targets[0].width, 
+            stage.targets[0].height, 
+            gl.COLOR_BUFFER_BIT, 
+            gl.NEAREST);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    } 
+
+    // --- Pass 2: Draw Update Times (no blending) ---
+    gl.drawBuffers([ gl.NONE, gl.COLOR_ATTACHMENT1]);
     gl.disable(gl.BLEND);
+    gl.drawArrays(gl.POINTS, 0, numParticles);
+
+    // --- Cleanup ---
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.useProgram(null);
 }

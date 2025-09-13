@@ -11,6 +11,9 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
         display: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
             const location = gl.getUniformLocation(program, "tex");
+            const updatedLocation = gl.getUniformLocation(program, "updated_tex");
+            const frameLocation = gl.getUniformLocation(program, "u_frame");
+            const timeLocation = gl.getUniformLocation(program, "u_time");
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
             };
@@ -19,6 +22,18 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                     location,
                     slot: 0,
                 },
+                updatedTex: {
+                  location: updatedLocation,
+                  slot: 1
+                },
+                frame: {
+                  location: frameLocation,
+                  slot: 2,
+                },
+                time: {
+                  location: timeLocation,
+                  slot: 3,
+                }
             };
             return { program, attributes, uniforms } as ShaderProgram;
         }),
@@ -59,18 +74,26 @@ function resize(gl: WebGL2RenderingContext, stage: Stage) {
     stage.targets[0] = targetTexture;
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
     const { display } = shaders;
     const { quad } = buffers;
-    const { tex } = display.uniforms;
+    const { tex, updatedTex } = display.uniforms;
     const input = stage.input!;
     gl.viewport(0, 0, input.targets[0].width, input.targets[0].height);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
     gl.useProgram(display.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
     gl.activeTexture(gl.TEXTURE0);
     gl.uniform1i(tex.location, tex.slot);
+    gl.uniform1i(updatedTex.location, updatedTex.slot);
+    gl.uniform1i(display.uniforms.frame.location, frame);
+    gl.uniform1f(display.uniforms.time.location, time);
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[0].texture);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, input.targets[1].texture);
     gl.enableVertexAttribArray(display.attributes.position);
     gl.vertexAttribPointer(display.attributes.position, 2, gl.FLOAT, false, 0, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, output.framebuffer!.framebuffer);

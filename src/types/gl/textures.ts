@@ -1,4 +1,4 @@
-type TextureType = "RGB" | "RGBA" | "RGBA32F";
+type TextureType = "RGB" | "RGBA" | "RGBA32F" | "R32F";
 
 type Texture = {
     name: string;

@@ -76,10 +76,11 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const ext = gl.getExtension("EXT_color_buffer_float");
   if (!ext) {
     throw new WebGLTextureError("This browser does not support rendering to float textures");
-  }  
+  }
   const simulateStage = stage_simulate.create(gl, maxNumParticles);
   //const testStage = stage_test.create(gl, canvas.width, canvas.height);
-  const accumulateStage = stage_accumulate.create(gl, simulateStage, canvas.width, canvas.height, maxNumParticles);
+  const msaa = undefined; //4;
+  const accumulateStage = stage_accumulate.create(gl, simulateStage, canvas.width, canvas.height, maxNumParticles, msaa);
   const postStage = stage_post.create(gl, accumulateStage);
   const displayStage = stage_display.create(gl, postStage);
   
@@ -90,13 +91,13 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       return;
     }
     const time = elapsedTime + (performance.now() - startTime) / 1000;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 4; i++) {
       const numParticles = numParticlesParam.value as number;
       const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
       stage_simulate.draw(gl, simulateStage, time, frame, drawSize);
       // stage_test.draw(gl, testStage);
-      stage_accumulate.draw(gl, accumulateStage, numParticles);
-      stage_post.draw(gl, postStage);
+      stage_accumulate.draw(gl, accumulateStage, time, frame, numParticles);
+      stage_post.draw(gl, postStage, time, frame);
       stage_display.draw(gl, displayStage);
       frame++;
     }
@@ -132,15 +133,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 export default main;
 
 // TODO:
-// - Add UI for tweaking
-//     * Clear button
-//     * Seed
-//     * Num particles
-//     * Control palette (initally cosine palette params, later types)
-//     * Strokes: Scale & drift
-//     * Coloring: Scale & drift
 
-// Implementation steps:
-// 1. Implement uniforms for all props and set from typescript code
-// 2. Implement simple ui (test realtime changes)
-// 3. Implement fancy ui
+// Add pulsating number of particles
+// Consider adding LFOs
+// Ensure strokes starts with alpha

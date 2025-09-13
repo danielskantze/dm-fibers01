@@ -1,5 +1,6 @@
 import type { Buffers } from "./gl/buffers";
-import type { FrameBuffer } from "./gl/framebuffer";
+import type { FrameBuffer, MultisamplerFrameBuffer } from "./gl/framebuffer";
+import type { RenderBuffer } from "./gl/renderbuffer";
 import type { ShaderPrograms } from "./gl/shaders";
 import type { Texture } from "./gl/textures";
 import type { Uniform, Uniforms } from "./gl/uniforms";
@@ -12,10 +13,20 @@ type StageOutput = {
 
 type BufferedStageOutput = StageOutput[];
 
+type MultiSampleAntiAlias = {
+    samples: number;
+    internalformat: GLenum;
+    width: number;
+    height: number;
+    renderbuffer: RenderBuffer;
+    framebuffer: MultisamplerFrameBuffer;
+}
+
 
 type Resources = {
     buffers: Buffers;
     output?: StageOutput | BufferedStageOutput;
+    multisampler?: MultiSampleAntiAlias;
     shaders: ShaderPrograms;
     uniforms?: Uniforms;
 }
@@ -28,4 +39,4 @@ type Stage = {
     parameters: Uniform[];
 }
 
-export type { Stage, StageOutput, BufferedStageOutput, Resources };
+export type { Stage, StageOutput, BufferedStageOutput, Resources, MultiSampleAntiAlias };

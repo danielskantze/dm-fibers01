@@ -1,5 +1,6 @@
 import { WebGLFrameBufferError, WebGLInvalidIndexError } from "../types/error";
-import type { FrameBuffer } from "../types/gl/framebuffer";
+import type { FrameBuffer, MultisamplerFrameBuffer } from "../types/gl/framebuffer";
+import type { RenderBuffer } from "../types/gl/renderbuffer";
 import type { Texture } from "../types/gl/textures";
 
 // It is probaly safe to just add the index to COLOR_ATTACHMENT0, 
@@ -51,4 +52,17 @@ function createFrameBuffer(gl: WebGL2RenderingContext, width: number, height: nu
     }
 }
 
-export { createFrameBuffer, getFramebufferAttachment };
+function createMultisamplerFrameBuffer(gl: WebGL2RenderingContext, width: number, height: number, renderbuffer: RenderBuffer): MultisamplerFrameBuffer {
+    const framebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer.buffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    return {
+        width,
+        height,
+        framebuffer,
+        renderbuffer,
+    };
+}
+
+export { createFrameBuffer, getFramebufferAttachment, createMultisamplerFrameBuffer };

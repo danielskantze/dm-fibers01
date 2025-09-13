@@ -238,7 +238,7 @@ float angleAt_old(vec2 coord) {
 
 float angleAt(vec2 coord) {
   //vec2 scale = vec2(1.25, .33);
-  float bt = sinBounce(u_time);
+  float bt = sinBounce(u_time * 0.1);
   float scaleFactor = u_stroke_noise_p.x + u_stroke_noise_p.y * bt; //0.2;
   float driftFactor = u_stroke_drift_p.x + u_stroke_drift_p.y * bt; //0.1;
   vec2 scale = vec2(u_stroke_noise_p.z, u_stroke_noise_p.w) * scaleFactor;
@@ -248,9 +248,9 @@ float angleAt(vec2 coord) {
   );
   vec2 p = vec2(coord + drift) * scale;
   return gnoise(vec3(
-    fbm(p),
-    fbm(p + vec2(5.2 + 0.01 * bt)),
-    u_time * 0.11
+    p.x + 0.5 * fbm(p),
+    p.y + 0.5 * fbm(p + vec2(.1) * bt),
+    u_time * 0.05
   ));
 }
 
@@ -279,7 +279,7 @@ vec4 colorAt(vec2 coord) {
       vec2(px, py),
       u_time * u_color_noise_p.w
     ))),
-    alpha * 0.1
+    alpha * 0.025
   );
 }
 
@@ -304,7 +304,7 @@ void main() {
     // position need to provide coordinates in clip space (-1.0 to 1.0)
     if (u_frame == 0 || properties.z > properties.w || !boundsCheck(position.xy)) {
       // new particle
-      float lifetime = (hash12(coord) * 512.0 + 512.0) * 10.0;
+      float lifetime = (hash12(coord) * 512.0 + 256.0) * 3.0;
       float age = 0.0;
       properties = vec4(
         radius * hash12(coord + vec2(u_time, 0.0)),
@@ -319,18 +319,18 @@ void main() {
     } else {
       // existing particle
       float angle = angleAt(position.xy);
-      vec2 step = vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
+      vec2 step = 1.0 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
       float p = clamp(properties.z / properties.w, 0.0, 1.0);
       float t = sinBounce(p);
 
-      float maxStroke = 1.5;
-      position.xy = position.xy + step * max(1.0, properties.y * .25);
-      properties.y = properties.x * maxStroke * t; // radius
+      float maxStroke = 2.5;
+      position.xy = position.xy + step; //* max(1.0, properties.y * .25);
+      properties.y = max(properties.x * maxStroke * t, 2.0); // radius
       properties.z = properties.z + max(1.0, properties.y * .25); // age
 
       color = colorAt(coord);
-      //float tA = max(0.0, properties.y - 1.0) / maxStroke;
-      color.a = 0.1; //mix(color.a, 0.001, min(1.0, 2.0 * tA * tA));
+      float tA = pow(t, 0.33);
+      color.a = mix(0.0, 1.0, tA);
     }
 
     // - x - float angle (0-1)
