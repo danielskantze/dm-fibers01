@@ -133,7 +133,7 @@ function resize(gl: WebGL2RenderingContext, width: number, height: number, stage
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, numParticles: number) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, numParticles: number, overwrite: boolean = false) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
     const { accumulate } = shaders;
     const { particles } = buffers;
@@ -173,16 +173,22 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     }
     // --- Pass 1: Draw Colors (with blending) ---
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0,  gl.NONE]);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+//    gl.enable(gl.BLEND);
+//    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.NONE]);
+    gl.disable(gl.BLEND);
+    if (overwrite) {
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+
     gl.drawArrays(gl.POINTS, 0, numParticles);
 
     if (stage.resources.multisampler) {
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, stage.resources.multisampler.framebuffer.framebuffer);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer);
         gl.readBuffer(gl.COLOR_ATTACHMENT0);
-        gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+        gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.NONE]);
         gl.blitFramebuffer(
             0, 
             0, 

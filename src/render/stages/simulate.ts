@@ -21,6 +21,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const screenSizeLocation = gl.getUniformLocation(program, "u_screen_size");
             const frameLocation = gl.getUniformLocation(program, "u_frame");
 
+            const maxRadiusPLocation = gl.getUniformLocation(program, "u_max_radius");
             const strokeNoisePLocation = gl.getUniformLocation(program, "u_stroke_noise_p");
             const strokeDriftPLocation = gl.getUniformLocation(program, "u_stroke_drift_p");
             const colorNoisePLocation = gl.getUniformLocation(program, "u_color_noise_p");
@@ -60,7 +61,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 frame: {
                     location: frameLocation,
                     slot: 6,
-                },                
+                },           
                 strokeNoise: {
                   location: strokeNoisePLocation,
                   slot: 7,
@@ -137,6 +138,17 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                   },                  
                   value: [0.0, 0.9, 0.9],
                   type: "vec3"
+                },
+                maxRadius: {
+                  location: maxRadiusPLocation,
+                  slot: 14,
+                  ui: {
+                    name: "Max Radius",
+                    min: 0.5,
+                    max: 50.0,
+                  },
+                  value: 2.0,
+                  type: "float"
                 }
             };
             return { program, attributes, uniforms } as ShaderProgram;
@@ -244,6 +256,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform1i(u.positionTex.location, u.positionTex.slot);
     gl.uniform1i(u.colorTex.location, u.colorTex.slot);
     gl.uniform1i(u.propertiesTex.location, u.propertiesTex.slot);
+    gl.uniform1f(u.maxRadius.location, u.maxRadius.value as number);
 
     gl.uniform4fv(u.strokeNoise.location, u.strokeNoise.value as number[]);
     gl.uniform4fv(u.strokeDrift.location, u.strokeDrift.value as number[]);

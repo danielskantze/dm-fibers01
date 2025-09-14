@@ -48,8 +48,9 @@ function draw(gl: WebGL2RenderingContext, stage: Stage) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE);
+    //gl.enable(gl.BLEND);
+    gl.disable(gl.BLEND);
+    //gl.blendFunc(gl.ONE, gl.ONE);
 
     gl.useProgram(display.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);

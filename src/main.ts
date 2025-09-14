@@ -60,6 +60,15 @@ function createUIParameter(type: UniformType, value: number | number[], ui: Unif
   return { type, value, ui };
 }
 
+function logDebug(text: string, force: boolean = false) {
+  const debug = document.getElementById("debug")!;
+  if (!force) {
+    debug.innerHTML += text + "<br>";
+  } else {
+    debug.innerHTML = text;
+  }
+}
+
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   configureCanvas(canvas);
   let isRunning = true;
@@ -70,6 +79,12 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     name: "Particles",
     min: 10,
     max: maxNumParticles
+  });
+  let accumulateParam = createUIParameter("int", 1, {
+    name: "Accumulate",
+    min: 0,
+    step: 1,
+    max: 1
   });
   const controlFactory = new ControlFactory(document, controls);
   const gl = canvas.getContext("webgl2")!
@@ -91,12 +106,12 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       return;
     }
     const time = elapsedTime + (performance.now() - startTime) / 1000;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       const numParticles = numParticlesParam.value as number;
       const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
       stage_simulate.draw(gl, simulateStage, time, frame, drawSize);
       // stage_test.draw(gl, testStage);
-      stage_accumulate.draw(gl, accumulateStage, time, frame, numParticles);
+      stage_accumulate.draw(gl, accumulateStage, time, frame, numParticles, accumulateParam.value as number === 0);
       stage_post.draw(gl, postStage, time, frame);
       stage_display.draw(gl, displayStage);
       frame++;
@@ -112,7 +127,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     stage_post.resize(gl, postStage);
   }
 
-  createUi(controlFactory, [numParticlesParam, ...simulateStage.parameters], 
+  createUi(controlFactory, [numParticlesParam, accumulateParam, ...simulateStage.parameters], 
     () => { resize(); }, 
     () => {
       isRunning = !isRunning;
@@ -126,7 +141,6 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   );
 
   window.addEventListener("resize", resize);
-
   draw();
 }
 

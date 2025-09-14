@@ -8,6 +8,7 @@ precision highp float;
 uniform ivec2 u_particles_texture_size;
 uniform vec2 u_screen_size;
 uniform float u_time;
+uniform float u_max_radius;
 uniform int u_frame;
 
 uniform vec4 u_stroke_noise_p;
@@ -290,7 +291,6 @@ bool boundsCheck(vec2 position) {
 void main() {
     vec2 textureSize = vec2(u_particles_texture_size);
     vec2 coord = gl_FragCoord.xy / textureSize;
-    float radius = 3.5;
     vec4 position;
     vec4 color;
     vec4 properties;
@@ -306,16 +306,17 @@ void main() {
       // new particle
       float lifetime = (hash12(coord) * 512.0 + 256.0) * 3.0;
       float age = 0.0;
+      position = vec4(
+        hash22(100.0 * coord) * 2.0 - 1.0, 
+        0, 
+        1.0);      
       properties = vec4(
-        radius * hash12(coord + vec2(u_time, 0.0)),
+        hash12(coord) * u_max_radius,
         0.0,
         age, 
         lifetime
       );
-      position = vec4(
-        hash22(100.0 * coord) * 2.0 - 1.0, 
-        0, 
-        1.0);
+
     } else {
       // existing particle
       float angle = angleAt(position.xy);
@@ -323,9 +324,8 @@ void main() {
       float p = clamp(properties.z / properties.w, 0.0, 1.0);
       float t = sinBounce(p);
 
-      float maxStroke = 2.5;
       position.xy = position.xy + step; //* max(1.0, properties.y * .25);
-      properties.y = max(properties.x * maxStroke * t, 2.0); // radius
+      properties.y = max(properties.x * t, 1.0); // radius
       properties.z = properties.z + max(1.0, properties.y * .25); // age
 
       color = colorAt(coord);
