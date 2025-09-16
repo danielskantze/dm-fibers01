@@ -7,4 +7,6 @@ uniform sampler2D tex;
 
 void main() {
     out_color = texture(tex, v_texcoord);
+    out_color.rgb = out_color.rgb * out_color.a;
+    out_color.a = 1.0;
 }
