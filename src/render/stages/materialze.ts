@@ -133,7 +133,7 @@ function resize(gl: WebGL2RenderingContext, width: number, height: number, stage
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, numParticles: number, overwrite: boolean = false) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, numParticles: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
     const { materialize } = shaders;
     const { particles } = buffers;

@@ -4,7 +4,7 @@ import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Resources, Stage, StageOutput } from "../../types/stage";
-import fShaderSource from "../shaders/post.fs.glsl?raw";
+import fShaderSource from "../shaders/accumulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
@@ -46,13 +46,13 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
     const targetTexture = createTexture(gl, width, height, "RGBA");
     const framebuffer = createFrameBuffer(gl, width, height, [targetTexture]);
     const output = {
-        name: "post_output",
+        name: "accumulate_output",
         textures: [targetTexture],
         framebuffer,
     } as StageOutput;
 
     return {
-        name: "post",
+        name: "accumulate",
         resources: {
             buffers: { quad: createQuad(gl) },
             shaders,
