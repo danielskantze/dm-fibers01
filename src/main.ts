@@ -2,7 +2,7 @@
 import * as stage_display from "./render/stages/display";
 import * as stage_post from "./render/stages/post";
 import * as stage_simulate from "./render/stages/simulate";
-import * as stage_accumulate from "./render/stages/accumulate";
+import * as stage_materialize from "./render/stages/materialze";
 import { WebGLTextureError } from "./types/error";
 import { UniformComponents, type UniformType, type UniformUI } from "./types/gl/uniforms";
 import ControlFactory, { type ControlFactoryUniform } from "./ui/controls";
@@ -99,8 +99,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const simulateStage = stage_simulate.create(gl, maxNumParticles);
   //const testStage = stage_test.create(gl, canvas.width, canvas.height);
   const msaa = undefined;
-  const accumulateStage = stage_accumulate.create(gl, simulateStage, canvas.width, canvas.height, maxNumParticles, msaa);
-  const postStage = stage_post.create(gl, accumulateStage);
+  const materializeStage = stage_materialize.create(gl, simulateStage, canvas.width, canvas.height, maxNumParticles, msaa);
+  const postStage = stage_post.create(gl, materializeStage);
   const displayStage = stage_display.create(gl, postStage);
   
   let frame = 0;
@@ -115,7 +115,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
       stage_simulate.draw(gl, simulateStage, time, frame, drawSize);
       // stage_test.draw(gl, testStage);
-      stage_accumulate.draw(gl, accumulateStage, time, frame, numParticles, accumulateParam.value as number === 0);
+      stage_materialize.draw(gl, materializeStage, time, frame, numParticles, accumulateParam.value as number === 0);
       stage_post.draw(gl, postStage, time, frame);
       stage_display.draw(gl, displayStage);
       frame++;
@@ -127,7 +127,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   function resize() {
     configureCanvas(canvas);
-    stage_accumulate.resize(gl, canvas.width, canvas.height, accumulateStage);
+    stage_materialize.resize(gl, canvas.width, canvas.height, materializeStage);
     stage_post.resize(gl, postStage);
   }
 
