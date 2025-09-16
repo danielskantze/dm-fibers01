@@ -5,14 +5,14 @@ import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { MultiSampleAntiAlias, Resources, Stage, StageOutput } from "../../types/stage";
-import vShaderSource from "../shaders/accumulate.vs.glsl?raw";
-import fShaderSource from "../shaders/accumulate.fs.glsl?raw";
+import vShaderSource from "../shaders/materialize.vs.glsl?raw";
+import fShaderSource from "../shaders/materialize.fs.glsl?raw";
 import type { Texture } from "../../types/gl/textures";
 import { createRenderBuffer } from "../../gl/renderbuffer";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
-        accumulate: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
+        materialize: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
             const positionLocation = gl.getUniformLocation(program, "u_position_texture");
             const colorLocation = gl.getUniformLocation(program, "u_color_texture");
             const propertiesLocation = gl.getUniformLocation(program, "u_properties_texture");
@@ -60,7 +60,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
 
 function create(gl: WebGL2RenderingContext, input: Stage, width: number, height: number, numParticles: number, msaa?: number): Stage {
     const shaders = loadShaders(gl);
-    const output = createOutput(gl, width, height, "accumulate_output") as StageOutput;
+    const output = createOutput(gl, width, height, "materialize_output") as StageOutput;
     const multisampler = msaa ? createMultisampler(gl, width, height, msaa) : undefined;
     
     // Clear the new framebuffer to a known state (0,0,0,0)
@@ -72,7 +72,7 @@ function create(gl: WebGL2RenderingContext, input: Stage, width: number, height:
     
     // Create flipflop age buffer, 1-channel texture
     return {
-        name: "accumulate",
+        name: "materialize",
         resources: {
             buffers: { particles: createParticleBuffer(gl, numParticles) },
             shaders,
@@ -117,7 +117,7 @@ function createMultisampler(gl: WebGL2RenderingContext, width: number, height: n
 
 
 function resize(gl: WebGL2RenderingContext, width: number, height: number, stage: Stage) {
-    const output = createOutput(gl, width, height, "accumulate_output");
+    const output = createOutput(gl, width, height, "materialize_output");
     stage.resources.multisampler?.samples
     if (stage.resources.multisampler) {
         const multisampler = createMultisampler(gl, width, height, stage.resources.multisampler.samples);
@@ -135,15 +135,15 @@ function resize(gl: WebGL2RenderingContext, width: number, height: number, stage
 
 function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, numParticles: number, overwrite: boolean = false) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
-    const { accumulate } = shaders;
+    const { materialize } = shaders;
     const { particles } = buffers;
 
     const framebuffer = output.framebuffer!.framebuffer;
-    const u = accumulate.uniforms;
+    const u = materialize.uniforms;
     const input = stage.input!;
 
     // --- Common Setup for Both Passes ---
-    gl.useProgram(accumulate.program);
+    gl.useProgram(materialize.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, particles);
     gl.viewport(0, 0, stage.targets[0].width, stage.targets[0].height);
     
@@ -163,8 +163,8 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[2].texture);
 
-    gl.enableVertexAttribArray(accumulate.attributes.index);
-    gl.vertexAttribIPointer(accumulate.attributes.index, 1, gl.INT, 0, 0);
+    gl.enableVertexAttribArray(materialize.attributes.index);
+    gl.vertexAttribIPointer(materialize.attributes.index, 1, gl.INT, 0, 0);
     
     if (stage.resources.multisampler) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, stage.resources.multisampler.framebuffer.framebuffer);
