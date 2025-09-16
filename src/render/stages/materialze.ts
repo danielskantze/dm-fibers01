@@ -172,15 +172,10 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
         //gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     }
-    // --- Pass 1: Draw Colors (with blending) ---
-//    gl.enable(gl.BLEND);
-//    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.NONE]);
     gl.disable(gl.BLEND);
-    if (overwrite) {
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-    }
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.drawArrays(gl.POINTS, 0, numParticles);
 
@@ -202,13 +197,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
             gl.NEAREST);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     } 
-
-    // --- Pass 2: Draw Update Times (no blending) ---
-    gl.drawBuffers([ gl.NONE, gl.COLOR_ATTACHMENT1]);
-    gl.disable(gl.BLEND);
-    gl.drawArrays(gl.POINTS, 0, numParticles);
 
     // --- Cleanup ---
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
