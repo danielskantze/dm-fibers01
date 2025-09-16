@@ -274,13 +274,13 @@ vec4 colorAt(vec2 coord) {
   float px = drift + cscale * coord.x;
   float py = drift + cscale * coord.y;
   //float alpha = fbm(vec2(px + 49.9 * 2.0, py + 29.5 * 1.9));
-  float alpha = hash12(vec2(px, py));
+  //float alpha = hash12(vec2(px, py));
   return vec4(
     palette1(gnoise(vec3(
       vec2(px, py),
       u_time * u_color_noise_p.w
     ))),
-    alpha * 0.025
+    1.0
   );
 }
 
