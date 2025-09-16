@@ -19,7 +19,8 @@ void main() {
     float dist = distance(gl_PointCoord, vec2(0.5));
     if (dist < 0.5) {
         float a = smoothstep(1.0, 0.0, max(0.0, dist - 0.49));
-        out_color = vec4(color.xyz, color.a * a);
+        //out_color = vec4(color.rgb, color.a * a);
+        out_color = vec4(color.rgb, color.a * a);
         out_last_changed = u_time;
     } else {
         discard;

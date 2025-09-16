@@ -98,7 +98,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   }
   const simulateStage = stage_simulate.create(gl, maxNumParticles);
   //const testStage = stage_test.create(gl, canvas.width, canvas.height);
-  const msaa = undefined;
+  const msaa = undefined
   const materializeStage = stage_materialize.create(gl, simulateStage, canvas.width, canvas.height, maxNumParticles, msaa);
   const accumulateStage = stage_accumulate.create(gl, materializeStage);
   const displayStage = stage_display.create(gl, accumulateStage);

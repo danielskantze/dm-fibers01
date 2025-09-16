@@ -165,39 +165,48 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
 
     gl.enableVertexAttribArray(materialize.attributes.index);
     gl.vertexAttribIPointer(materialize.attributes.index, 1, gl.INT, 0, 0);
+    gl.disable(gl.BLEND);
     
     if (stage.resources.multisampler) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, stage.resources.multisampler.framebuffer.framebuffer);
-    } else {
-        //gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        // MSAA path
+
+        // 0. Clear output FBO
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-    }
-    gl.disable(gl.BLEND);
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.drawArrays(gl.POINTS, 0, numParticles);
+        // 1. Draw timestamps to output FBO
+        gl.drawBuffers([gl.NONE, gl.COLOR_ATTACHMENT1]);
+        gl.drawArrays(gl.POINTS, 0, numParticles);
 
-    if (stage.resources.multisampler) {
+        // 2. Draw color to multisample FBO
+        gl.bindFramebuffer(gl.FRAMEBUFFER, stage.resources.multisampler.framebuffer.framebuffer);
+        gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.NONE]);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0); // black background for particles
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.POINTS, 0, numParticles);
+
+        // 3. Resolve multisample FBO to output FBO's color texture
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, stage.resources.multisampler.framebuffer.framebuffer);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer);
         gl.readBuffer(gl.COLOR_ATTACHMENT0);
         gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.NONE]);
         gl.blitFramebuffer(
-            0, 
-            0, 
-            stage.targets[0].width, 
-            stage.targets[0].height, 
-            0, 
-            0, 
-            stage.targets[0].width, 
-            stage.targets[0].height, 
-            gl.COLOR_BUFFER_BIT, 
-            gl.NEAREST);
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
-    } 
+            0, 0, stage.targets[0].width, stage.targets[0].height,
+            0, 0, stage.targets[0].width, stage.targets[0].height,
+            gl.COLOR_BUFFER_BIT,
+            gl.NEAREST
+        );
+
+    } else {
+        // Non-MSAA path
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.POINTS, 0, numParticles);
+    }
 
     // --- Cleanup ---
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);

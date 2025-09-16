@@ -273,14 +273,14 @@ vec4 colorAt(vec2 coord) {
   float drift = u_time * u_color_noise_p.z;
   float px = drift + cscale * coord.x;
   float py = drift + cscale * coord.y;
-  //float alpha = fbm(vec2(px + 49.9 * 2.0, py + 29.5 * 1.9));
+  float alpha = fbm(vec2(px + 49.9 * 2.0, py + 29.5 * 1.9));
   //float alpha = hash12(vec2(px, py));
   return vec4(
     palette1(gnoise(vec3(
       vec2(px, py),
       u_time * u_color_noise_p.w
     ))),
-    1.0
+    1.0 //alpha
   );
 }
 
@@ -320,7 +320,7 @@ void main() {
     } else {
       // existing particle
       float angle = angleAt(position.xy);
-      vec2 step = 1.0 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
+      vec2 step = 1.5 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
       float p = clamp(properties.z / properties.w, 0.0, 1.0);
       float t = sinBounce(p);
 
@@ -330,7 +330,7 @@ void main() {
 
       color = colorAt(coord);
       float tA = pow(t, 0.33);
-      color.a = mix(0.0, 1.0, tA);
+      color.a = mix(0.0, 1.0, color.a * tA);
     }
 
     // - x - float angle (0-1)
