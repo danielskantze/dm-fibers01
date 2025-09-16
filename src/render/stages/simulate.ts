@@ -143,7 +143,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                   location: maxRadiusPLocation,
                   slot: 14,
                   ui: {
-                    name: "Max Radius",
+                    name: "Radius",
                     min: 0.5,
                     max: 50.0,
                   },
