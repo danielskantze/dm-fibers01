@@ -13,7 +13,7 @@ uniform float u_time;
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_updated;
 
-const float fade_time = 3.0;
+const float fade_time = 2.0;
 
 void main() {
   vec4 p_color = texelFetch(previous_color_tex, ivec2(gl_FragCoord.xy), 0);
@@ -22,6 +22,7 @@ void main() {
   vec4 updated = texelFetch(stamp_updated_tex, ivec2(gl_FragCoord.xy), 0);
 
   float p_i = clamp(1.0 - (u_time - p_updated.x) / fade_time, 0.0, 1.0);
+  p_i = smoothstep(0.0, 1.0, p_i);
   float c_i = u_time - updated.x;
   out_color = c_i < 0.1 ? 
     p_color * vec4(1.0 - color.a) * p_i + vec4(color.rgb * color.a, 1.0) :
