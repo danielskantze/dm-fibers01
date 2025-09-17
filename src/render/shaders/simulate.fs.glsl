@@ -290,14 +290,15 @@ vec4 colorAt(vec2 coord) {
   float drift = u_time * u_color_noise_p.z;
   float px = drift + cscale * coord.x;
   float py = drift + cscale * coord.y;
+  float alpha = 0.001 + hash12(coord) * 0.02;
+  float darken = 0.25 + hash12(coord);
+
   vec3 color = vec3(
     palette1(gnoise(vec3(
       vec2(px, py),
-      u_time * u_color_noise_p.w
+      u_time * u_color_noise_p.w + darken * 0.75
     )))
   );
-  float alpha = 0.001 + hash12(coord) * 0.02;
-  float darken = 0.25 + hash12(coord);
   color = clamp(mix(color, normalize(color), 0.5) * darken, 0.0, 1.0);
   // avoid strokes becoming too dark by normalizing the color
   return vec4(color, alpha);
