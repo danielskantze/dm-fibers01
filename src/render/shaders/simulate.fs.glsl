@@ -251,8 +251,25 @@ float angleAt(vec2 coord) {
   return gnoise(vec3(
     p.x + 0.5 * fbm(p),
     p.y + 0.5 * fbm(p + vec2(.1) * bt),
-    u_time * 0.05
+    u_time * .05
   ));
+}
+
+mat4 rotationMatrix(vec3 axis, float angle) {
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+vec3 rotate(vec3 v, vec3 axis, float angle) {
+	mat4 m = rotationMatrix(axis, angle);
+	return (m * vec4(v, 1.0)).xyz;
 }
 
 vec3 palette1(float t) {
@@ -260,7 +277,7 @@ vec3 palette1(float t) {
     u_cos_palette_1,
     u_cos_palette_2,
     u_cos_palette_3,
-    u_cos_palette_4
+    rotate(u_cos_palette_4, vec3(sinBounce(u_time * 0.0007), 0.2, 1.0), u_time * 0.0025)
   );
 }
 
@@ -273,15 +290,17 @@ vec4 colorAt(vec2 coord) {
   float drift = u_time * u_color_noise_p.z;
   float px = drift + cscale * coord.x;
   float py = drift + cscale * coord.y;
-  float alpha = fbm(vec2(px + 49.9 * 2.0, py + 29.5 * 1.9));
-  //float alpha = hash12(vec2(px, py));
-  return vec4(
+  vec3 color = vec3(
     palette1(gnoise(vec3(
       vec2(px, py),
       u_time * u_color_noise_p.w
-    ))),
-    1.0 //alpha
+    )))
   );
+  float alpha = 0.001 + hash12(coord) * 0.02;
+  float darken = 0.25 + hash12(coord);
+  color = clamp(mix(color, normalize(color), 0.5) * darken, 0.0, 1.0);
+  // avoid strokes becoming too dark by normalizing the color
+  return vec4(color, alpha);
 }
 
 bool boundsCheck(vec2 position) {
@@ -316,7 +335,8 @@ void main() {
         age, 
         lifetime
       );
-
+      color = colorAt(coord);
+      color.a = 0.0;
     } else {
       // existing particle
       float angle = angleAt(position.xy);
@@ -325,12 +345,12 @@ void main() {
       float t = sinBounce(p);
 
       position.xy = position.xy + step; //* max(1.0, properties.y * .25);
-      properties.y = max(properties.x * t, 1.0); // radius
+      properties.y = max(properties.x * t, 2.0); // radius
       properties.z = properties.z + max(1.0, properties.y * .25); // age
 
-      color = colorAt(coord);
       float tA = pow(t, 0.33);
-      color.a = mix(0.0, 1.0, color.a * tA);
+      color = mix(color, colorAt(coord), 0.002);
+      color.a = mix(0.0, 1.0, tA);
     }
 
     // - x - float angle (0-1)
