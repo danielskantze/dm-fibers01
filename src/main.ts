@@ -164,3 +164,5 @@ export default main;
 // Add pulsating number of particles
 // Consider adding LFOs
 // Ensure strokes starts with alpha
+
+// Add color property to particles (r, g, b, a)
