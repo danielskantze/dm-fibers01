@@ -78,7 +78,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   let isRunning = true;
   let elapsedTime = 0;
   let startTime = performance.now();
-  const maxNumParticles = 50000;
+  const maxNumParticles = 8 * 50000;
   let numParticlesParam = createUIParameter("int", 1000, {
     name: "Particles",
     min: 10,
