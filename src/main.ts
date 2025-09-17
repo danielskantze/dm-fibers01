@@ -152,10 +152,6 @@ export default main;
 
 // TODO:
 
-// FIX THIS:
-// Why bright pixel blends badly - a bright pixel is drawn. It starts to fade, when it almost has completed fading, a pixel wigh high alpha is drawn on top of it. Then the pixel will "revive" since the lifetime is set to max (due to the painted pixel). To fix: Premultiply life against black before blending the new pixe. 
-
-// When I accumulate, blend in shader and disable gl.BLEND. Premultiply old pixel with current age factor before blending (like in post stage)
 
 // Palette editor
 // Palette "compressor" - ensure equal brightness
@@ -163,4 +159,4 @@ export default main;
 
 // Add pulsating number of particles
 // Consider adding LFOs
-// Ensure strokes starts with alpha
+ // Add bloom filter step (think of other post processing effects, e.g. motion blur)

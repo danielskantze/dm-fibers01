@@ -13,7 +13,7 @@ uniform float u_time;
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_updated;
 
-const float fade_time = 2.0;
+const float fade_time = 3.0;
 
 
 void main() {
