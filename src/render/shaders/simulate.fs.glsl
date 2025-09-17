@@ -290,7 +290,7 @@ vec4 colorAt(vec2 coord) {
   float drift = u_time * u_color_noise_p.z;
   float px = drift + cscale * coord.x;
   float py = drift + cscale * coord.y;
-  float alpha = 0.001 + hash12(coord) * 0.02;
+  float alpha = 0.5; //0.001 + hash12(coord) * 0.02;
   float darken = 0.25 + hash12(coord);
 
   vec3 color = vec3(
@@ -324,8 +324,8 @@ void main() {
     // position need to provide coordinates in clip space (-1.0 to 1.0)
     if (u_frame == 0 || properties.z > properties.w || !boundsCheck(position.xy)) {
       // new particle
-      float lifetime = (hash12(coord) * 512.0 + 256.0) * 3.0;
-      float age = 0.0;
+      float lifetime = (hash12(coord) * 256.0 + 512.0) * 3.0;
+      float age = -hash12(coord * u_time) * lifetime;
       position = vec4(
         hash22(100.0 * coord) * 2.0 - 1.0, 
         0, 
@@ -333,7 +333,7 @@ void main() {
       properties = vec4(
         hash12(coord) * u_max_radius,
         0.0,
-        age, 
+        age,
         lifetime
       );
       color = colorAt(coord);
@@ -347,7 +347,7 @@ void main() {
 
       position.xy = position.xy + step; //* max(1.0, properties.y * .25);
       properties.y = max(properties.x * t, 2.0); // radius
-      properties.z = properties.z + max(1.0, properties.y * .25); // age
+      properties.z = properties.z + 1.0; //max(1.0, properties.y * .25); // age
 
       float tA = pow(t, 0.33);
       color = mix(color, colorAt(coord), 0.002);
