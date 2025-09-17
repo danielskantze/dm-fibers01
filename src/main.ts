@@ -2,6 +2,7 @@
 import * as stage_simulate from "./render/stages/simulate";
 import * as stage_materialize from "./render/stages/materialze";
 import * as stage_accumulate from "./render/stages/accumulate";
+import * as stage_blur from "./render/stages/blur";
 import * as stage_display from "./render/stages/display";
 import { WebGLTextureError } from "./types/error";
 import { UniformComponents, type UniformType, type UniformUI } from "./types/gl/uniforms";
@@ -102,6 +103,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const materializeStage = stage_materialize.create(gl, simulateStage, canvas.width, canvas.height, maxNumParticles, msaa);
   const accumulateStage = stage_accumulate.create(gl, materializeStage);
   const displayStage = stage_display.create(gl, accumulateStage);
+  //const blurStage = stage_blur.create(gl, accumulateStage);
+  //const displayStage = stage_display.create(gl, blurStage);
   
   let frame = 0;
 
@@ -117,6 +120,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       // stage_test.draw(gl, testStage);
       stage_materialize.draw(gl, materializeStage, time, frame, numParticles);
       stage_accumulate.draw(gl, accumulateStage, time, frame);
+      //stage_motionblur.draw(gl, motionblurStage, time, frame);
       stage_display.draw(gl, displayStage);
       frame++;
     }
@@ -129,6 +133,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     configureCanvas(canvas);
     stage_materialize.resize(gl, canvas.width, canvas.height, materializeStage);
     stage_accumulate.resize(gl, accumulateStage);
+    //stage_blur.resize(gl, blurStage);
   }
 
   createUi(controlFactory, [numParticlesParam, accumulateParam, ...simulateStage.parameters], 
