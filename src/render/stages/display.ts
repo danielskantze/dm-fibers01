@@ -38,13 +38,13 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
     };
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, width: number, height: number) {
     const { buffers, shaders } = stage.resources;
     const { display } = shaders;
     const { quad } = buffers;
     const { tex } = display.uniforms;
     const input = stage.input!;
-    gl.viewport(0, 0, input.targets[0].width, input.targets[0].height);
+    gl.viewport(0, 0, width, height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
