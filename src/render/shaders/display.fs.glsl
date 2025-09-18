@@ -1,7 +1,7 @@
 #version 300 es
-precision highp float;
+precision mediump float;
 
-in vec2 v_texcoord;
+in highp vec2 v_texcoord;
 out vec4 out_color;
 uniform sampler2D tex;
 
@@ -12,7 +12,8 @@ void main() {
     vec3 hdrColor = color.rgb * color.a;
   
     // exposure tone mapping
-    vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
+    //vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
+    vec3 mapped = hdrColor / (hdrColor + vec3(1.0));
     // gamma correction 
     mapped = pow(mapped, vec3(1.0 / gamma));
   

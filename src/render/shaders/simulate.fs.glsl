@@ -346,12 +346,12 @@ void main() {
       float t = sinBounce(p);
 
       position.xy = position.xy + step; //* max(1.0, properties.y * .25);
-      properties.y = max(properties.x * t, 2.0); // radius
+      properties.y = max(properties.x * t, 1.0); // radius
       properties.z = properties.z + 1.0; //max(1.0, properties.y * .25); // age
 
       float tA = pow(t, 0.33);
       color = mix(color, colorAt(coord), 0.002);
-      color.a = mix(0.0, 1.0, tA);
+      color.a = mix(0.0, 1.1, tA);
     }
 
     // - x - float angle (0-1)

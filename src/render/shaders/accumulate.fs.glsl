@@ -1,8 +1,8 @@
 #version 300 es
-precision highp float;
+precision mediump float;
 precision highp int;
 
-in vec2 v_texcoord;
+in highp vec2 v_texcoord;
 uniform sampler2D previous_color_tex;
 uniform sampler2D previous_updated_tex;
 uniform sampler2D stamp_color_tex;
@@ -13,7 +13,7 @@ uniform float u_time;
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out float out_updated;
 
-const float fade_time = 2.0;
+const float fade_time = 1.0;
 
 
 void main() {
