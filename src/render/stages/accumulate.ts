@@ -53,7 +53,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
 
 function createTargetTextures(gl: WebGL2RenderingContext, width: number, height: number): Texture[] {
     return [
-        createTexture(gl, width, height, "RGBA"),
+        createTexture(gl, width, height, "RGBA16F"),
         createTexture(gl, width, height, "R32F", "updated_time", true),
     ];
 }
@@ -83,15 +83,6 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
         targets: output[0].textures,
         parameters: [],
     };
-}
-
-function resize(gl: WebGL2RenderingContext, stage: Stage) {
-    const input = stage.input!;
-    const { width, height } = input.targets[0];
-    const output = [
-        createOutput(gl, width, height, "accumulate_output_1"), 
-        createOutput(gl, width, height, "accumulate_output_2")] as BufferedStageOutput;
-    stage.resources.output = output;
 }
 
 function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number) {

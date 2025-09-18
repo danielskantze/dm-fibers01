@@ -2,7 +2,7 @@ import { createQuad } from "../../gl/buffers";
 import { assembleProgram } from "../../gl/shaders";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Stage } from "../../types/stage";
-import fShaderSource from "../shaders/texture.fs.glsl?raw";
+import fShaderSource from "../shaders/display.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {

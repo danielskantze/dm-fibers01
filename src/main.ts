@@ -14,7 +14,7 @@ import type { Settings } from "./types/settings";
 const settings: Settings = {
     width: window.screen.width,
     height: window.screen.height,
-    msaa: 4,
+    msaa: undefined, // 4
 }
 
 function configureCanvas(canvas: HTMLCanvasElement) {
@@ -102,9 +102,13 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     });
     const controlFactory = new ControlFactory(document, controls);
     const gl = canvas.getContext("webgl2")!
-    const ext = gl.getExtension("EXT_color_buffer_float");
+    let ext = gl.getExtension("EXT_color_buffer_float");
     if (!ext) {
-        throw new WebGLTextureError("This browser does not support rendering to float textures");
+      throw new WebGLTextureError("This browser does not support rendering to float textures");
+    }
+    ext = gl.getExtension("EXT_color_buffer_half_float");
+    if (!ext) {
+      throw new WebGLTextureError("This browser does not support rendering to half float textures");
     }
     const simulateStage = stage_simulate.create(gl, maxNumParticles);
     //const testStage = stage_test.create(gl, canvas.width, canvas.height);
