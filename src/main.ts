@@ -1,6 +1,6 @@
 // import * as stage_test from "./render/stages/test";
 import * as stage_simulate from "./render/stages/simulate";
-import * as stage_materialize from "./render/stages/materialze";
+import * as stage_materialize from "./render/stages/materialize";
 import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
 import * as stage_combine from "./render/stages/combine";
@@ -8,6 +8,7 @@ import * as stage_display from "./render/stages/display";
 import { WebGLTextureError } from "./types/error";
 import { UniformComponents, type UniformType, type UniformUI } from "./types/gl/uniforms";
 import ControlFactory, { type ControlFactoryUniform } from "./ui/controls";
+import type { Stage } from "./types/stage";
 
 function configureCanvas(canvas: HTMLCanvasElement) {
   const width = window.innerWidth;
@@ -103,13 +104,18 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const msaa = undefined
   const materializeStage = stage_materialize.create(gl, simulateStage, canvas.width, canvas.height, maxNumParticles, msaa);
   const accumulateStage = stage_accumulate.create(gl, materializeStage);
-  //const displayStage = stage_display.create(gl, accumulateStage);
-  //const blurHStage = stage_blur.create(gl, accumulateStage);
-  //const blurVStage = stage_blur.create(gl, blurHStage);
-  //const combineStage = stage_combine.create(gl, accumulateStage);
-  //const displayStage = stage_display.create(gl, combineStage);
   const displayStage = stage_display.create(gl, accumulateStage);
+  /*
+  const blurStages: Stage[] = [];
+  for (let inpStage = materializeStage, i = 0; i < (3 * 2); i++) {
+    inpStage = stage_blur.create(gl, inpStage);
+    blurStages.push(inpStage);
+  }
   
+  const combineStage = stage_combine.create(gl, materializeStage);
+  const displayStage = stage_display.create(gl, combineStage);
+  //const displayStage = stage_display.create(gl, materializeStage);
+  */
   let frame = 0;
 
   function draw() {
@@ -117,16 +123,19 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       return;
     }
     const time = elapsedTime + (performance.now() - startTime) / 1000;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 4; i++) {
       const numParticles = numParticlesParam.value as number;
       const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
       stage_simulate.draw(gl, simulateStage, time, frame, drawSize);
-      // stage_test.draw(gl, testStage);
       stage_materialize.draw(gl, materializeStage, time, frame, numParticles);
       stage_accumulate.draw(gl, accumulateStage, time, frame);
-//      stage_blur.draw(gl, blurHStage, time, frame, [2.0, 2.0]);
-//      stage_blur.draw(gl, blurVStage, time, frame, [0.0, 2.0]);
-//      stage_combine.draw(gl, combineStage, [blurVStage]);
+      //stage_blur.draw(gl, blurHStage, time, frame, [1.0, 0.0]);
+      //stage_blur.draw(gl, blurVStage, time, frame, [0.0, 1.0]);
+      // blurStages.forEach((s, i) => {
+      //   stage_blur.draw(gl, s, time, frame, i % 2 === 0 ? [1 + i >> 1, 0] : [0, 1 + i >> 1]);
+      // });
+
+      // stage_combine.draw(gl, combineStage, [blurStages[1], blurStages[3], blurStages[5]]);
       stage_display.draw(gl, displayStage);
       frame++;
     }
@@ -138,7 +147,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   function resize() {
     configureCanvas(canvas);
     stage_materialize.resize(gl, canvas.width, canvas.height, materializeStage);
-    stage_accumulate.resize(gl, accumulateStage);
+    //stage_accumulate.resize(gl, accumulateStage);
     //stage_blur.resize(gl, blurStage);
   }
 

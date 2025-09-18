@@ -12,17 +12,22 @@ out vec4 out_color;
 
 void main() {
     ivec2 loc = ivec2(gl_FragCoord.xy);
-    out_color = texelFetch(texture_1, loc, 0);
+    vec4 c1 = texelFetch(texture_1, loc, 0);
+    vec4 c2 = vec4(0.0);
+    vec4 c3 = vec4(0.0);
+    vec4 c4 = vec4(0.0);
+    float nt = float(num_textures);
     if (num_textures > 1) {
-      out_color += texelFetch(texture_2, loc, 0);
+      c2 = texelFetch(texture_2, loc, 0);
     }
     if (num_textures > 2) {
-      out_color += texelFetch(texture_3, loc, 0);
+      c3 = texelFetch(texture_3, loc, 0);
     }
     if (num_textures > 3) {
-      out_color += texelFetch(texture_4, loc, 0);
+      c4 = texelFetch(texture_4, loc, 0);
     }
-    out_color /= float(num_textures);
-    //out_color.rgb = out_color.rgb * out_color.a;
+    // Ideally we should give all equal weight or we use a uniform with weights. Currently we hardcode weights for stacked blur filters (experimental, works so-so)
+    // out_color = 1.5 * (c1 * 0.25 + c2 * 0.5 + c3 * 0.75 + c4) / float(num_textures);
+    out_color = (c1 + c2 + c3 + c4) / float(num_textures);
     out_color.a = 1.0;
 }

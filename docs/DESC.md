@@ -59,6 +59,10 @@ Here is an example (assume p is the particle):
 
 ### The Scene
 
+The overall idea for the particle system is to draw fibers (by stamping / materializing a particle mulitple times in a trail).  The fibers gradually fade in and out at the start and end of their life. To end up with a dynamic scene that can play for an infinite amount of time and still look interesting I have introdcued a trail decay function. 
+
+So there are two systems at play. The particle alpha that will vary when each particle is materialized and the trail fading. The trails are stored in a flat texture. To still maintain a way of controlled fading is to use an additional texture that keeps track of each time a pixel was written to the screen. By using that, the current lifetime of a trail pixel can be established and the fade determined. 
+
 Properties:
 
 - Bounds (width, height)
