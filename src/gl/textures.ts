@@ -6,6 +6,8 @@ function getTextureInternalFormat(gl: WebGL2RenderingContext, type: TextureType)
             return gl.RGB;
         case "RGBA":
             return gl.RGBA;
+        case "RGBA16F":
+            return gl.RGBA16F;
         case "RGBA32F":
             return gl.RGBA32F;
         case "R32F":
@@ -18,6 +20,7 @@ function getTextureFormat(gl: WebGL2RenderingContext, type: TextureType): number
         case "RGB":
             return gl.RGB;
         case "RGBA":
+        case "RGBA16F":
         case "RGBA32F":
             return gl.RGBA;
         case "R32F":
@@ -30,6 +33,8 @@ function getTextureDataType(gl: WebGL2RenderingContext, type: TextureType): numb
         case "RGB":
         case "RGBA":
             return gl.UNSIGNED_BYTE;
+        case "RGBA16F":
+            return gl.HALF_FLOAT;
         case "R32F":
         case "RGBA32F":
             return gl.FLOAT;

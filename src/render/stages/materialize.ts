@@ -86,7 +86,7 @@ function create(gl: WebGL2RenderingContext, input: Stage, width: number, height:
 }
 
 function createTargetTextures(gl: WebGL2RenderingContext, width: number, height: number): Texture[] {
-    const mainTexture = createTexture(gl, width, height, "RGBA");
+    const mainTexture = createTexture(gl, width, height, "RGBA16F");
     const startTimeTexture = createTexture(gl, width, height, "R32F", "updated_time", true); 
     const targetTextures = [
         mainTexture,
@@ -102,7 +102,7 @@ function createOutput(gl: WebGL2RenderingContext, width: number, height: number,
 }
 
 function createMultisampler(gl: WebGL2RenderingContext, width: number, height: number, samples: number) {
-    const renderbuffer = createRenderBuffer(gl, samples, gl.RGBA8, width, height);
+    const renderbuffer = createRenderBuffer(gl, samples, gl.RGBA16F, width, height);
     const framebuffer = createMultisamplerFrameBuffer(gl, width, height, renderbuffer);
     const multisampler: MultiSampleAntiAlias = {
         samples,
