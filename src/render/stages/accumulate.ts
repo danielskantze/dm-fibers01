@@ -136,4 +136,4 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     stage.targets = targets;
 }
 
-export { create, draw, resize };
+export { create, draw };

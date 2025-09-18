@@ -115,24 +115,6 @@ function createMultisampler(gl: WebGL2RenderingContext, width: number, height: n
     return multisampler;
 }
 
-
-function resize(gl: WebGL2RenderingContext, width: number, height: number, stage: Stage) {
-    const output = createOutput(gl, width, height, "materialize_output");
-    stage.resources.multisampler?.samples
-    if (stage.resources.multisampler) {
-        const multisampler = createMultisampler(gl, width, height, stage.resources.multisampler.samples);
-        stage.resources.multisampler = multisampler;
-    }
-    stage.resources.output = output;
-
-    // Clear the new framebuffer to a known state (0,0,0,0)
-    gl.bindFramebuffer(gl.FRAMEBUFFER, output.framebuffer!.framebuffer);
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-}
-
 function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, numParticles: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
     const { materialize } = shaders;
@@ -213,4 +195,4 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.useProgram(null);
 }
 
-export { create, draw, resize };
+export { create, draw };

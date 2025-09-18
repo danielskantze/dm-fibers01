@@ -94,4 +94,4 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.useProgram(null);
 }
 
-export { create, draw, resize };
+export { create, draw };

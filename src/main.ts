@@ -9,6 +9,13 @@ import { WebGLTextureError } from "./types/error";
 import { UniformComponents, type UniformType, type UniformUI } from "./types/gl/uniforms";
 import ControlFactory, { type ControlFactoryUniform } from "./ui/controls";
 import type { Stage } from "./types/stage";
+import type { Settings } from "./types/settings";
+
+const settings: Settings = {
+    width: window.screen.width,
+    height: window.screen.height,
+    msaa: 4,
+}
 
 function configureCanvas(canvas: HTMLCanvasElement) {
     const width = window.innerWidth;
@@ -101,8 +108,11 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     }
     const simulateStage = stage_simulate.create(gl, maxNumParticles);
     //const testStage = stage_test.create(gl, canvas.width, canvas.height);
-    const msaa = 4;
-    const materializeStage = stage_materialize.create(gl, simulateStage, canvas.width, canvas.height, maxNumParticles, msaa);
+    const dpr = window.devicePixelRatio;
+    const renderWidth = settings.width * dpr;
+    const renderHeight = settings.height * dpr;
+
+    const materializeStage = stage_materialize.create(gl, simulateStage, renderWidth, renderHeight, maxNumParticles, settings.msaa);
     const accumulateStage = stage_accumulate.create(gl, materializeStage);
     const displayStage = stage_display.create(gl, accumulateStage);
     /*
@@ -136,7 +146,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
             // });
 
             // stage_combine.draw(gl, combineStage, [blurStages[1], blurStages[3], blurStages[5]]);
-            stage_display.draw(gl, displayStage);
+            stage_display.draw(gl, displayStage, canvas.width, canvas.height);
             frame++;
         }
         requestAnimationFrame(() => {
@@ -146,9 +156,6 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
     function resize() {
         configureCanvas(canvas);
-        stage_materialize.resize(gl, canvas.width, canvas.height, materializeStage);
-        //stage_accumulate.resize(gl, accumulateStage);
-        //stage_blur.resize(gl, blurStage);
     }
 
     createUi(controlFactory, [numParticlesParam, accumulateParam, ...simulateStage.parameters],
@@ -156,10 +163,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         () => {
             isRunning = !isRunning;
             if (!isRunning) {
-                elapsedTime = (performance.now() - startTime) / 1000;
+              elapsedTime += (performance.now() - startTime) / 1000;
             } else {
-                startTime = performance.now();
-                draw();
+              startTime = performance.now();
+              draw();
             }
         }
     );
@@ -177,7 +184,6 @@ export default main;
 
 // HDR rendering + tone mapping
 // Add bloom filter step (think of other post processing effects, e.g. motion blur)
-// Fix scale / restart issue (figure out a good way of handling this. Possibly always lock to screen size texture).
 // Palette editor
 
 // Add music.

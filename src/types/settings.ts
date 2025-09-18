@@ -1,10 +1,7 @@
 type Settings = {
     width: number;
     height: number;
-    frameCount: number;
-    backgroundColor: [number, number, number, number];
-    particleCount: number;
-    updatesPerFrame: number;
+    msaa?: number;
 }
 
 export type { Settings };
