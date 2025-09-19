@@ -186,7 +186,6 @@ export default main;
 // Expose parameter for MSAA
 // Show / hide parameters on keypress
 
-// HDR rendering + tone mapping
 // Add bloom filter step (think of other post processing effects, e.g. motion blur)
 // Palette editor
 
