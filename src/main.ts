@@ -117,7 +117,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
     const materializeStage = stage_materialize.create(gl, simulateStage, renderWidth, renderHeight, maxNumParticles, settings.msaa);
     const accumulateStage = stage_accumulate.create(gl, materializeStage);
-    const blurStage = stage_blur.create(gl, accumulateStage, "low")
+    const blurStage = stage_blur.create(gl, accumulateStage, "low", 7);
     const displayStage = stage_display.create(gl, blurStage);
     let frame = 0;
 
@@ -132,7 +132,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
             stage_simulate.draw(gl, simulateStage, time, frame, drawSize);
             stage_materialize.draw(gl, materializeStage, time, frame, numParticles);
             stage_accumulate.draw(gl, accumulateStage, time, frame);
-            stage_blur.draw(gl, blurStage);
+            stage_blur.draw(gl, blurStage, 0.0);
             stage_display.draw(gl, displayStage, canvas.width, canvas.height);
             frame++;
         }
