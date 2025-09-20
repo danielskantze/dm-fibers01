@@ -207,7 +207,7 @@ function create(gl: WebGL2RenderingContext, input: Stage, quality: BlurQuality, 
         createOutput(gl, width >> i, height >> i, `blur_b_${i}`)
       ]));
 
-    const output = createOutput(gl, width, height, "motionblur_output_1");
+    const output = createOutput(gl, width, height, "blur_output");
 
     const stage: BlurStage = {
         name: "blur",
