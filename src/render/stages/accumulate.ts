@@ -125,6 +125,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.useProgram(null);
     stage.targets = targets;
+    stage.resources.currentOutput = output[writeIndex];
 }
 
 export { create, draw };

@@ -13,7 +13,7 @@ type StageOutput = {
 
 type BufferedStageOutput = StageOutput[];
 
-type MultiSampleAntiAlias = {
+export type MultiSampleAntiAlias = {
     samples: number;
     internalformat: GLenum;
     width: number;
@@ -26,17 +26,22 @@ type MultiSampleAntiAlias = {
 type Resources = {
     buffers: Buffers;
     output?: StageOutput | BufferedStageOutput;
+    currentOutput?: StageOutput; // FIXME: This is a hack to expose the current output/framebuffer. We should probably expose the framebuffer instead of the texture at the stage target instead. That would make it easier to support renderbuffers too for efficiency
     multisampler?: MultiSampleAntiAlias;
     shaders: ShaderPrograms;
     uniforms?: Uniforms;
 }
 
-type Stage = {
+export interface TypedResources<T> extends Resources {
+  internal: T
+}
+
+type Stage<T = {}> = {
     name: string;
-    resources: Resources;
+    resources: Resources | TypedResources<T>;
     input: Stage | null;
-    targets: Texture[];
+    targets: Texture[]; // see currentOutput FIXNME
     parameters: Uniform[];
 }
 
-export type { Stage, StageOutput, BufferedStageOutput, Resources, MultiSampleAntiAlias };
+export type { Stage, Resources, StageOutput, BufferedStageOutput, Buffers };

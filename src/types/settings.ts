@@ -4,4 +4,7 @@ type Settings = {
     msaa?: number;
 }
 
+type BlurQuality = "low" | "high";
+
 export type { Settings };
+export type { BlurQuality };
