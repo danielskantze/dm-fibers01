@@ -174,12 +174,12 @@ let u = program.uniforms;
       const { framebuffer } = dest;
       const outputSize = [framebuffer.width, framebuffer.height]; 
       gl.viewport(0, 0, outputSize[0], outputSize[1]);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.bindTexture(gl.TEXTURE_2D, src.textures[0].texture);
       gl.uniform2fv(u.textureSize.location, outputSize);
       gl.uniform2fv(u.direction.location, direction);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.bindTexture(gl.TEXTURE_2D, null);
@@ -277,7 +277,8 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, mix?: number) {
     
     const stepWeights = seq(layers.length - 1).map((_, i, a) => {
       const p = 1.0 - i / (a.length - 1); 
-      return 1.0 - 0.5 * p * p * p * p;
+      //return 1.0 - 0.5 * p * p * p * p;
+      return 1.0 - 0.5 * p * p;
     });
 
     for (let i = layers.length - 1; i > 0; i--) {

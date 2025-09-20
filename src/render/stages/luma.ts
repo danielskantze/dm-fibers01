@@ -62,6 +62,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, threshold: number) {
     const input = stage.input!;
     const framebuffer = output.framebuffer.framebuffer;
     gl.viewport(0, 0, input.targets[0].width, input.targets[0].height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.disable(gl.BLEND);
@@ -70,7 +71,6 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, threshold: number) {
     gl.activeTexture(gl.TEXTURE0);
     gl.uniform1i(u.tex.location, u.tex.slot);
     gl.uniform1f(u.threshold.location, threshold);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[0].texture);
     gl.enableVertexAttribArray(luma.attributes.position);
     gl.vertexAttribPointer(luma.attributes.position, 2, gl.FLOAT, false, 0, 0);

@@ -22,17 +22,13 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                     location: gl.getUniformLocation(program, "texture_2"),
                     slot: 1,
                 },
-                texture3: {
-                    location: gl.getUniformLocation(program, "texture_3"),
+                intensity1: {
+                    location: gl.getUniformLocation(program, "intensity1"),
                     slot: 2,
                 },
-                texture4: {
-                    location: gl.getUniformLocation(program, "texture_4"),
+                intensity2: {
+                    location: gl.getUniformLocation(program, "intensity2"),
                     slot: 3,
-                },
-                numTextures: {
-                  location: gl.getUniformLocation(program, "num_textures"),
-                  slot: 4
                 }
             };
             return { program, attributes, uniforms } as ShaderProgram;
@@ -41,14 +37,14 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
 }
 
 function createOutput(gl: WebGL2RenderingContext, width: number, height: number, name: string) {
-    const textures = [createTexture(gl, width, height, "RGBA")];
+    const textures = [createTexture(gl, width, height, "RGBA16F")];
     const framebuffer = createFrameBuffer(gl, width, height, textures);
     return { name, textures, framebuffer} as StageOutput;
 }
 
 function create(gl: WebGL2RenderingContext, input: Stage): Stage {
     const shaders = loadShaders(gl);
-    const output = createOutput(gl, input.targets[0].width, input.targets[0].height, "motionblur_output_1");
+    const output = createOutput(gl, input.targets[0].width, input.targets[0].height, "combine_output");
 
     return {
         name: "combine",
@@ -63,51 +59,35 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
     };
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, inputs: Stage[]) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, stage2: Stage, intensity1: number, intensity2: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
     const { combine } = shaders;
     const { quad } = buffers;
     const u = combine.uniforms;
-    const input = stage.input!;
+    const stage1Input = stage.input!;
     const framebuffer = output.framebuffer.framebuffer;
 
-    if (inputs.length > 3) {
-      throw new Error("Combine supports at most 3 additional stages");
-    }
-    gl.viewport(0, 0, input.targets[0].width, input.targets[0].height);
+    gl.viewport(0, 0, stage1Input.targets[0].width, stage1Input.targets[0].height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-
-    //gl.enable(gl.BLEND);
     gl.disable(gl.BLEND);
-    //gl.blendFunc(gl.ONE, gl.ONE);
 
     gl.useProgram(combine.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.uniform1f(u.intensity1.location, intensity1);
+    gl.uniform1f(u.intensity2.location, intensity2);
+    
     gl.activeTexture(gl.TEXTURE0);
-    gl.uniform1i(u.numTextures.location, inputs.length + 1);
     gl.uniform1i(u.texture1.location, u.texture1.slot);
-    gl.bindTexture(gl.TEXTURE_2D, input.targets[0].texture);
+    gl.bindTexture(gl.TEXTURE_2D, stage1Input.targets[0].texture);
 
-    if (inputs.length >= 1) {
-      gl.activeTexture(gl.TEXTURE1);
-      gl.uniform1i(u.texture2.location, u.texture2.slot);
-      gl.bindTexture(gl.TEXTURE_2D, inputs[0].targets[0].texture);
-    }
-    if (inputs.length >= 2) {
-      gl.activeTexture(gl.TEXTURE2);
-      gl.uniform1i(u.texture3.location, u.texture3.slot);
-      gl.bindTexture(gl.TEXTURE_2D, inputs[1].targets[0].texture);
-    }
-    if (inputs.length >= 3) {
-      gl.activeTexture(gl.TEXTURE3);
-      gl.uniform1i(u.texture4.location, u.texture4.slot);
-      gl.bindTexture(gl.TEXTURE_2D, inputs[2].targets[0].texture);
-    }
+    gl.activeTexture(gl.TEXTURE1);
+    gl.uniform1i(u.texture2.location, u.texture2.slot);
+    gl.bindTexture(gl.TEXTURE_2D, stage2.targets[0].texture);
 
     gl.enableVertexAttribArray(combine.attributes.position);
     gl.vertexAttribPointer(combine.attributes.position, 2, gl.FLOAT, false, 0, 0);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.useProgram(null);
