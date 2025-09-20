@@ -196,10 +196,10 @@ function seq(length: number): number[] {
   return Array.from({length});
 }
 
-function create(gl: WebGL2RenderingContext, input: Stage, quality: BlurQuality): Stage {
+function create(gl: WebGL2RenderingContext, input: Stage, quality: BlurQuality, steps: number): Stage {
     const shaders = loadShaders(gl);
     const { width, height } = input.targets[0];
-    const numSteps = 7;
+    const numSteps = steps;
 
     const layers: [StageOutput, StageOutput][] = seq(numSteps)
       .map((_, i) => ([
@@ -224,17 +224,15 @@ function create(gl: WebGL2RenderingContext, input: Stage, quality: BlurQuality):
     return stage;
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, mix?: number) {
     const resources = stage.resources as TypedResources<BlurStageInternalData>;
     const { buffers, shaders, output } = resources as Resources & { output: StageOutput };
     const { layers, quality } = resources.internal;
     const { quad } = buffers;
     const input = stage.input!.resources.currentOutput! as StageOutput;
 
-    // Define the blur radius range. We'll use a smaller radius for high-res layers
-    // and a larger radius for low-res layers to create a smooth, diffuse bloom.
     const minBlurRadius = 1.0;
-    const maxBlurRadius = 1.0;
+    const maxBlurRadius = 1.5;
 
     const blurPass = createBlurPass(shaders.blur, quad);
     const addPass = createAddPass(shaders.add, quad);
@@ -288,17 +286,14 @@ function draw(gl: WebGL2RenderingContext, stage: Stage) {
       const weight = stepWeights[i - 1];
       addPass.render(gl, layers[i][0], layers[i - 1][0], weight);
     }
+    // Fill the output buffer depending on mix (undefined means no mix and we are done)
+    copyStageOutput(gl, !mix ? layers[0][0] : input, output);
     addPass.cleanup(gl);
-     
-    // Ensure output buffer is filled with the original scene so we can add the blur to it.
-    copyStageOutput(gl, input, output);
-
-    // All blur layers should now be accumulated in top layer a
-    // Mix blurred layers with the unblurred input with a tunable weight.
-    addPass.start(gl);
-    addPass.render(gl, layers[0][0], output, 0.9);
-
-    addPass.cleanup(gl);
+    if (mix) {  
+      addPass.start(gl);
+      addPass.render(gl, layers[0][0], output, 1.0 - mix);
+      addPass.cleanup(gl);
+    }
 }
 
 export { create, draw };
