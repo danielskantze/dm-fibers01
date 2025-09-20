@@ -88,7 +88,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     let isRunning = true;
     let elapsedTime = 0;
     let startTime = performance.now();
-    const maxNumParticles = 8 * 50000;
+    const maxNumParticles = 4 * 50000;
     let numParticlesParam = createUIParameter("int", 1000, {
         name: "Particles",
         min: 10,
@@ -99,6 +99,12 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         min: 0,
         step: 1,
         max: 1
+    });
+    let combineIntensityParam = createUIParameter("float", 0.5, {
+        name: "Bloom Intensity",
+        min: 0,
+        step: 0.01,
+        max: 1.0
     });
     const controlFactory = new ControlFactory(document, controls);
     const gl = canvas.getContext("webgl2")!
@@ -120,8 +126,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     const materializeStage = stage_materialize.create(gl, simulateStage, renderWidth, renderHeight, maxNumParticles, settings.msaa);
     const accumulateStage = stage_accumulate.create(gl, materializeStage);
     const lumaStage = stage_luma.create(gl, accumulateStage);
-    const blurStage = stage_blur.create(gl, lumaStage, "low", 7);
-    const combineStage = stage_combine.create(gl, blurStage);
+    const blurStage = stage_blur.create(gl, lumaStage, "high", 6);
+    const combineStage = stage_combine.create(gl, accumulateStage);
     const displayStage = stage_display.create(gl, combineStage);
     let frame = 0;
 
@@ -136,9 +142,9 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
             stage_simulate.draw(gl, simulateStage, time, frame, drawSize);
             stage_materialize.draw(gl, materializeStage, time, frame, numParticles);
             stage_accumulate.draw(gl, accumulateStage, time, frame);
-            stage_luma.draw(gl, lumaStage, 0.25);
-            stage_blur.draw(gl, blurStage, 0.0);
-            stage_combine.draw(gl, combineStage, [accumulateStage]);
+            stage_luma.draw(gl, lumaStage, 0.33);
+            stage_blur.draw(gl, blurStage);
+            stage_combine.draw(gl, combineStage, blurStage, 1.0, combineIntensityParam.value as number);
             stage_display.draw(gl, displayStage, canvas.width, canvas.height);
             frame++;
         }
@@ -151,7 +157,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         configureCanvas(canvas);
     }
 
-    createUi(controlFactory, [numParticlesParam, accumulateParam, ...simulateStage.parameters],
+    createUi(controlFactory, [numParticlesParam, accumulateParam, combineIntensityParam, ...simulateStage.parameters],
         () => { resize(); },
         () => {
             isRunning = !isRunning;

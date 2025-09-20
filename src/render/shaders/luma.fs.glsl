@@ -16,7 +16,7 @@ void main() {
     #else
     float t = max(max(c.r, c.g), c.b);
     #endif
-    float p = smoothstep(0.0, 1.0, (t - u_threshold) / (1.0 - u_threshold));
+    float p = smoothstep(u_threshold, 1.0, t);
     out_color.rgb = mix(vec3(0.0), c, p);
     out_color.a = 1.0;
 }
