@@ -3,13 +3,11 @@ import * as stage_simulate from "./render/stages/simulate";
 import * as stage_materialize from "./render/stages/materialize";
 import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
-import * as stage_combine from "./render/stages/combine";
 import * as stage_display from "./render/stages/display";
 import { WebGLTextureError } from "./types/error";
 import { UniformComponents, type UniformType, type UniformUI } from "./types/gl/uniforms";
 import ControlFactory, { type ControlFactoryUniform } from "./ui/controls";
-import type { Stage } from "./types/stage";
-import type { Settings } from "./types/settings";
+import { type Settings } from "./types/settings";
 
 const settings: Settings = {
     width: window.screen.width,
@@ -116,20 +114,11 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     const renderWidth = settings.width * dpr;
     const renderHeight = settings.height * dpr;
 
+
     const materializeStage = stage_materialize.create(gl, simulateStage, renderWidth, renderHeight, maxNumParticles, settings.msaa);
     const accumulateStage = stage_accumulate.create(gl, materializeStage);
-    const displayStage = stage_display.create(gl, accumulateStage);
-    /*
-    const blurStages: Stage[] = [];
-    for (let inpStage = materializeStage, i = 0; i < (3 * 2); i++) {
-      inpStage = stage_blur.create(gl, inpStage);
-      blurStages.push(inpStage);
-    }
-    
-    const combineStage = stage_combine.create(gl, materializeStage);
-    const displayStage = stage_display.create(gl, combineStage);
-    //const displayStage = stage_display.create(gl, materializeStage);
-    */
+    const blurStage = stage_blur.create(gl, accumulateStage, "low")
+    const displayStage = stage_display.create(gl, blurStage);
     let frame = 0;
 
     function draw() {
@@ -137,19 +126,13 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
             return;
         }
         const time = elapsedTime + (performance.now() - startTime) / 1000;
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 1; i++) {
             const numParticles = numParticlesParam.value as number;
             const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
             stage_simulate.draw(gl, simulateStage, time, frame, drawSize);
             stage_materialize.draw(gl, materializeStage, time, frame, numParticles);
             stage_accumulate.draw(gl, accumulateStage, time, frame);
-            //stage_blur.draw(gl, blurHStage, time, frame, [1.0, 0.0]);
-            //stage_blur.draw(gl, blurVStage, time, frame, [0.0, 1.0]);
-            // blurStages.forEach((s, i) => {
-            //   stage_blur.draw(gl, s, time, frame, i % 2 === 0 ? [1 + i >> 1, 0] : [0, 1 + i >> 1]);
-            // });
-
-            // stage_combine.draw(gl, combineStage, [blurStages[1], blurStages[3], blurStages[5]]);
+            stage_blur.draw(gl, blurStage);
             stage_display.draw(gl, displayStage, canvas.width, canvas.height);
             frame++;
         }
@@ -188,6 +171,7 @@ export default main;
 
 // Add bloom filter step (think of other post processing effects, e.g. motion blur)
 // Palette editor
+// Make post chain pluggable and easier to rearrange (array of steps)
 
 // Add music.
 // - Sync beats with stroke noise x/y (each kick will pulse these)

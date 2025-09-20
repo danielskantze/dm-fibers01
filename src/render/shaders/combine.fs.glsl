@@ -1,33 +1,27 @@
 #version 300 es
 precision mediump float;
 
-uniform sampler2D texture_1;
-uniform sampler2D texture_2;
-uniform sampler2D texture_3;
-uniform sampler2D texture_4;
-uniform int num_textures;
-
 in highp vec2 v_texcoord;
 out vec4 out_color;
 
+// The 5 downsampled and blurred layers
+uniform sampler2D u_blur_layer_0; // Fullest resolution blur
+uniform sampler2D u_blur_layer_1;
+uniform sampler2D u_blur_layer_2;
+uniform sampler2D u_blur_layer_3;
+uniform sampler2D u_blur_layer_4; // Lowest resolution blur
+
+// The independent weights for each layer
+uniform float u_weights[5];
+
 void main() {
-    ivec2 loc = ivec2(gl_FragCoord.xy);
-    vec4 c1 = texelFetch(texture_1, loc, 0);
-    vec4 c2 = vec4(0.0);
-    vec4 c3 = vec4(0.0);
-    vec4 c4 = vec4(0.0);
-    float nt = float(num_textures);
-    if (num_textures > 1) {
-      c2 = texelFetch(texture_2, loc, 0);
-    }
-    if (num_textures > 2) {
-      c3 = texelFetch(texture_3, loc, 0);
-    }
-    if (num_textures > 3) {
-      c4 = texelFetch(texture_4, loc, 0);
-    }
-    // Ideally we should give all equal weight or we use a uniform with weights. Currently we hardcode weights for stacked blur filters (experimental, works so-so)
-    // out_color = 1.5 * (c1 * 0.25 + c2 * 0.5 + c3 * 0.75 + c4) / float(num_textures);
-    out_color = (c1 + c2 + c3 + c4) / float(num_textures);
-    out_color.a = 1.0;
+    // Sample each layer and multiply by its independent weight
+    vec4 color = vec4(0.0);
+    color += texture(u_blur_layer_0, v_texcoord) * u_weights[0];
+    color += texture(u_blur_layer_1, v_texcoord) * u_weights[1];
+    color += texture(u_blur_layer_2, v_texcoord) * u_weights[2];
+    color += texture(u_blur_layer_3, v_texcoord) * u_weights[3];
+    color += texture(u_blur_layer_4, v_texcoord) * u_weights[4];
+    
+    out_color = color;
 }
