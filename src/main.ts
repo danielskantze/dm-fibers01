@@ -3,7 +3,9 @@ import * as stage_simulate from "./render/stages/simulate";
 import * as stage_materialize from "./render/stages/materialize";
 import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
+import * as stage_luma from "./render/stages/luma";
 import * as stage_display from "./render/stages/display";
+import * as stage_combine from "./render/stages/combine";
 import { WebGLTextureError } from "./types/error";
 import { UniformComponents, type UniformType, type UniformUI } from "./types/gl/uniforms";
 import ControlFactory, { type ControlFactoryUniform } from "./ui/controls";
@@ -117,8 +119,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
     const materializeStage = stage_materialize.create(gl, simulateStage, renderWidth, renderHeight, maxNumParticles, settings.msaa);
     const accumulateStage = stage_accumulate.create(gl, materializeStage);
-    const blurStage = stage_blur.create(gl, accumulateStage, "low", 7);
-    const displayStage = stage_display.create(gl, blurStage);
+    const lumaStage = stage_luma.create(gl, accumulateStage);
+    const blurStage = stage_blur.create(gl, lumaStage, "low", 7);
+    const combineStage = stage_combine.create(gl, blurStage);
+    const displayStage = stage_display.create(gl, combineStage);
     let frame = 0;
 
     function draw() {
@@ -132,7 +136,9 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
             stage_simulate.draw(gl, simulateStage, time, frame, drawSize);
             stage_materialize.draw(gl, materializeStage, time, frame, numParticles);
             stage_accumulate.draw(gl, accumulateStage, time, frame);
+            stage_luma.draw(gl, lumaStage, 0.25);
             stage_blur.draw(gl, blurStage, 0.0);
+            stage_combine.draw(gl, combineStage, [accumulateStage]);
             stage_display.draw(gl, displayStage, canvas.width, canvas.height);
             frame++;
         }
