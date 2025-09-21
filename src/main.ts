@@ -14,7 +14,7 @@ import { type Settings } from "./types/settings";
 const settings: Settings = {
     width: window.screen.width,
     height: window.screen.height,
-    msaa: undefined, // 4
+    msaa: undefined
 }
 
 function configureCanvas(canvas: HTMLCanvasElement) {
@@ -100,12 +100,18 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         step: 1,
         max: 1
     });
-    let combineIntensityParam = createUIParameter("float", 0.5, {
-        name: "Bloom Intensity",
+    let bloomIntensityParam = createUIParameter("float", 0.5, {
+        name: "Bloom",
         min: 0,
         step: 0.01,
         max: 1.0
     });
+    let lumaThresholdParam = createUIParameter("float", 0.25, {
+        name: "Luma",
+        min: 0,
+        step: 0.01,
+        max: 1.0
+    });    
     const controlFactory = new ControlFactory(document, controls);
     const gl = canvas.getContext("webgl2")!
     let ext = gl.getExtension("EXT_color_buffer_float");
@@ -126,7 +132,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     const materializeStage = stage_materialize.create(gl, simulateStage, renderWidth, renderHeight, maxNumParticles, settings.msaa);
     const accumulateStage = stage_accumulate.create(gl, materializeStage);
     const lumaStage = stage_luma.create(gl, accumulateStage);
-    const blurStage = stage_blur.create(gl, lumaStage, "high", 6);
+    const blurStage = stage_blur.create(gl, lumaStage, "high", 7);
     const combineStage = stage_combine.create(gl, accumulateStage);
     const displayStage = stage_display.create(gl, combineStage);
     let frame = 0;
@@ -136,15 +142,15 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
             return;
         }
         const time = elapsedTime + (performance.now() - startTime) / 1000;
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 4; i++) {
             const numParticles = numParticlesParam.value as number;
             const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
             stage_simulate.draw(gl, simulateStage, time, frame, drawSize);
             stage_materialize.draw(gl, materializeStage, time, frame, numParticles);
             stage_accumulate.draw(gl, accumulateStage, time, frame);
-            stage_luma.draw(gl, lumaStage, 0.33);
+            stage_luma.draw(gl, lumaStage, lumaThresholdParam.value as number);
             stage_blur.draw(gl, blurStage);
-            stage_combine.draw(gl, combineStage, blurStage, 1.0, combineIntensityParam.value as number);
+            stage_combine.draw(gl, combineStage, blurStage, 1.0, bloomIntensityParam.value as number);
             stage_display.draw(gl, displayStage, canvas.width, canvas.height);
             frame++;
         }
@@ -157,7 +163,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         configureCanvas(canvas);
     }
 
-    createUi(controlFactory, [numParticlesParam, accumulateParam, combineIntensityParam, ...simulateStage.parameters],
+    createUi(controlFactory, [numParticlesParam, accumulateParam, bloomIntensityParam, lumaThresholdParam, ...simulateStage.parameters],
         () => { resize(); },
         () => {
             isRunning = !isRunning;
