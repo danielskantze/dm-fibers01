@@ -184,12 +184,16 @@ export default main;
 
 // TODO:
 
-// Expose parameter for MSAA
 // Show / hide parameters on keypress
-
-// Add bloom filter step (think of other post processing effects, e.g. motion blur)
+// Expose particle fade time as parameter
+// Vector gimbal editor
 // Palette editor
-// Make post chain pluggable and easier to rearrange (array of steps)
+
+// Make vector field less jittery
+// Toggle trail
+// Store parameters
+// Screenshot function
+// Random seed
 
 // Add music.
 // - Sync beats with stroke noise x/y (each kick will pulse these)
@@ -198,4 +202,8 @@ export default main;
 // - Experiment with syncing particle start time too (high intensity - particle restarts immediately)
 // - And of course, test controlling number of particles (possibly relate to radius)
 
+// 3D support (each particle has Z component)
+
 // Consider adding LFOs
+
+// Make post chain pluggable and easier to rearrange (array of steps)
