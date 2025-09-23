@@ -111,6 +111,14 @@ button,
   -moz-osx-font-smoothing: grayscale;
 }
 
+#controls {
+  display: none;
+}
+
+#controls[data-show="1"] {
+  display: block;
+}
+
 .button > button,
 .parameter {
   background: white;
