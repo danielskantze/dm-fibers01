@@ -18,6 +18,14 @@ class ControlFactory {
   private idSeq: number;
   private doc: HTMLDocument;
   private container: HTMLElement;
+
+  get visible(): boolean {
+    return this.container.dataset.show === "1";
+  }
+
+  set visible(value: boolean) {
+    this.container.dataset.show = value ? "1" : "0";
+  }
   
   constructor(doc: HTMLDocument, container: HTMLElement) {
     this.doc = doc;

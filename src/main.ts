@@ -68,6 +68,11 @@ function createUi(
         resetFn();
     });
     controlFactory.createButton("Pause", pauseFn);
+    document.addEventListener("keypress", (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.charCodeAt(0) === 112) { // 112 = p
+        controlFactory.visible = !controlFactory.visible;
+      }
+    });
 }
 
 function createUIParameter(type: UniformType, value: number | number[], ui: UniformUI): ControlFactoryUniform {
