@@ -1,4 +1,4 @@
-import { createScalarInner } from "./scalar";
+import { createScalarInner } from "../scalar";
 import './vector.css';
 
 const VECTOR_COMPONENTS = ["x", "y", "z", "w"];

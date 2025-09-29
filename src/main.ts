@@ -14,7 +14,7 @@ import type { Vec3 } from "./math/types";
 import { createButton } from "./ui/components/button";
 import { createScalar } from "./ui/components/scalar";
 import { createVector } from "./ui/components/vector";
-import { createVec3 } from "./ui/components/vec3/vec3";
+import { createVec3 } from "./ui/components/vec3";
 import { createCosPalette } from "./ui/components/cos-palette";
 
 export type ControlFactoryUniform = Omit<Uniform, "location" | "slot">;

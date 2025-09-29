@@ -1,4 +1,4 @@
-import { createVector } from "./vector";
+import { createVector } from "../vector";
 
 export function createCosPalette(
     values: [number[], number[], number[], number[]],
