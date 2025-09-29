@@ -148,7 +148,7 @@
   background: transparent;
 }
 
-.vec3-control .controls > input.scale {
+.vec3-control .controls > input.length {
   height: var(--scale-height);
 }
 
@@ -161,7 +161,7 @@
   transform: translateY(calc(var(--half-width) - calc(var(--input-range-height) * 0.5))) translateX(calc(-1 * var(--half-width) + 0.5 * var(--input-range-height) - 2px)) rotateZ(90deg);
 }
 
-.vec3-control .controls .scale {
+.vec3-control .controls .length {
   transform: translateY(calc(var(--half-width) - calc(var(--input-range-height) * 0.5))) translateX(calc(var(--half-width) + 1.5 * var(--scale-height) - 2px)) rotateZ(-90deg);
 }
 

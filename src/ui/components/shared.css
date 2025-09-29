@@ -1,0 +1,82 @@
+/* Slider style */
+
+input[type="range"] {
+  --rotate-track-background: transparent;
+  --rotate-track-border-color: #ccc;
+  --rotate-track-border-width: 1px;
+  --rotate-track-border: var(--rotate-track-border-width) solid var(--rotate-track-border-color);
+  --rotate-thumb-color: #555;
+  --rotate-height: var(--input-range-height);
+  --rotate-track-height: calc(.375 * var(--input-range-height));
+  --rotate-thumb-height: calc(0.5833333333 * var(--input-range-height));
+  --rotate-thumb-border: 1px solid #fff;
+
+  --scale-track-background: #eee;
+  --scale-track-border-color: #ccc;
+  --scale-track-border-width: 0px;
+  --scale-track-border: var(--scale-track-border-width) solid var(--scale-track-border-color);
+  --scale-thumb-color: #fff;
+  --scale-height: var(--input-range-height);
+  --scale-track-height: var(--rotate-track-height);
+  --scale-thumb-height: var(--rotate-thumb-height);
+  --scale-thumb-border: 1px solid #444;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--rotate-track-background);
+  border-radius: var(--rotate-height);
+  height: var(--rotate-track-height);
+  border: var(--rotate-track-border);
+}
+
+input.secondary[type="range"]::-webkit-slider-runnable-track {
+  background: var(--scale-track-background);
+  border-radius: var(--scale-height);
+  height: var(--scale-track-height);
+  border: var(--scale-track-border);
+}
+
+input[type="range"]::-moz-range-track {
+  background: var(--rotate-track-background);
+  border-radius: var(--rotate-height);
+  border: var(--rotate-track-border);
+  height: var(--rotate-track-height);
+}
+
+input.secondary[type="range"]::-moz-range-track {
+  background: var(--scale-track-background);
+  border-radius: var(--scale-height);
+  border: var(--scale-track-border);
+  height: var(--scale-track-height);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: var(--rotate-height);
+  width: var(--rotate-thumb-height);
+  height: var(--rotate-thumb-height);
+  margin-top: calc(((var(--rotate-track-height) - 2 * var(--rotate-track-border-width)) - var(--rotate-thumb-height)) * 0.5);
+  background-color: var(--rotate-thumb-color);
+  border: var(--rotate-thumb-border);
+}
+
+/* TODO: Add firefox styles */
+
+input.secondary[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: var(--scale-height);
+  width: var(--scale-thumb-height);
+  height: var(--scale-thumb-height);
+  margin-top: calc(((var(--scale-track-height) - 2 * var(--scale-track-border-width)) - var(--scale-thumb-height)) * 0.5);
+  background-color: var(--scale-thumb-color);
+  border: var(--scale-thumb-border);
+}
