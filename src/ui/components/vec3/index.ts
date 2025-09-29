@@ -41,17 +41,17 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
 
     const inputH = control.querySelector(".controls > input.horizontal") as HTMLInputElement;
     const inputV = control.querySelector(".controls > input.vertical") as HTMLInputElement;
-    const inputS = control.querySelector(".controls > input.scale") as HTMLInputElement;
+    const inputS = control.querySelector(".controls > input.length") as HTMLInputElement;
     const arrowA = control.querySelector(".xz > span.a") as HTMLSpanElement;
     const arrowB = control.querySelector(".xy > span.b") as HTMLSpanElement;
     const gimbal = control.querySelector(".gimbal") as HTMLDivElement;
 
-    let [scale, rotX, rotZ] = mapCartesianToGimbal(value);
+    let [length, rotX, rotZ] = mapCartesianToGimbal(value);
     
     let vector: Vec3 = value;
 
     function applyTransform() {
-      vector = mapGimbalToCartesian(scale, rotX, rotZ);
+      vector = mapGimbalToCartesian(length, rotX, rotZ);
     }
 
     function updateRotation() {
@@ -59,9 +59,9 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       gimbal.style.transform = transform;
     }
 
-    function updateScale() {
-      const cssScaleL = 1.2 * scale;
-      const cssScaleH = 0.75 * scale;// + (1.0 - scale) * 0.125;
+    function updateLength() {
+      const cssScaleL = 1.2 * length;
+      const cssScaleH = 0.75 * length;// + (1.0 - scale) * 0.125;
       const transformA = `translate3d(var(--half-width), var(--half-width), var(--half-width)) scaleY(${cssScaleH}) scaleX(${cssScaleL})`;
       const transformB = `translate3d(var(--half-width), var(--half-width), var(--half-width)) scaleY(${cssScaleH}) scaleX(${cssScaleL})`;
       arrowA.style.transform = transformA;
@@ -75,7 +75,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
 
     function onGimbalComponentChange() {
       updateRotation();
-      updateScale();
+      updateLength();
       applyTransform();
       updateListComponent();
       onChange(vector);
@@ -92,7 +92,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     }
     function onDragS(e: Event) {
       const value = parseFloat((e.target! as HTMLInputElement).value);
-      scale = value;
+      length = value;
       onGimbalComponentChange();
     }
     inputH.addEventListener("input", onDragH);
@@ -117,7 +117,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       const inputElmt = e.target as HTMLInputElement;
       const c = parseInt(inputElmt.dataset.component ?? "0");
       vector[c] = parseFloat(inputElmt.value);
-      [scale, rotX, rotZ] = mapCartesianToGimbal(vector);
+      [length, rotX, rotZ] = mapCartesianToGimbal(vector);
       updateGimbalInputs();
       updateListComponent();
       onGimbalComponentChange();
