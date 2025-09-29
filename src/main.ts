@@ -7,9 +7,17 @@ import * as stage_luma from "./render/stages/luma";
 import * as stage_display from "./render/stages/display";
 import * as stage_combine from "./render/stages/combine";
 import { WebGLTextureError } from "./types/error";
-import { UniformComponents, type UniformType, type UniformUI } from "./types/gl/uniforms";
-import ControlFactory, { type ControlFactoryUniform } from "./ui/controls";
+import { UniformComponents, type UniformType, type UniformUI, type Uniform } from "./types/gl/uniforms";
+import ControlFactory from "./ui/controls";
 import { type Settings } from "./types/settings";
+import type { Vec3 } from "./math/types";
+import { createButton } from "./ui/components/button";
+import { createScalar } from "./ui/components/scalar";
+import { createVector } from "./ui/components/vector";
+import { createVec3 } from "./ui/components/vec3/vec3";
+import { createCosPalette } from "./ui/components/cos-palette";
+
+export type ControlFactoryUniform = Omit<Uniform, "location" | "slot">;
 
 const settings: Settings = {
     width: window.screen.width,
@@ -27,7 +35,7 @@ function configureCanvas(canvas: HTMLCanvasElement) {
     canvas.style.height = `${height}px`;
 }
 
-function createUniformControls(factory: ControlFactory, uniforms: ControlFactoryUniform[]) {
+function createUniformControls(controlsContainer: HTMLElement, uniforms: ControlFactoryUniform[]) {
     for (const u of uniforms) {
         const { ui } = u;
         if (ui) {
@@ -35,17 +43,21 @@ function createUniformControls(factory: ControlFactory, uniforms: ControlFactory
             const numComponents = UniformComponents[u.type!]!;
             if (numComponents > 1) {
                 const values = u.value as number[];
-                factory.createVector(name, values, (i, v) => { values[i] = v; }, min, max, step);
+                if (numComponents === 3) {
+                  controlsContainer.appendChild(createVec3(name, values as Vec3, (v: Vec3) => { values[0] = v[0]; values[1] = v[1]; values[2] = v[2]; }));
+                } else {
+                  controlsContainer.appendChild(createVector(name, values, (i: number, v: number) => { values[i] = v; }, min, max, step));
+                }
             } else {
                 const value = u.value as number;
-                factory.createScalar(name, value, (v) => { u.value = v; }, min, max, step);
+                controlsContainer.appendChild(createScalar(name, value, (v: number) => { u.value = v; }, min, max, step));
             }
         }
     }
-    factory.createCosPalette([[0.5, 0.5, 0.5],
+    controlsContainer.appendChild(createCosPalette([[0.5, 0.5, 0.5],
     [0.5, 0.5, 0.5],
     [1.0, 1.0, 1.0],
-    [0.0, 0.9, 0.9]]);
+    [0.0, 0.9, 0.9]]));
 }
 
 function textureSizeFromNumParticles(numParticles: number, maxNumParticles: number): [number, number] {
@@ -58,34 +70,26 @@ function textureSizeFromNumParticles(numParticles: number, maxNumParticles: numb
 }
 
 function createUi(
-    controlFactory: ControlFactory,
+    controlsContainer: HTMLElement,
     parameters: ControlFactoryUniform[],
     resetFn: () => void,
     pauseFn: () => void,
+    toggleVisibilityFn: () => void,
 ) {
-    createUniformControls(controlFactory, parameters);
-    controlFactory.createButton("Clear", () => {
+    createUniformControls(controlsContainer, parameters);
+    controlsContainer.appendChild(createButton("Clear", () => {
         resetFn();
-    });
-    controlFactory.createButton("Pause", pauseFn);
+    }));
+    controlsContainer.appendChild(createButton("Pause", pauseFn));
     document.addEventListener("keypress", (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key.charCodeAt(0) === 112) { // 112 = p
-        controlFactory.visible = !controlFactory.visible;
+        toggleVisibilityFn();
       }
     });
 }
 
 function createUIParameter(type: UniformType, value: number | number[], ui: UniformUI): ControlFactoryUniform {
     return { type, value, ui };
-}
-
-function logDebug(text: string, force: boolean = false) {
-    const debug = document.getElementById("debug")!;
-    if (!force) {
-        debug.innerHTML += text + "<br>";
-    } else {
-        debug.innerHTML = text;
-    }
 }
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
@@ -117,7 +121,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         step: 0.01,
         max: 1.0
     });    
-    const controlFactory = new ControlFactory(document, controls);
+    const controlFactory = new ControlFactory(controls);
     const gl = canvas.getContext("webgl2")!
     let ext = gl.getExtension("EXT_color_buffer_float");
     if (!ext) {
@@ -168,7 +172,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         configureCanvas(canvas);
     }
 
-    createUi(controlFactory, [numParticlesParam, accumulateParam, bloomIntensityParam, lumaThresholdParam, ...simulateStage.parameters],
+    createUi(controls, [numParticlesParam, accumulateParam, bloomIntensityParam, lumaThresholdParam, ...simulateStage.parameters],
         () => { resize(); },
         () => {
             isRunning = !isRunning;
@@ -178,11 +182,14 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
               startTime = performance.now();
               draw();
             }
+        },
+        () => {
+            controlFactory.visible = !controlFactory.visible;
         }
     );
 
     window.addEventListener("resize", resize);
-    draw();
+    // draw();
 }
 
 export default main;

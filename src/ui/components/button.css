@@ -1,0 +1,23 @@
+.button > button {
+  background: white;
+  color: black;
+  padding: 3px 0px 3px 9px;
+  border-radius: 6px;
+  margin: 2px;
+  width: 250px;
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.033rem;
+}
+.button {
+  margin: 2px 0;
+}
+.button > button {
+  margin: 0;
+  border: none;
+  width: 100%;
+  background-color: #ddd;
+  font-weight: 600;
+  letter-spacing: 0.033rem;
+  color: #000;
+}

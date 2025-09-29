@@ -1,0 +1,255 @@
+@import url(../scalar.css);
+
+.vec3-control,
+.vec3-control * {
+    box-sizing: border-box;
+    --total-width: calc(var(--width) + 2 * var(--input-range-height) + 2.0 * var(--width) * 0.05);
+    --width: 100px;
+    --height: 100px;
+    --half-width: 50px;
+    --centerZ: -50px;
+    --center-size: 3px;
+    --marker-border-width: 1px;
+    --marker-border: var(--marker-border-width) solid;
+    --plane-border-radius: calc(var(--width) * 1.00);
+    --text-glow: 0 0 4px rgba(255, 255, 255, 0.6), 0 0 8px rgba(255, 255, 255, 0.4), 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+.vec3-control {
+  width: var(--total-width);
+  border-radius: 0.5rem;
+  background-color: #222;
+  padding: calc(var(--width) * 0.05);
+}
+
+.vec3-control[data-expanded="0"] .panels,
+.vec3-control .panels > div {
+  display: none;
+}
+
+.vec3-control[data-type="3D"] .panels {
+    padding-top: 0.75rem;
+    border-top: 1px solid #ddd;
+}
+
+.vec3-control[data-panel="L"] .panels > div[data-type="L"],
+.vec3-control[data-panel="3D"] .panels > div[data-type="3D"] {
+  display: block;
+}
+
+/* Gimbal style */
+
+.vec3-control .gimbal-control {
+  width: calc(var(--width) + 2 * var(--input-range-height));
+  height: calc(var(--width) + 1 * var(--input-range-height));
+  position: relative;
+  perspective: var(--width) * 3.0;
+}
+
+.vec3-control .xz {
+  position: absolute;
+  width: var(--width);
+  height: var(--height);
+  border: var(--marker-border);
+  border-radius: var(--plane-border-radius);
+  border-color: rgba(80, 80, 255, 0.5);
+  background: linear-gradient(
+    to left,
+    rgba(80, 80, 255, 0.5),
+    rgba(0, 0, 255, 0.05)
+  );
+  transform: rotateX(90deg);
+  z-index: 1;
+}
+
+.vec3-control .yz {
+  position: absolute;
+  width: var(--width);
+  height: var(--height);
+  border: var(--marker-border);
+  border-radius: var(--plane-border-radius);
+  border-color: green;
+  border-color: rgba(64, 255, 64, 0.5);
+  background: linear-gradient(
+    to bottom,
+    rgba(64, 255, 64, 0.33),
+    rgba(0, 255, 0, 0.05)
+  );
+  transform: rotateY(90deg);
+  z-index: 2;
+}
+
+.vec3-control .xy {
+  position: absolute;
+  width: var(--width);
+  height: var(--height);
+  border: var(--marker-border);
+  border-color: rgba(255, 80, 80, 0.5);
+  border-radius: var(--plane-border-radius);
+  background: linear-gradient(
+    to left,
+    rgba(255, 80, 80, 0.33),
+    rgba(255, 0, 0, 0.05)
+  );
+  transform: translateZ(--centerZ);
+}
+
+
+.vec3-control .xz, 
+.vec3-control .xy, 
+.vec3-control .yz {
+    text-shadow: var(--text-glow);
+}
+
+.vec3-control .xy > span,
+.vec3-control .xz > span {
+  position: absolute;
+  display: block;
+  font-family: "Verdana";
+  line-height: 0px;
+  margin-top: -3px;
+  margin-left: calc(-1 * var(--half-width) - 2px);
+  font-size: var(--width);
+}
+
+.vec3-control .xz > span.a,
+.vec3-control .xy > span.b {
+  color: #fff;
+  transform: translate3d(var(--half-width), var(--half-width), var(--half-width)) scaleY(0.75) scaleX(1.2);
+}
+
+.vec3-control .gimbal-container {
+  margin-left: var(--input-range-height);
+}
+
+.vec3-control .gimbal {
+  transform-style: preserve-3d;
+  position: absolute;
+  width: var(--width);
+  height: var(--height);  
+  overflow: visible;
+}
+
+/* TODO: Add firefox styles */
+
+.vec3-control .controls {
+  position: absolute;
+  top: calc(-1 * var(--scale-height));
+  left: 0;
+}
+
+.vec3-control .controls > input {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--width);
+  height: var(--input-range-height);
+  background: transparent;
+}
+
+.vec3-control .controls > input.scale {
+  height: var(--scale-height);
+}
+
+.vec3-control .controls .horizontal {
+    transform: 
+      translateX(calc(var(--input-range-height) - 2px)) translateY(calc(var(--height) - 2px));
+}
+
+.vec3-control .controls .vertical {
+  transform: translateY(calc(var(--half-width) - calc(var(--input-range-height) * 0.5))) translateX(calc(-1 * var(--half-width) + 0.5 * var(--input-range-height) - 2px)) rotateZ(90deg);
+}
+
+.vec3-control .controls .scale {
+  transform: translateY(calc(var(--half-width) - calc(var(--input-range-height) * 0.5))) translateX(calc(var(--half-width) + 1.5 * var(--scale-height) - 2px)) rotateZ(-90deg);
+}
+
+/* Panel */
+
+.vec3-control header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  font: 0.67rem "Helvetica, Arial", monospace;
+  line-height: 1.25rem;
+  padding: 0 0.125rem 0.0rem 0.125rem;
+  /* border-radius: 0.25rem;*/
+  border: none;
+}
+
+.vec3-control[data-expanded="1"] header {
+  padding-bottom: 0.25rem;
+}
+
+.vec3-control[data-expanded="1"][data-panel="3D"] header {
+  padding-bottom: 0.35rem;
+}
+
+.vec3-control header .panel-selector {
+  flex: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.vec3-control header div {
+  margin-right: 0.1rem;
+  color: #fff;
+}
+
+.vec3-control[data-expanded="0"] header .panel-selector {
+  display: none;
+}
+
+.vec3-control header .panel-selector > div {
+  margin: 0 .125rem;
+}
+
+.vec3-control header .panel-selector > div[data-type] {
+  opacity: 0.5;
+  font-weight: 100;
+  color: #fff;
+  height: 1.25rem;
+  cursor: default;
+}
+
+.vec3-control[data-panel="3D"] header .panel-selector > div[data-type="3D"] {
+  opacity: 1.0;
+  text-shadow: var(--text-glow);
+}
+
+.vec3-control[data-panel="L"] header .panel-selector > div[data-type="L"] {
+  opacity: 1.0;
+  text-shadow: var(--text-glow);
+}
+
+.vec3-control header > div.label {
+  margin-left: 0.25rem;
+  flex: 1;
+  color: #fff;
+}
+
+.vec3-control header input {
+  margin: 0 0.25rem;
+  padding: 0;
+}
+.vec3-control .list-control > div {
+  padding-bottom: 0.25rem;
+}
+
+.vec3-control .list-control input[type="range"],
+.vec3-control .list-control input[type="number"] {
+  width: 100%;
+}
+
+.vec3-control .list-control input[type="number"] {
+  margin: 0.25rem 0;
+  font-size: 0.67rem;
+}
+
+.vec3-control .list-control input[type="number"]:last-child {
+  margin-bottom: 0;
+}
