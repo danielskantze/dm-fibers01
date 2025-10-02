@@ -1,5 +1,10 @@
 @import './ui/components/shared.css';
 
+:root {
+  --vec3-component-internal-width: 100px;
+  --vec3-component-internal-height: 100px;
+}
+
 input[type=text] {
   border: none;
   border-radius: 3px;

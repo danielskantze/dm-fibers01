@@ -2,6 +2,7 @@ import type { Vec3 } from "../../../math/types";
 import { mapCartesianToGimbal, mapGimbalToCartesian } from "../../../math/gimbal";
 import template from './vec3.html?raw';
 import './vec3.css';
+import { createShaderCanvas } from "../../3d/shader-canvas";
 
 export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void): HTMLElement {
     const wrapper = document.createElement('div');
@@ -13,10 +14,19 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     const expandRadio = control.querySelector('header .expand-radio')! as HTMLInputElement;
     const panelSelectors = control.querySelectorAll('header .panel-selector *[data-type]');
     const panels = control.querySelector('.panels') as HTMLDivElement;
+    const canvasContainer = control.querySelector('.gimbal') as HTMLDivElement;
 
     const componentRangeInputs = control.querySelectorAll('.list-control input[type="range"]');
     const componentNumberInputs = control.querySelectorAll('.list-control input[type="number"]');
 
+    function getVec3InternalSize(): [number, number] {
+      const style = window.getComputedStyle(document.body)!;
+      return [
+        parseInt(style.getPropertyValue('--vec3-component-internal-width')),
+        parseInt(style.getPropertyValue('--vec3-component-internal-height'))
+      ];
+    }
+    const [internalWidth, internalHeight] = getVec3InternalSize();
     label.innerHTML = name;
 
     expandRadio.onclick = (e: Event) => {
@@ -37,72 +47,51 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       };
     });
 
-    // Hook up 3D view
+    
+    // 3D
 
     const inputH = control.querySelector(".controls > input.horizontal") as HTMLInputElement;
     const inputV = control.querySelector(".controls > input.vertical") as HTMLInputElement;
     const inputS = control.querySelector(".controls > input.length") as HTMLInputElement;
-    const arrowA = control.querySelector(".xz > span.a") as HTMLSpanElement;
-    const arrowB = control.querySelector(".xy > span.b") as HTMLSpanElement;
-    const gimbal = control.querySelector(".gimbal") as HTMLDivElement;
 
-    let [length, rotX, rotZ] = mapCartesianToGimbal(value);
+    const { canvas, update: updateGimbal } = createShaderCanvas(internalWidth, internalHeight);
+    const angleRange = Math.PI * 2;
     
-    let vector: Vec3 = value;
+    let vector: Vec3 = [...value];
+    let gimbalState = mapCartesianToGimbal(vector);
 
-    function applyTransform() {
-      vector = mapGimbalToCartesian(length, rotX, rotZ);
-    }
-
-    function updateRotation() {
-      const transform = `rotateX(${rotX * 180 / Math.PI}deg) rotateZ(${rotZ * 180 / Math.PI}deg)`;
-      gimbal.style.transform = transform;
-    }
-
-    function updateLength() {
-      const cssScaleL = 1.2 * length;
-      const cssScaleH = 0.75 * length;// + (1.0 - scale) * 0.125;
-      const transformA = `translate3d(var(--half-width), var(--half-width), var(--half-width)) scaleY(${cssScaleH}) scaleX(${cssScaleL})`;
-      const transformB = `translate3d(var(--half-width), var(--half-width), var(--half-width)) scaleY(${cssScaleH}) scaleX(${cssScaleL})`;
-      arrowA.style.transform = transformA;
-      arrowB.style.transform = transformB;
-    }
-
-    function updateGimbalInputs() {
-      inputH.value = `${rotX / Math.PI}`;
-      inputV.value = `${(rotZ + Math.PI) / (Math.PI * 2)}`;
-    }
-
-    function onGimbalComponentChange() {
-      updateRotation();
-      updateLength();
-      applyTransform();
+    function onDragV(e: Event) {
+      const value = parseFloat((e.target! as HTMLInputElement).value);
+      gimbalState[0] = value * angleRange;
+      vector = mapGimbalToCartesian(...gimbalState);
+      updateGimbal(...gimbalState);
       updateListComponent();
       onChange(vector);
     }
     function onDragH(e: Event) {
       const value = parseFloat((e.target! as HTMLInputElement).value);
-      rotX = value * Math.PI;
-      onGimbalComponentChange();
-    }
-    function onDragV(e: Event) {
-      const value = parseFloat((e.target! as HTMLInputElement).value);
-      rotZ = value * Math.PI * 2 - Math.PI;
-      onGimbalComponentChange();
+      gimbalState[1] = value * angleRange;
+      vector = mapGimbalToCartesian(...gimbalState);
+      updateGimbal(...gimbalState);
+      updateListComponent();
+      onChange(vector);
     }
     function onDragS(e: Event) {
       const value = parseFloat((e.target! as HTMLInputElement).value);
-      length = value;
-      onGimbalComponentChange();
+      gimbalState[2] = value;
+      vector = mapGimbalToCartesian(...gimbalState);
+      updateGimbal(...gimbalState);
+      updateListComponent();
+      onChange(vector);
     }
     inputH.addEventListener("input", onDragH);
     inputV.addEventListener("input", onDragV);
     inputS.addEventListener("input", onDragS);
-    updateGimbalInputs();
-    onGimbalComponentChange();
+    updateGimbal(...gimbalState);
 
-    // Hook up 3D view
+    canvasContainer!.appendChild(canvas);
 
+    // LIST
 
     function updateListComponent() {
       componentRangeInputs.forEach((node: Node, c: number) => {
@@ -117,10 +106,9 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       const inputElmt = e.target as HTMLInputElement;
       const c = parseInt(inputElmt.dataset.component ?? "0");
       vector[c] = parseFloat(inputElmt.value);
-      [length, rotX, rotZ] = mapCartesianToGimbal(vector);
-      updateGimbalInputs();
+      gimbalState = mapCartesianToGimbal(vector);
+      updateGimbal(...gimbalState);
       updateListComponent();
-      onGimbalComponentChange();
       onChange(vector);
     }
 

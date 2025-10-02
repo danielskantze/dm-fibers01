@@ -1,11 +1,15 @@
 @import url(../scalar/scalar.css);
 
+.vec3 .exclude {
+  display: none !important;
+}
+
 .vec3,
 .vec3 * {
     box-sizing: border-box;
     --total-width: calc(var(--width) + 2 * var(--input-range-height) + 2.0 * var(--width) * 0.05);
-    --width: 100px;
-    --height: 100px;
+    --width: var(--vec3-component-internal-width);
+    --height: var(--vec3-component-internal-height);
     --half-width: 50px;
     --centerZ: -50px;
     --center-size: 3px;
@@ -43,91 +47,17 @@
   width: calc(var(--width) + 2 * var(--input-range-height));
   height: calc(var(--width) + 1 * var(--input-range-height));
   position: relative;
-  perspective: var(--width) * 3.0;
 }
 
-.vec3 .xz {
+.vec3 .gimbal {
   position: absolute;
   width: var(--width);
   height: var(--height);
-  border: var(--marker-border);
-  border-radius: var(--plane-border-radius);
-  border-color: rgba(80, 80, 255, 0.5);
-  background: linear-gradient(
-    to left,
-    rgba(80, 80, 255, 0.5),
-    rgba(0, 0, 255, 0.05)
-  );
-  transform: rotateX(90deg);
-  z-index: 1;
-}
-
-.vec3 .yz {
-  position: absolute;
-  width: var(--width);
-  height: var(--height);
-  border: var(--marker-border);
-  border-radius: var(--plane-border-radius);
-  border-color: green;
-  border-color: rgba(64, 255, 64, 0.5);
-  background: linear-gradient(
-    to bottom,
-    rgba(64, 255, 64, 0.33),
-    rgba(0, 255, 0, 0.05)
-  );
-  transform: rotateY(90deg);
-  z-index: 2;
-}
-
-.vec3 .xy {
-  position: absolute;
-  width: var(--width);
-  height: var(--height);
-  border: var(--marker-border);
-  border-color: rgba(255, 80, 80, 0.5);
-  border-radius: var(--plane-border-radius);
-  background: linear-gradient(
-    to left,
-    rgba(255, 80, 80, 0.33),
-    rgba(255, 0, 0, 0.05)
-  );
-  transform: translateZ(--centerZ);
-}
-
-
-.vec3 .xz, 
-.vec3 .xy, 
-.vec3 .yz {
-    text-shadow: var(--text-glow);
-}
-
-.vec3 .xy > span,
-.vec3 .xz > span {
-  position: absolute;
-  display: block;
-  font-family: "Verdana";
-  line-height: 0px;
-  margin-top: -3px;
-  margin-left: calc(-1 * var(--half-width) - 2px);
-  font-size: var(--width);
-}
-
-.vec3 .xz > span.a,
-.vec3 .xy > span.b {
-  color: #fff;
-  transform: translate3d(var(--half-width), var(--half-width), var(--half-width)) scaleY(0.75) scaleX(1.2);
+  left: calc(0.5 * (var(--total-width) - var(--width)) - var(--width) * 0.05 - 0.5px);
 }
 
 .vec3 .gimbal-container {
   margin-left: var(--input-range-height);
-}
-
-.vec3 .gimbal {
-  transform-style: preserve-3d;
-  position: absolute;
-  width: var(--width);
-  height: var(--height);  
-  overflow: visible;
 }
 
 /* TODO: Add firefox styles */
