@@ -1,4 +1,4 @@
-import type { Vec3, Matrix3x3 } from "./types";
+import type { Vec3, Matrix3x3, Matrix4x4 } from "./types";
 
 function multiplyMatrix(v: Vec3, m: Matrix3x3): Vec3 {
   return [
@@ -34,24 +34,17 @@ export function rotateZ(vector: Vec3, angle: number): Vec3 {
   return multiplyMatrix(vector, matrix);
 }
 
-export function scale(vector: Vec3, scale: number): Vec3 {
-  return [vector[0] * scale, vector[1] * scale, vector[2] * scale];
-}
-
-export function length(vector: Vec3): number {
-  return Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
-}
-
-export function toPolar(vector: Vec3): Vec3 {
-  const rotX = Math.atan2(vector[1], vector[0]);
-  const rotZ = Math.asin(vector[2] / length(vector));
-  return [ length(vector),  rotX,  rotZ ];
-}
-
-export function fromPolar(vector: Vec3): Vec3 {
+export function identity(): Matrix4x4 {
   return [
-    vector[0] * Math.cos(vector[1]) * Math.cos(vector[2]), 
-    vector[0] * Math.sin(vector[1]) * Math.cos(vector[2]), 
-    vector[0] * Math.sin(vector[2])
+    [1.0, 0.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0, 0.0],
+    [0.0, 0.0, 1.0, 0.0],
+    [0.0, 0.0, 0.0, 1.0],
+  ];
+}
+
+export function scale(vector: Vec3, scale: number): Vec3 {
+  return [
+
   ];
 }

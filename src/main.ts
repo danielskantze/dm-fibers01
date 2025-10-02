@@ -16,6 +16,7 @@ import { createScalar } from "./ui/components/scalar";
 import { createVector } from "./ui/components/vector";
 import { createVec3 } from "./ui/components/vec3";
 import { createCosPalette } from "./ui/components/cos-palette";
+import { createShaderCanvas } from "./ui/3d/shader-canvas";
 
 export type ControlFactoryUniform = Omit<Uniform, "location" | "slot">;
 
