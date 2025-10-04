@@ -112,6 +112,8 @@
   padding: 0 0.125rem 0.0rem 0.125rem;
   /* border-radius: 0.25rem;*/
   border: none;
+  z-index: 100;
+  position: relative;
 }
 
 .vec3[data-expanded="1"] header {
