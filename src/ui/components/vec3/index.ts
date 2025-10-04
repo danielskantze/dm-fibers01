@@ -1,8 +1,13 @@
-import type { Vec3 } from "../../../math/types";
+import type { Matrix4x4, Vec3 } from "../../../math/types";
 import { mapCartesianToGimbal, mapGimbalToCartesian } from "../../../math/gimbal";
 import template from './vec3.html?raw';
 import './vec3.css';
-import { createShaderCanvas } from "../../3d/shader-canvas";
+import { createVec3GimbalView } from "../../3d/vec3-gimbal";
+import * as mat4 from "../../../math/mat4";
+import * as vec3 from "../../../math/vec3";
+import * as vec4 from "../../../math/vec4";
+
+const vec3Ref: Vec3 = [0, 1, 0];
 
 export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void): HTMLElement {
     const wrapper = document.createElement('div');
@@ -54,40 +59,86 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     const inputV = control.querySelector(".controls > input.vertical") as HTMLInputElement;
     const inputS = control.querySelector(".controls > input.length") as HTMLInputElement;
 
-    const { canvas, update: updateGimbal } = createShaderCanvas(internalWidth, internalHeight);
+    const { canvas, update: updateGimbal } = createVec3GimbalView(internalWidth, internalHeight);
     const angleRange = Math.PI * 2;
     
     let vector: Vec3 = [...value];
-    let gimbalState = mapCartesianToGimbal(vector);
+    let matrices = vectorToMatrices(vector);
+    let inputState = [
+      parseFloat(inputV.value), 
+      parseFloat(inputH.value),
+      parseFloat(inputS.value)
+    ];
+
+    function vectorToMatrices(v: Vec3): [Matrix4x4, Matrix4x4] {
+      let m: Matrix4x4 = mat4.getVectorRotationMat(vec3Ref, v);
+      let im: Matrix4x4 = mat4.getVectorRotationMat(v, vec3Ref);
+      return [m, im];
+    }
+
+    function applyTransforms(angle?: number, rotateFn?: (a: number) => Matrix4x4) {
+      let [m, im] = matrices;
+      if (angle !== undefined && rotateFn !== undefined) {
+        const rotM = rotateFn(angle);
+        const iRotM = rotateFn(angle);
+        m = mat4.multiplyMat(m, rotM);
+        im = mat4.multiplyMat(iRotM, m);
+      }
+      matrices[0] = m;
+      matrices[1] = im;
+      updateGimbal(m, im, vec3.length(vector));
+      //updateListComponent();
+      //onChange(vector);
+    }
 
     function onDragV(e: Event) {
-      const value = parseFloat((e.target! as HTMLInputElement).value);
-      gimbalState[0] = value * angleRange;
-      vector = mapGimbalToCartesian(...gimbalState);
-      updateGimbal(...gimbalState);
-      updateListComponent();
-      onChange(vector);
+      const elmt = (e.target! as HTMLInputElement);
+      const value = parseFloat(elmt.value);
+      const delta = value - inputState[0];
+      console.log(delta);
+      applyTransforms(delta * angleRange, mat4.rotateX);
+      inputState[0] = value;
     }
+    function onCommitV() {
+      let [m] = matrices;
+      vector = vec3.fromVec4(mat4.multiplyVec(vec4.fromVec3(vec3Ref), m));
+      inputH.value = "0";
+      inputV.value = "0";
+      inputState[0] = 0;
+      inputState[1] = 0;
+      matrices = vectorToMatrices(vector);
+    }
+
     function onDragH(e: Event) {
-      const value = parseFloat((e.target! as HTMLInputElement).value);
-      gimbalState[1] = value * angleRange;
-      vector = mapGimbalToCartesian(...gimbalState);
-      updateGimbal(...gimbalState);
-      updateListComponent();
-      onChange(vector);
+      const elmt = (e.target! as HTMLInputElement);
+      const value = parseFloat(elmt.value);
+      const delta = value - inputState[1];
+      applyTransforms(delta * angleRange, mat4.rotateZ);
+      inputState[1] = value;
+    }
+    function onCommitH() {
+      let [m] = matrices;
+      vector = vec3.fromVec4(mat4.multiplyVec(vec4.fromVec3(vec3Ref), m));
+      inputH.value = "0";
+      inputV.value = "0";
+      inputState[0] = 0;
+      inputState[1] = 0;
+      matrices = vectorToMatrices(vector);
     }
     function onDragS(e: Event) {
-      const value = parseFloat((e.target! as HTMLInputElement).value);
-      gimbalState[2] = value;
-      vector = mapGimbalToCartesian(...gimbalState);
-      updateGimbal(...gimbalState);
-      updateListComponent();
-      onChange(vector);
+      // const value = parseFloat((e.target! as HTMLInputElement).value);
+      // gimbalState[2] = value;
+      // vector = mapGimbalToCartesian(...gimbalState);
+      // updateGimbal(...gimbalState);
+      // updateListComponent();
+      // onChange(vector);
     }
     inputH.addEventListener("input", onDragH);
+    inputH.addEventListener("change", onCommitH);
     inputV.addEventListener("input", onDragV);
+    inputV.addEventListener("change", onCommitV);
     inputS.addEventListener("input", onDragS);
-    updateGimbal(...gimbalState);
+    applyTransforms();
 
     canvasContainer!.appendChild(canvas);
 
@@ -106,10 +157,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       const inputElmt = e.target as HTMLInputElement;
       const c = parseInt(inputElmt.dataset.component ?? "0");
       vector[c] = parseFloat(inputElmt.value);
-      gimbalState = mapCartesianToGimbal(vector);
-      updateGimbal(...gimbalState);
-      updateListComponent();
-      onChange(vector);
+      applyTransforms();
     }
 
     componentRangeInputs.forEach((node) => {

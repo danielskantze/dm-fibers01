@@ -1,6 +1,24 @@
-import type { Vec4, Matrix4x4, Vec3 } from "./types";
+import type { Matrix3x3, Matrix4x4, Vec3, Vec4 } from "./types";
+import * as mat3 from "./mat3";
 
-export function multiplyVecMat(v: Vec4, m: Matrix4x4): Vec4 {
+export function create(a: [
+  number, number, number, number, 
+  number, number, number, number, 
+  number, number, number, number, 
+  number, number, number, number 
+]) {
+  return new Float32Array(a);
+}
+
+export function fromMat3(m: Matrix3x3, affine: boolean = false): Matrix4x4 {
+  return create([
+    m[0], m[1], m[2], 0,
+    m[3], m[4], m[5], 0,
+    m[6], m[7], m[8], 0,
+    0, 0, 0, affine ? 1 : 0]);
+}
+
+export function multiplyVec(v: Vec4, m: Matrix4x4): Vec4 {
   return [
     v[0] * m[0] + v[1] * m[4] + v[2] * m[8] + v[3] * m[12],
     v[0] * m[1] + v[1] * m[5] + v[2] * m[9] + v[3] * m[13],
@@ -9,7 +27,7 @@ export function multiplyVecMat(v: Vec4, m: Matrix4x4): Vec4 {
   ];
 }
 
-export function multiplyMatMat(m1: Matrix4x4, m2: Matrix4x4): Matrix4x4 {
+export function multiplyMat(m1: Matrix4x4, m2: Matrix4x4): Matrix4x4 {
   const result: Matrix4x4 = new Float32Array(
     [0, 0, 0, 0,
     0, 0, 0, 0,
@@ -35,9 +53,9 @@ export function multiplyMatMulti(...m: Matrix4x4[]): Matrix4x4 {
   if (m.length === 1) {
     return m[0];
   }
-  let res = multiplyMatMat(m[0], m[1]);
+  let res = multiplyMat(m[0], m[1]);
   for (let i = 2; i < m.length; i++) {
-    res = multiplyMatMat(res, m[i]);
+    res = multiplyMat(res, m[i]);
   }
   return res;
 }
@@ -96,4 +114,8 @@ export function scaleVec3(s: Vec3): Matrix4x4 {
     0.0, 0.0, s[2], 0.0,
     0.0, 0.0, 0.0, 1.0,
   ]);
+}
+
+export function getVectorRotationMat(from: Vec3, to: Vec3): Matrix4x4 {
+  return fromMat3(mat3.getVectorRotationMat(from, to), true);
 }
