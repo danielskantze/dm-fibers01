@@ -1,8 +1,8 @@
 @import './ui/components/shared.css';
 
 :root {
-  --vec3-component-internal-width: 400px;
-  --vec3-component-internal-height: 400px;
+  --vec3-component-internal-width: 100px;
+  --vec3-component-internal-height: 100px;
 }
 
 input[type=text] {
@@ -19,17 +19,6 @@ html, body {
 
 body * {
   box-sizing: border-box;
-}
-
-#dev-ui {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 #app {
