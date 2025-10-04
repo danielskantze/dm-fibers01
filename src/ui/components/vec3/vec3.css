@@ -7,7 +7,8 @@
 .vec3,
 .vec3 * {
     box-sizing: border-box;
-    --total-width: calc(var(--width) + 2 * var(--input-range-height) + 2.0 * var(--width) * 0.05);
+    --outer-padding: var(--width) * 0.05;
+    --total-width: calc(var(--width) + 2 * var(--input-range-height) + 2.0 * var(--outer-padding));
     --width: var(--vec3-component-internal-width);
     --height: var(--vec3-component-internal-height);
     --half-width: 50px;
@@ -64,8 +65,10 @@
 
 .vec3 .controls {
   position: absolute;
-  top: calc(-1 * var(--scale-height));
+  top: calc(-1 * var(--input-range-height));
   left: 0;
+  width: calc(var(--total-width) - 2 * var(--outer-padding));
+  height: calc(var(--total-width) - 2 * var(--outer-padding));
 }
 
 .vec3 .controls > input {
@@ -84,15 +87,17 @@
 
 .vec3 .controls .horizontal {
     transform: 
-      translateX(calc(var(--input-range-height) - 2px)) translateY(calc(var(--height) - 2px));
+      translateX(calc(var(--input-range-height) - 3px)) translateY(calc(var(--height) + var(--input-range-height) - 2px));
 }
 
 .vec3 .controls .vertical {
-  transform: translateY(calc(var(--half-width) - calc(var(--input-range-height) * 0.5))) translateX(calc(-1 * var(--half-width) + 0.5 * var(--input-range-height) - 2px)) rotateZ(90deg);
+    transform-origin: center left;
+    transform: rotateZ(90deg) translateY(calc(-.5 * var(--input-range-height))) translateX(calc(0.5 * var(--input-range-height)));
 }
 
 .vec3 .controls .length {
-  transform: translateY(calc(var(--half-width) - calc(var(--input-range-height) * 0.5))) translateX(calc(var(--half-width) + 1.5 * var(--scale-height) - 2px)) rotateZ(-90deg);
+    transform-origin: center right;
+    transform: rotateZ(-90deg) translateY(calc(1.25 * var(--input-range-height))) translateX(calc(-0.5 * var(--input-range-height)));
 }
 
 /* Panel */
