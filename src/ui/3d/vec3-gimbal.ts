@@ -20,9 +20,13 @@ function initGl(gl: WebGL2RenderingContext) {
         location: gl.getUniformLocation(program, "u_object_mat_i"),
         slot: 1,
       } as Uniform,
+      u_magnitude: {
+        location: gl.getUniformLocation(program, "u_magnitude"),
+        slot: 2,
+      } as Uniform,
       u_time: {
         location: gl.getUniformLocation(program, "u_time"),
-        slot: 2
+        slot: 3
       } as Uniform
     };
     return { program, attributes, uniforms };
@@ -43,6 +47,7 @@ function createVec3GimbalView(width: number, height: number) {
   const startTime = Date.now();
   let objectMatrix = mat4.identity();
   let objectMatrixI = mat4.identity();
+  let magnitude = 1.0;
 
   function draw() {
     gl.useProgram(program);
@@ -50,6 +55,7 @@ function createVec3GimbalView(width: number, height: number) {
     gl.uniformMatrix4fv(uniforms.u_object_mat.location, false, objectMatrix);
     gl.uniformMatrix4fv(uniforms.u_object_mat_i.location, false, objectMatrixI);
     gl.uniform1f(uniforms.u_time.location, (Date.now() - startTime) / 1000.0);
+    gl.uniform1f(uniforms.u_magnitude.location, magnitude);
     gl.enableVertexAttribArray(attributes.position);
     gl.vertexAttribPointer(attributes.position, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -69,6 +75,7 @@ function createVec3GimbalView(width: number, height: number) {
       angle += 0.01;
       objectMatrix = rotM;
       objectMatrixI = iRotM;
+      magnitude = length;
       scheduleDraw();
     }
   }

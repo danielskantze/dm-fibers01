@@ -29,19 +29,15 @@ class Vec3State {
     }
 
     public get matrix(): Matrix4x4 {
-        const mS = mat4.scaleC(this.safeScale);
-        //const mS = mat4.identity();
         const mX = mat4.rotateX(this.rotX);
         const mZ = mat4.rotateZ(this.rotZ);
-        return mat4.multiplyMatMulti(mS, mX, mZ);
+        return mat4.multiplyMatMulti(mX, mZ);
     }
 
     public get matrixI(): Matrix4x4 {
-        const mS = mat4.scaleC(1 / this.safeScale);
-        //const mS = mat4.identity();
         const mX = mat4.rotateX(-this.rotX);
         const mZ = mat4.rotateZ(-this.rotZ);
-        return mat4.multiplyMatMulti(mZ, mX, mS);
+        return mat4.multiplyMatMulti(mZ, mX);
     }    
 
     public get value(): Vec3 {
@@ -128,7 +124,10 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
             "rotZ",
             (state.rotZ * 180 / Math.PI).toFixed(0),
             "v: [", state.value[0].toFixed(2), state.value[1].toFixed(2), state.value[2].toFixed(2), "]");
-        console.log("inputH.value", inputH.value, "inputV.value", inputV.value);
+        console.log(
+          "inputH.value", inputH.value, 
+          "inputV.value", inputV.value,
+          "inputS.value", inputS.value);
     }
 
     function onDragV() {
