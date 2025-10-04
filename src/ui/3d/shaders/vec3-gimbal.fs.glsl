@@ -5,6 +5,7 @@ in highp vec2 v_texcoord;
 uniform float u_time;
 uniform mat4 u_object_mat;
 uniform mat4 u_object_mat_i;
+uniform float u_magnitude;
 
 out vec4 out_color;
 const float PI = 3.14159265357989f;
@@ -114,18 +115,18 @@ vec3 light(vec3 pos, vec3 dir, vec3 normal, Light light) {
 }
 
 float s_cylinder(vec3 p, mat4 transform) {
-  float offset_y = 0.8125;
+  float offset_y = 0.8125 * u_magnitude;
   vec3 offset = vec3(0.0, offset_y, 0.0);
   vec4 lp = vec4(p - offset, 1.0);// * transform;
-  return sdCappedCylinder(lp.xyz, 1.0, 0.125);
+  return sdCappedCylinder(lp.xyz, 1.0 * u_magnitude, 0.125 * u_magnitude);
 }
 
 float s_cone(vec3 p, mat4 transform) {
   float offset_y = 0.8125;
-  vec3 offset = vec3(0.0, offset_y + 1.25, 0.0);
+  vec3 offset = vec3(0.0, (offset_y + 1.25) * u_magnitude, 0.0);
   float a = PI * 0.167;
   vec4 lp = vec4(p - offset, 1.0);// * transform;
-  return sdCone(lp.xyz, vec2(sin(a), cos(a)), 0.75);
+  return sdCone(lp.xyz, vec2(sin(a), cos(a)), 0.75 * u_magnitude);
 }
 
 MapResult map(vec3 p, mat4 transform) {
