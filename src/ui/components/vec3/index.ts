@@ -4,12 +4,63 @@ import template from './vec3.html?raw';
 import './vec3.css';
 import { createVec3GimbalView } from "../../3d/vec3-gimbal";
 import * as mat4 from "../../../math/mat4";
+import * as mat3 from "../../../math/mat3";
 import * as vec3 from "../../../math/vec3";
 import * as vec4 from "../../../math/vec4";
 
-const vec3Ref: Vec3 = [0, 1, 0];
+const practicallyZero = 0.00001;
+class Vec3State {
+    public rotX: number = 0.0;
+    public rotZ: number = 0.0;
+    public length: number = 1.0;
+    private refV: Vec3;
+
+    constructor(v: Vec3, refV: Vec3 = [1, 0, 0]) {
+        this.refV = refV;
+        this.value = v;
+    }
+
+    private get safeScale(): number {
+        const al = Math.abs(this.length);
+        if (al < practicallyZero) {
+            return this.length >= 0 ? practicallyZero : -practicallyZero;
+        }
+        return this.length;
+    }
+
+    public get matrix(): Matrix4x4 {
+        const mS = mat4.scaleC(this.safeScale);
+        //const mS = mat4.identity();
+        const mX = mat4.rotateX(this.rotX);
+        const mZ = mat4.rotateZ(this.rotZ);
+        return mat4.multiplyMatMulti(mS, mX, mZ);
+    }
+
+    public get matrixI(): Matrix4x4 {
+        const mS = mat4.scaleC(1 / this.safeScale);
+        //const mS = mat4.identity();
+        const mX = mat4.rotateX(-this.rotX);
+        const mZ = mat4.rotateZ(-this.rotZ);
+        return mat4.multiplyMatMulti(mZ, mX, mS);
+    }    
+
+    public get value(): Vec3 {
+        const v4 = vec4.fromVec3(this.refV);
+        return vec3.fromVec4(mat4.multiplyVec(v4, this.matrix));
+    }
+
+    public set value(v: Vec3) {
+      const vn = vec3.normalize(v);
+      this.length = vec3.length(v);
+      this.rotX = Math.asin(vn[2]);
+      this.rotZ = Math.atan2(vn[0], vn[1]);
+    }
+
+}
+
 
 export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void): HTMLElement {
+    const state = new Vec3State(value);
     const wrapper = document.createElement('div');
     wrapper.innerHTML = template;
     const control = wrapper.firstElementChild as HTMLDivElement;
@@ -45,9 +96,11 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       const elmt = s as HTMLDivElement;
       elmt.onclick = (e: Event) => {
         const type = (e.currentTarget as HTMLDivElement).dataset.type;
+        console.log(type);
         if (type) {
             control.dataset.panel = type;
             panels.dataset.selected = type;
+            updateGimbal(state.matrix, state.matrixI, 1.0);//state.length);//state.length);
         }
       };
     });
@@ -60,91 +113,61 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     const inputS = control.querySelector(".controls > input.length") as HTMLInputElement;
 
     const { canvas, update: updateGimbal } = createVec3GimbalView(internalWidth, internalHeight);
-    const angleRange = Math.PI * 2;
-    
-    let vector: Vec3 = [...value];
-    let matrices = vectorToMatrices(vector);
-    let inputState = [
-      parseFloat(inputV.value), 
-      parseFloat(inputH.value),
-      parseFloat(inputS.value)
-    ];
 
-    function vectorToMatrices(v: Vec3): [Matrix4x4, Matrix4x4] {
-      let m: Matrix4x4 = mat4.getVectorRotationMat(vec3Ref, v);
-      let im: Matrix4x4 = mat4.getVectorRotationMat(v, vec3Ref);
-      return [m, im];
+    function initializeControls() {
+        inputH.value = (state.rotX / Math.PI).toString();
+        inputV.value = (state.rotZ / Math.PI).toString();
+        inputS.value = state.length.toString();
     }
 
-    function applyTransforms(angle?: number, rotateFn?: (a: number) => Matrix4x4) {
-      let [m, im] = matrices;
-      if (angle !== undefined && rotateFn !== undefined) {
-        const rotM = rotateFn(angle);
-        const iRotM = rotateFn(angle);
-        m = mat4.multiplyMat(m, rotM);
-        im = mat4.multiplyMat(iRotM, m);
-      }
-      matrices[0] = m;
-      matrices[1] = im;
-      updateGimbal(m, im, vec3.length(vector));
-      //updateListComponent();
-      //onChange(vector);
+    initializeControls();
+
+    function logState() {
+        console.log("rotX",
+            (state.rotX * 180 / Math.PI).toFixed(0),
+            "rotZ",
+            (state.rotZ * 180 / Math.PI).toFixed(0),
+            "v: [", state.value[0].toFixed(2), state.value[1].toFixed(2), state.value[2].toFixed(2), "]");
+        console.log("inputH.value", inputH.value, "inputV.value", inputV.value);
     }
 
-    function onDragV(e: Event) {
-      const elmt = (e.target! as HTMLInputElement);
-      const value = parseFloat(elmt.value);
-      const delta = value - inputState[0];
-      console.log(delta);
-      applyTransforms(delta * angleRange, mat4.rotateX);
-      inputState[0] = value;
+    function onDragV() {
+      state.rotZ = parseFloat(inputV.value) * Math.PI;
+      updateGimbal(state.matrix, state.matrixI, state.length);
+      logState();
     }
+
     function onCommitV() {
-      let [m] = matrices;
-      vector = vec3.fromVec4(mat4.multiplyVec(vec4.fromVec3(vec3Ref), m));
-      inputH.value = "0";
-      inputV.value = "0";
-      inputState[0] = 0;
-      inputState[1] = 0;
-      matrices = vectorToMatrices(vector);
+        updateListComponent();
     }
 
-    function onDragH(e: Event) {
-      const elmt = (e.target! as HTMLInputElement);
-      const value = parseFloat(elmt.value);
-      const delta = value - inputState[1];
-      applyTransforms(delta * angleRange, mat4.rotateZ);
-      inputState[1] = value;
+    function onDragH() {
+      state.rotX = parseFloat(inputH.value) * Math.PI;
+      updateGimbal(state.matrix, state.matrixI, state.length);
+      logState();
     }
     function onCommitH() {
-      let [m] = matrices;
-      vector = vec3.fromVec4(mat4.multiplyVec(vec4.fromVec3(vec3Ref), m));
-      inputH.value = "0";
-      inputV.value = "0";
-      inputState[0] = 0;
-      inputState[1] = 0;
-      matrices = vectorToMatrices(vector);
+      updateListComponent();
     }
-    function onDragS(e: Event) {
-      // const value = parseFloat((e.target! as HTMLInputElement).value);
-      // gimbalState[2] = value;
-      // vector = mapGimbalToCartesian(...gimbalState);
-      // updateGimbal(...gimbalState);
-      // updateListComponent();
-      // onChange(vector);
+    function onDragS() {
+      state.length = parseFloat(inputS.value);
+      updateGimbal(state.matrix, state.matrixI, state.length);
+      logState();
     }
     inputH.addEventListener("input", onDragH);
     inputH.addEventListener("change", onCommitH);
     inputV.addEventListener("input", onDragV);
     inputV.addEventListener("change", onCommitV);
     inputS.addEventListener("input", onDragS);
-    applyTransforms();
 
     canvasContainer!.appendChild(canvas);
 
+    updateGimbal(state.matrix, state.matrixI, state.length);
+    logState();
     // LIST
 
     function updateListComponent() {
+      const vector = state.value;
       componentRangeInputs.forEach((node: Node, c: number) => {
         const inputElmt = node as HTMLInputElement;
         const uiValue = Math.round(vector[c] * 100000) / 100000;
@@ -156,8 +179,9 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     function onChangeComponent(e: Event) {
       const inputElmt = e.target as HTMLInputElement;
       const c = parseInt(inputElmt.dataset.component ?? "0");
-      vector[c] = parseFloat(inputElmt.value);
-      applyTransforms();
+      const v = state.value;
+      v[c] = parseFloat(inputElmt.value);
+      state.value = v;
     }
 
     componentRangeInputs.forEach((node) => {

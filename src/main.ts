@@ -89,6 +89,13 @@ function createUi(
     });
 }
 
+function createDevUi() {
+    const vec3 = createVec3("v3", [.63, .77, 0], (v: [number, number, number]) => {
+        console.log(v);
+    });
+    document.getElementById("dev-ui")!.appendChild(vec3);
+}
+
 function createUIParameter(type: UniformType, value: number | number[], ui: UniformUI): ControlFactoryUniform {
     return { type, value, ui };
 }
@@ -123,6 +130,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         max: 1.0
     });    
     const controlFactory = new ControlFactory(controls);
+    const devUi = createDevUi();
     const gl = canvas.getContext("webgl2")!
     let ext = gl.getExtension("EXT_color_buffer_float");
     if (!ext) {
@@ -172,7 +180,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     function resize() {
         configureCanvas(canvas);
     }
-
+    /*
     createUi(controls, [numParticlesParam, accumulateParam, bloomIntensityParam, lumaThresholdParam, ...simulateStage.parameters],
         () => { resize(); },
         () => {
@@ -188,7 +196,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
             controlFactory.visible = !controlFactory.visible;
         }
     );
-
+    */
     window.addEventListener("resize", resize);
     // draw();
 }
