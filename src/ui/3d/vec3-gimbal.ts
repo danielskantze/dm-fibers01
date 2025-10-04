@@ -1,10 +1,10 @@
 import { createQuad } from "../../gl/buffers";
 import { assembleProgram } from "../../gl/shaders";
+import * as mat4 from "../../math/mat4";
+import type { Matrix4x4 } from "../../math/types";
 import type { Uniform } from "../../types/gl/uniforms";
 import vShaderSource from "./shaders/quad.vs.glsl?raw";
-import fShaderSource from "./shaders/gimbal.fs.glsl?raw";
-import * as mat4 from "../../math/mat4";
-import type { Vec3 } from "../../math/types";
+import fShaderSource from "./shaders/vec3-gimbal.fs.glsl?raw";
 
 function initGl(gl: WebGL2RenderingContext) {
   return assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
@@ -29,7 +29,7 @@ function initGl(gl: WebGL2RenderingContext) {
   });
 }
 
-function createShaderCanvas(width: number, height: number) {
+function createVec3GimbalView(width: number, height: number) {
   const canvas = document.createElement("canvas");
   const dpr = window.devicePixelRatio;
   canvas.width = width * dpr;
@@ -55,31 +55,23 @@ function createShaderCanvas(width: number, height: number) {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.useProgram(null);
   }
-  function scheduleDraw() {    
+  function scheduleDraw() {
     requestAnimationFrame(() => {
       draw();
     });
   }
-  
+
   scheduleDraw();
 
   return {
     canvas,
-    update: (angleX: number, angleZ: number, length: number) => {
+    update: (rotM: Matrix4x4, iRotM: Matrix4x4, length: number) => {
       angle += 0.01;
-      objectMatrix = mat4.multiplyMatMulti(
-        mat4.scaleC(length),
-        mat4.rotateX(angleX),
-        mat4.rotateZ(angleZ)
-      );
-      objectMatrixI = mat4.multiplyMatMulti(
-          mat4.rotateZ(-angleZ),
-          mat4.rotateX(-angleX),
-          mat4.scaleC(length)
-      );
+      objectMatrix = rotM;
+      objectMatrixI = iRotM;
       scheduleDraw();
     }
   }
 }
 
-export { createShaderCanvas };
+export { createVec3GimbalView };
