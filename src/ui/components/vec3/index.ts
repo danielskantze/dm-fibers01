@@ -15,7 +15,7 @@ class Vec3State {
     public length: number = 1.0;
     private refV: Vec3;
 
-    constructor(v: Vec3, refV: Vec3 = [1, 0, 0]) {
+    constructor(v: Vec3, refV: Vec3 = [0, -1, 0]) {
         this.refV = refV;
         this.value = v;
     }
@@ -30,19 +30,22 @@ class Vec3State {
 
     public get matrix(): Matrix4x4 {
         const mX = mat4.rotateX(this.rotX);
-        const mZ = mat4.rotateZ(this.rotZ);
+        const mZ = mat4.rotateZ(-this.rotZ);
         return mat4.multiplyMatMulti(mX, mZ);
     }
 
     public get matrixI(): Matrix4x4 {
         const mX = mat4.rotateX(-this.rotX);
-        const mZ = mat4.rotateZ(-this.rotZ);
+        const mZ = mat4.rotateZ(this.rotZ);
         return mat4.multiplyMatMulti(mZ, mX);
     }    
 
     public get value(): Vec3 {
         const v4 = vec4.fromVec3(this.refV);
-        return vec3.fromVec4(mat4.multiplyVec(v4, this.matrix));
+        const v = vec3.fromVec4(mat4.multiplyVec(v4, this.matrix));
+        v[1] = -v[1];
+        v[2] = -v[2];
+        return v;
     }
 
     public set value(v: Vec3) {
@@ -92,11 +95,11 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       const elmt = s as HTMLDivElement;
       elmt.onclick = (e: Event) => {
         const type = (e.currentTarget as HTMLDivElement).dataset.type;
-        console.log(type);
         if (type) {
             control.dataset.panel = type;
             panels.dataset.selected = type;
-            updateGimbal(state.matrix, state.matrixI, 1.0);//state.length);//state.length);
+            updateGimbal(state.matrix, state.matrixI, state.length);
+            initializeControls();
         }
       };
     });
@@ -114,6 +117,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
         inputH.value = (state.rotX / Math.PI).toString();
         inputV.value = (state.rotZ / Math.PI).toString();
         inputS.value = state.length.toString();
+        updateListComponent();
     }
 
     initializeControls();
@@ -135,18 +139,10 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       updateGimbal(state.matrix, state.matrixI, state.length);
       logState();
     }
-
-    function onCommitV() {
-        updateListComponent();
-    }
-
     function onDragH() {
       state.rotX = parseFloat(inputH.value) * Math.PI;
       updateGimbal(state.matrix, state.matrixI, state.length);
       logState();
-    }
-    function onCommitH() {
-      updateListComponent();
     }
     function onDragS() {
       state.length = parseFloat(inputS.value);
@@ -154,9 +150,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       logState();
     }
     inputH.addEventListener("input", onDragH);
-    inputH.addEventListener("change", onCommitH);
     inputV.addEventListener("input", onDragV);
-    inputV.addEventListener("change", onCommitV);
     inputS.addEventListener("input", onDragS);
 
     canvasContainer!.appendChild(canvas);

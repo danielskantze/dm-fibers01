@@ -91,8 +91,8 @@
 }
 
 .vec3 .controls .vertical {
-    transform-origin: center left;
-    transform: rotateZ(90deg) translateY(calc(-.5 * var(--input-range-height))) translateX(calc(0.5 * var(--input-range-height)));
+    transform-origin: center right;
+    transform: rotateZ(-90deg) translateY(calc(.5 * var(--input-range-height) - var(--vec3-component-internal-width))) translateX(calc(-0.5 * var(--input-range-height)));
 }
 
 .vec3 .controls .length {
