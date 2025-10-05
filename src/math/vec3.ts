@@ -81,3 +81,35 @@ export function fromPolar(vector: Vec3): Vec3 {
 export function fromVec4(vec4: Vec4): Vec3 {
   return vec4.slice(0, 3) as Vec3;
 }
+
+export function copy(v: Vec3): Vec3 {
+  return v.slice() as Vec3;
+}
+
+export function add(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]] as Vec3;
+}
+
+export function sub(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]] as Vec3;
+}
+
+export function div(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] / b[0], a[1] / b[1], a[2] / b[2]] as Vec3;
+}
+
+export function mul(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] * b[0], a[1] * b[1], a[2] * b[2]] as Vec3;
+}
+
+export function neg(a: Vec3): Vec3 {
+  return [-a[0], a[1], -a[2]] as Vec3;
+}
+
+export function max(a: Vec3, b: Vec3): Vec3 {
+  return [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2])] as Vec3;
+}
+
+export function min(a: Vec3, b: Vec3): Vec3 {
+  return [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])] as Vec3;
+}

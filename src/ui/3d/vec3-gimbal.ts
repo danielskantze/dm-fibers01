@@ -52,6 +52,8 @@ function createVec3GimbalView(width: number, height: number) {
   function draw() {
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniformMatrix4fv(uniforms.u_object_mat.location, false, objectMatrix);
     gl.uniformMatrix4fv(uniforms.u_object_mat_i.location, false, objectMatrixI);
     gl.uniform1f(uniforms.u_time.location, (Date.now() - startTime) / 1000.0);
