@@ -71,56 +71,56 @@ function logComponentState(state: Vec3State) {
 }
 
 class DomainMapping {
-  private min: Vec3;
-  private max: Vec3;
-  private dist: Vec3;
-  private iDist: Vec3;
-  private iMin: Vec3;
-  private iMax: Vec3;
+  private aMin: Vec3;
+  private aMax: Vec3;
+  private aDist: Vec3;
+  private bMin: Vec3;
+  private bMax: Vec3;
+  private bDist: Vec3;
 
-  constructor(min: Vec3, max: Vec3, iMin: Vec3 = [-1, -1, -1], iMax: Vec3 = [1, 1, 1]) {
-    this.min = min;
-    this.max = max;
-    this.iMin = iMin;
-    this.iMax = iMax;
-    this.dist = vec3.sub(max, min);
-    this.iDist = vec3.sub(iMax, iMin);
+  constructor(aMin: Vec3, aMax: Vec3, bMin: Vec3, bMax: Vec3) {
+    this.aMin = aMin;
+    this.aMax = aMax;
+    this.bMin = bMin;
+    this.bMax = bMax;
+    this.aDist = vec3.sub(aMax, aMin);
+    this.bDist = vec3.sub(bMax, bMin);
   }
 
-  clampTo(v:Vec3): Vec3 {
-    return vec3.max(vec3.min(v, this.max), this.min);
+  clampA(v:Vec3): Vec3 {
+    return vec3.max(vec3.min(v, this.aMax), this.aMin);
   }
   
-  clampFrom(v:Vec3): Vec3 {
-    return vec3.max(vec3.min(v, this.iMax), this.iMin);
+  clampB(v:Vec3): Vec3 {
+    return vec3.max(vec3.min(v, this.bMax), this.bMin);
   }
 
   // target domain
-  to(v:Vec3, clamp: boolean = false): Vec3 {
+  fromBToA(v:Vec3, clamp: boolean = false): Vec3 {
     const r = vec3.add(
-      this.min, 
+      this.aMin, 
       vec3.mul(
-        vec3.div(vec3.sub(v, this.iMin), this.iDist), 
-        this.dist)
+        vec3.div(vec3.sub(v, this.bMin), this.bDist), 
+        this.aDist)
     );
-    return clamp ? this.clampTo(r) : r;
+    return clamp ? this.clampA(r) : r;
   }
 
   // internal domain
-  from(v: Vec3, clamp: boolean = false): Vec3 {
+  fromAToB(v: Vec3, clamp: boolean = false): Vec3 {
     const r = vec3.add(
-      this.iMin, 
+      this.bMin, 
       vec3.mul(
-        vec3.div(vec3.sub(v, this.min), this.dist), 
-        this.iDist)
+        vec3.div(vec3.sub(v, this.aMin), this.aDist), 
+        this.bDist)
     );
-    return clamp ? this.clampFrom(r) : r;
+    return clamp ? this.clampB(r) : r;
   }
 }
 
-export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void, minVal: Vec3 = [-1, -1, -1], maxVal: Vec3 = [1, 1, 1]): HTMLElement {
-  const mapper = new DomainMapping(minVal, maxVal);
-    const state = new Vec3State(mapper.from(value, true));
+export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void, minVal: Vec3 = [-1, -1, -1], maxVal: Vec3 = [1, 1, 1], inputPrecision: number = 5): HTMLElement {
+  const mapper = new DomainMapping(minVal, maxVal, [-1, -1, -1], [1, 1, 1]);
+    const state = new Vec3State(mapper.fromAToB(value, true));
     // TODO: Continue with mapper implementation
 
     const wrapper = document.createElement('div');
@@ -188,14 +188,17 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     function onDragV() {
       state.rotZ = parseFloat(inputV.value) * Math.PI;
       updateGimbal(state.matrix, state.matrixI, state.length);
+      onChange(mapper.fromBToA(state.value));
     }
     function onDragH() {
       state.rotX = parseFloat(inputH.value) * Math.PI;
       updateGimbal(state.matrix, state.matrixI, state.length);
+      onChange(mapper.fromBToA(state.value));
     }
     function onDragS() {
       state.length = parseFloat(inputS.value);
       updateGimbal(state.matrix, state.matrixI, state.length);
+      onChange(mapper.fromBToA(state.value));
     }
     inputH.addEventListener("input", onDragH);
     inputV.addEventListener("input", onDragV);
@@ -206,11 +209,11 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
 
     function updateListComponent() {
       const vector = state.value;
+      const aVector = mapper.fromBToA(vector, true);
       componentRangeInputs.forEach((node: Node, c: number) => {
         const inputElmt = node as HTMLInputElement;
-        const uiValue = Math.round(vector[c] * 100000) / 100000;
-        inputElmt.value = `${uiValue}`;
-        (componentNumberInputs[c] as HTMLInputElement).value = `${uiValue}`;
+        inputElmt.value = vector[c].toPrecision(inputPrecision);
+        (componentNumberInputs[c] as HTMLInputElement).value = aVector[c].toPrecision(5);
       });
     }
 
@@ -218,11 +221,16 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       const inputElmt = e.target as HTMLInputElement;
       const c = parseInt(inputElmt.dataset.component ?? "0");
       const v = state.value;
-      inputElmt.dataset.updating = "1";
-      v[c] = parseFloat(inputElmt.value);
-      (componentRangeInputs[c]! as HTMLInputElement).value = inputElmt.value;
-      (componentNumberInputs[c]! as HTMLInputElement).value = inputElmt.value;
+      let newValue = parseFloat(inputElmt.value);
+      if (inputElmt.type === "number") {
+        newValue = mapper.fromAToB([newValue, 1, 1], true)[0];
+      }
+      v[c] = newValue;
+      const aV = mapper.fromBToA(v, true);
+      (componentRangeInputs[c]! as HTMLInputElement).value = v[c].toPrecision(inputPrecision);
+      (componentNumberInputs[c]! as HTMLInputElement).value = aV[c].toPrecision(inputPrecision);
       state.value = v;
+      onChange(mapper.fromBToA(state.value));
     }
 
     componentRangeInputs.forEach((node) => {

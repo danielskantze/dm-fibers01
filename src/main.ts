@@ -45,7 +45,15 @@ function createUniformControls(controlsContainer: HTMLElement, uniforms: Control
             if (numComponents > 1) {
                 const values = u.value as number[];
                 if (numComponents === 3) {
-                  controlsContainer.appendChild(createVec3(name, values as Vec3, (v: Vec3) => { values[0] = v[0]; values[1] = v[1]; values[2] = v[2]; }));
+                  controlsContainer.appendChild(
+                    createVec3(name, values as Vec3, 
+                      (v: Vec3) => { 
+                        values[0] = v[0]; 
+                        values[1] = v[1]; 
+                        values[2] = v[2]; 
+                      }, [0, 0, 0], [1, 1, 1]
+                    )
+                  );
                 } else {
                   controlsContainer.appendChild(createVector(name, values, (i: number, v: number) => { values[i] = v; }, min, max, step));
                 }
