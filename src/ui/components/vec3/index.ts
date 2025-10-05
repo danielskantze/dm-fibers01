@@ -38,8 +38,14 @@ class Vec3State {
 
     public set value(v: Vec3) {
       const vn = vec3.normalize(v);
+      if (v[0] === 0 && v[1] === 0 && v[2] === 0) {
+        this.length = 0;
+        this.rotX = 0;
+        this.rotZ = 0;
+        return;
+      }
       this.length = vec3.length(v);
-      this.rotX = Math.asin(vn[2]);
+      this.rotX = vn[2] === 0 ? 0 : Math.asin(vn[2]);
       this.rotZ = Math.atan2(vn[0], vn[1]);
     }
 }
