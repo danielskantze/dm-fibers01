@@ -11,7 +11,7 @@ class ControlFactory {
 
   constructor(container: HTMLElement) {
     this.container = container;
-    this.visible = false;
+    this.visible = true;
   }
 }
 
