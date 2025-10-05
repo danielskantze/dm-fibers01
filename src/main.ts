@@ -1,22 +1,21 @@
 // import * as stage_test from "./render/stages/test";
-import * as stage_simulate from "./render/stages/simulate";
-import * as stage_materialize from "./render/stages/materialize";
+import type { Vec3 } from "./math/types";
 import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
-import * as stage_luma from "./render/stages/luma";
-import * as stage_display from "./render/stages/display";
 import * as stage_combine from "./render/stages/combine";
+import * as stage_display from "./render/stages/display";
+import * as stage_luma from "./render/stages/luma";
+import * as stage_materialize from "./render/stages/materialize";
+import * as stage_simulate from "./render/stages/simulate";
 import { WebGLTextureError } from "./types/error";
-import { UniformComponents, type UniformType, type UniformUI, type Uniform } from "./types/gl/uniforms";
-import ControlFactory from "./ui/controls";
+import { UniformComponents, type Uniform, type UniformType, type UniformUI } from "./types/gl/uniforms";
 import { type Settings } from "./types/settings";
-import type { Vec3 } from "./math/types";
 import { createButton } from "./ui/components/button";
-import { createScalar } from "./ui/components/scalar";
-import { createVector } from "./ui/components/vector";
-import { createVec3 } from "./ui/components/vec3";
 import { createCosPalette } from "./ui/components/cos-palette";
-import { createVec3GimbalView } from "./ui/3d/vec3-gimbal";
+import { createScalar } from "./ui/components/scalar";
+import { createVec3 } from "./ui/components/vec3";
+import { createVector } from "./ui/components/vector";
+import ControlFactory from "./ui/controls";
 
 export type ControlFactoryUniform = Omit<Uniform, "location" | "slot">;
 
