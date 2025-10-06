@@ -62,10 +62,6 @@ function createUniformControls(controlsContainer: HTMLElement, uniforms: Control
             }
         }
     }
-    controlsContainer.appendChild(createCosPalette([[0.5, 0.5, 0.5],
-    [0.5, 0.5, 0.5],
-    [1.0, 1.0, 1.0],
-    [0.0, 0.9, 0.9]]));
 }
 
 function textureSizeFromNumParticles(numParticles: number, maxNumParticles: number): [number, number] {
@@ -158,6 +154,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         if (!isRunning) {
             return;
         }
+        paletteUpdateFn(paletteVec3);
+
         const time = elapsedTime + (performance.now() - startTime) / 1000;
         for (let i = 0; i < 4; i++) {
             const numParticles = numParticlesParam.value as number;
@@ -194,18 +192,35 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
             controlFactory.visible = !controlFactory.visible;
         }
     );
+
+    // TEMP CODE - should be part of UI
+
+    // GROUP
+    const paletteVec3 = simulateStage.parameters
+      .filter((u) => (u.group === 'palette'))
+      .map((pv) => (pv.value)) as [Vec3, Vec3, Vec3, Vec3];
+    let [cosPaletteElmt, paletteUpdateFn] = createCosPalette(paletteVec3);
+    controls.appendChild(cosPaletteElmt);
+
     window.addEventListener("resize", resize);
-    // draw();
+    draw();
 }
 
 export default main;
 
 // TODO:
 
-// Show / hide parameters on keypress
+// Improved palette parameter 
+//  - Introduce special uniform type cos-palette and group implicitly in order or occurence
+//  - Make vec3 width component-specific (i.e. smaller ones for cos palette so we can fit 2 per row)
+//  - Hook up cos-palette to createUI and make it handle onChange properly (remove POC hack)
+//  - createCosPalette should manage its own vec3 components
+//  - Fold-out should expand all
+
+// Improved styling of parameters - update all to new dark theme
+// Make UI scrollable (handle case when many params are expanded)
+
 // Expose particle fade time as parameter
-// Vector gimbal editor
-// Palette editor
 
 // Make vector field less jittery
 // Toggle trail

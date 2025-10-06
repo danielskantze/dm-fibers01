@@ -22,6 +22,7 @@ export type UniformUI = {
 
 type Uniform = {
     ui?: UniformUI;
+    group?: string;
     slot: number;
     type?: UniformType;
     value?: number | number[];
