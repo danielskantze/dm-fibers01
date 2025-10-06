@@ -1,10 +1,11 @@
+import type { Vec3 } from "../../../math/types";
 import { createVector } from "../vector";
 
 export function createCosPalette(
-    values: [number[], number[], number[], number[]],
+    values: [Vec3, Vec3, Vec3, Vec3],
     width: number = 300,
     height = 20
-): HTMLElement {
+): [HTMLElement, updateFn: (vectors: [Vec3, Vec3, Vec3, Vec3]) => void] {
     const container: HTMLDivElement = document.createElement("div");
     const canvas: HTMLCanvasElement = document.createElement("canvas");
     container.appendChild(canvas);
@@ -20,6 +21,11 @@ export function createCosPalette(
 
     function onChange(c: number, i: number, v: number) {
       values[c][i] = v;
+      drawPalette();
+    }
+
+    function update(vectors: [Vec3, Vec3, Vec3, Vec3]) {
+      values = vectors;
       drawPalette();
     }
 
@@ -60,5 +66,5 @@ export function createCosPalette(
       }
     }
     drawPalette();
-    return container;
+    return [container, update];
 }

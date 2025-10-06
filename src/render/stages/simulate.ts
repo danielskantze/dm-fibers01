@@ -102,7 +102,8 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                     name: "Palette 1",
                     min: 0.0,
                     max: 1.0,
-                  },                  
+                  },
+                  group: 'palette',
                   value: [0.5, 0.5, 0.5],
                   type: "vec3"
                 },
@@ -113,7 +114,8 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                     name: "Palette 2",
                     min: 0.0,
                     max: 1.0,
-                  },   
+                  },
+                  group: 'palette',
                   value: [0.5, 0.5, 0.5],
                   type: "vec3"
                 },
@@ -124,7 +126,8 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                     name: "Palette 3",
                     min: 0.0,
                     max: 1.0,
-                  },                  
+                  },
+                  group: 'palette',
                   value: [1.0, 1.0, 1.0],
                   type: "vec3"
                 },
@@ -135,7 +138,8 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                     name: "Palette 4",
                     min: 0.0,
                     max: 1.0,
-                  },                  
+                  },
+                  group: 'palette',
                   value: [0.0, 0.9, 0.9],
                   type: "vec3"
                 },
