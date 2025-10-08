@@ -15,10 +15,7 @@ uniform vec4 u_stroke_noise_p;
 uniform vec4 u_stroke_drift_p;
 uniform vec4 u_color_noise_p;
 
-uniform vec3 u_cos_palette_1;
-uniform vec3 u_cos_palette_2;
-uniform vec3 u_cos_palette_3;
-uniform vec3 u_cos_palette_4;
+uniform mat4x3 u_cos_palette;
 
 uniform sampler2D u_position_texture;
 uniform sampler2D u_color_texture;
@@ -274,10 +271,15 @@ vec3 rotate(vec3 v, vec3 axis, float angle) {
 
 vec3 palette1(float t) {
   return cosPalette(t,
-    u_cos_palette_1,
-    u_cos_palette_2,
-    u_cos_palette_3,
-    rotate(u_cos_palette_4, vec3(sinBounce(u_time * 0.0007), 0.2, 1.0), u_time * 0.0025)
+    u_cos_palette[0],
+    u_cos_palette[1],
+    u_cos_palette[2],
+    u_cos_palette[3]
+    // rotate(
+    //   u_cos_palette[3], 
+    //   vec3(sinBounce(u_time * 0.0007), 0.2, 1.0), 
+    //   u_time * 0.0025
+    //)
   );
 }
 
@@ -293,13 +295,16 @@ vec4 colorAt(vec2 coord) {
   float alpha = 0.5; //0.001 + hash12(coord) * 0.02;
   float darken = 0.25 + hash12(coord);
 
-  vec3 color = vec3(
-    palette1(gnoise(vec3(
-      vec2(px, py),
-      u_time * u_color_noise_p.w + darken * 0.75
-    )))
-  );
-  color = clamp(mix(color, normalize(color), 0.5) * darken, 0.0, 1.0);
+  // vec3 color = vec3(
+  //   palette1(gnoise(vec3(
+  //     vec2(px, py),
+  //     u_time * u_color_noise_p.w + darken * 0.75
+  //   )))
+  // );
+
+  vec3 color = palette1(0.5 * (sin(u_time * 0.1) + 1.0)) * darken;
+
+  //color = clamp(mix(color, normalize(color), 0.5) * darken, 0.0, 1.0);
   // avoid strokes becoming too dark by normalizing the color
   return vec4(color, alpha);
 }
@@ -324,7 +329,7 @@ void main() {
     // position need to provide coordinates in clip space (-1.0 to 1.0)
     if (u_frame == 0 || properties.z > properties.w || !boundsCheck(position.xy)) {
       // new particle
-      float lifetime = (hash12(coord) * 256.0 + 512.0) * 3.0;
+      float lifetime = (hash12(coord) * 256.0 + 512.0) * 1.0;
       float age = -hash12(coord * u_time) * lifetime;
       position = vec4(
         hash22(100.0 * coord) * 2.0 - 1.0, 

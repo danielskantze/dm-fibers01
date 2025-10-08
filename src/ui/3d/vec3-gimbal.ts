@@ -54,6 +54,7 @@ function createVec3GimbalView(width: number, height: number) {
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
+    // NOTE: using false below may transpose the matrix. This might have explained the problems I saw before with the scaling. I should potentially try to use true for consistency but then I need to update the Vec3State
     gl.uniformMatrix4fv(uniforms.u_object_mat.location, false, objectMatrix);
     gl.uniformMatrix4fv(uniforms.u_object_mat_i.location, false, objectMatrixI);
     gl.uniform1f(uniforms.u_time.location, (Date.now() - startTime) / 1000.0);
