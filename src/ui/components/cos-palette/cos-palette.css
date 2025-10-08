@@ -1,0 +1,33 @@
+.cos-palette .palette {
+  transform: scaleY(30);
+}
+
+.cos-palette .palette-wrapper {
+  position: relative;
+  width: var(--total-width);
+  height: 22.5px;
+  border-radius: 0.5rem;
+  background-color: #222;
+  overflow: hidden;
+}
+
+.cos-palette .palette-wrapper > input[type="radio"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  margin: 0;
+  margin-left: 0.5rem;
+}
+
+.cos-palette .components {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+}
+
+.cos-palette[data-collapsed="1"] .components {
+  display: none;
+}
