@@ -8,6 +8,8 @@ import type { Uniform } from "../../types/gl/uniforms";
 import type { Stage, StageOutput, Resources, BufferedStageOutput } from "../../types/stage";
 import fShaderSource from "../shaders/simulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
+import * as mat43 from "../../math/mat43";
+import type { Matrix4x3, Vec3 } from "../../math/types";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
@@ -25,10 +27,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const strokeNoisePLocation = gl.getUniformLocation(program, "u_stroke_noise_p");
             const strokeDriftPLocation = gl.getUniformLocation(program, "u_stroke_drift_p");
             const colorNoisePLocation = gl.getUniformLocation(program, "u_color_noise_p");
-            const cosPalette1Location = gl.getUniformLocation(program, "u_cos_palette_1");
-            const cosPalette2Location = gl.getUniformLocation(program, "u_cos_palette_2");
-            const cosPalette3Location = gl.getUniformLocation(program, "u_cos_palette_3");
-            const cosPalette4Location = gl.getUniformLocation(program, "u_cos_palette_4");
+            const cosPaletteLocation = gl.getUniformLocation(program, "u_cos_palette");
 
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
@@ -95,53 +94,22 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                   value: [0.1, 0.1, 0.001, 0.05],
                   type: "vec4"
                 },
-                cosPalette1: {
-                  location: cosPalette1Location,
-                  slot: 10,
+                cosPalette: {
+                  location: cosPaletteLocation,
+                  slot: 14,
+                  type: "mat43",
+                  value: mat43.createFrom([
+                    [0.5, 0.5, 0.5], 
+                    [0.5, 0.5, 0.5], 
+                    [1.0, 1.0, 1.0], 
+                    [0.0, 0.9, 0.9]
+                  ]),
                   ui: {
-                    name: "Palette 1",
+                    name: "Palette",
                     min: 0.0,
                     max: 1.0,
-                  },
-                  group: 'palette',
-                  value: [0.5, 0.5, 0.5],
-                  type: "vec3"
-                },
-                cosPalette2: {
-                  location: cosPalette2Location,
-                  slot: 11,
-                  ui: {
-                    name: "Palette 2",
-                    min: 0.0,
-                    max: 1.0,
-                  },
-                  group: 'palette',
-                  value: [0.5, 0.5, 0.5],
-                  type: "vec3"
-                },
-                cosPalette3: {
-                  location: cosPalette3Location,
-                  slot: 12,
-                  ui: {
-                    name: "Palette 3",
-                    min: 0.0,
-                    max: 1.0,
-                  },
-                  group: 'palette',
-                  value: [1.0, 1.0, 1.0],
-                  type: "vec3"
-                },
-                cosPalette4: {
-                  location: cosPalette4Location,
-                  slot: 13,
-                  ui: {
-                    name: "Palette 4",
-                    min: 0.0,
-                    max: 1.0,
-                  },
-                  group: 'palette',
-                  value: [0.0, 0.9, 0.9],
-                  type: "vec3"
+                    component: "cos-palette"
+                  }
                 },
                 maxRadius: {
                   location: maxRadiusPLocation,
@@ -266,11 +234,14 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform4fv(u.strokeDrift.location, u.strokeDrift.value as number[]);
     gl.uniform4fv(u.colorNoise.location, u.colorNoise.value as number[]);
 
-    gl.uniform3fv(u.cosPalette1.location, u.cosPalette1.value as number[]);
-    gl.uniform3fv(u.cosPalette2.location, u.cosPalette2.value as number[]);
-    gl.uniform3fv(u.cosPalette3.location, u.cosPalette3.value as number[]);
-    gl.uniform3fv(u.cosPalette4.location, u.cosPalette4.value as number[]);
-
+    [
+      ...u.cosPalette1.value as Vec3, 
+      ...u.cosPalette2.value as Vec3, 
+      ...u.cosPalette3.value as Vec3, 
+      ...u.cosPalette4.value as Vec3].forEach((v, i) => {
+      (u.cosPalette.value as Matrix4x3)[i] = v;
+    })
+    gl.uniformMatrix4x3fv(u.cosPalette.location, false, u.cosPalette.value as Float32Array);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sources[0].texture);
     gl.activeTexture(gl.TEXTURE1);

@@ -1,5 +1,5 @@
 // import * as stage_test from "./render/stages/test";
-import type { Vec3 } from "./math/types";
+import type { Matrix4x3, Vec3 } from "./math/types";
 import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
 import * as stage_combine from "./render/stages/combine";
@@ -39,9 +39,13 @@ function createUniformControls(controlsContainer: HTMLElement, uniforms: Control
     for (const u of uniforms) {
         const { ui } = u;
         if (ui) {
-            const { name, min, max, step } = u.ui!;
+            const { name, min, max, step, component } = u.ui!;
             const numComponents = UniformComponents[u.type!]!;
-            if (numComponents > 1) {
+            if (component === "cos-palette") {
+              controlsContainer.appendChild(
+                createCosPalette(u.value as Matrix4x3)
+              )
+            } else if (numComponents > 1) {
                 const values = u.value as number[];
                 if (numComponents === 3) {
                   controlsContainer.appendChild(
@@ -154,7 +158,6 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         if (!isRunning) {
             return;
         }
-        paletteUpdateFn(paletteVec3);
 
         const time = elapsedTime + (performance.now() - startTime) / 1000;
         for (let i = 0; i < 4; i++) {
@@ -193,17 +196,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         }
     );
 
-    // TEMP CODE - should be part of UI
-
-    // GROUP
-    const paletteVec3 = simulateStage.parameters
-      .filter((u) => (u.group === 'palette'))
-      .map((pv) => (pv.value)) as [Vec3, Vec3, Vec3, Vec3];
-    let [cosPaletteElmt, paletteUpdateFn] = createCosPalette(paletteVec3);
-    controls.appendChild(cosPaletteElmt);
-
     window.addEventListener("resize", resize);
-    draw();
+    //draw();
 }
 
 export default main;
@@ -211,6 +205,7 @@ export default main;
 // TODO:
 
 // Improved palette parameter 
+//  - Change cos palette params to be a unit instead of individual vectors (use Matrix3x4 or Matrix4x4). This way we will not have to map it to multiple uniforms which is nice. We need to figure out the component mapping though. 
 //  - Introduce special uniform type cos-palette and group implicitly in order or occurence
 //  - Make vec3 width component-specific (i.e. smaller ones for cos palette so we can fit 2 per row)
 //  - Hook up cos-palette to createUI and make it handle onChange properly (remove POC hack)
