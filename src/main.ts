@@ -54,7 +54,7 @@ function createUniformControls(controlsContainer: HTMLElement, uniforms: Control
                         values[0] = v[0]; 
                         values[1] = v[1]; 
                         values[2] = v[2]; 
-                      }, [0, 0, 0], [1, 1, 1]
+                      }
                     )
                   );
                 } else {

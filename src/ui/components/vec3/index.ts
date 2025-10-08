@@ -124,7 +124,22 @@ class DomainMapping {
   }
 }
 
-export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void, minVal: Vec3 = [-1, -1, -1], maxVal: Vec3 = [1, 1, 1], inputPrecision: number = 5): HTMLElement {
+export type Vec3Params = {
+  minVal: Vec3,
+  maxVal: Vec3,
+  inputPrecision: number,
+  expandable: boolean,
+};
+
+const defaultVec3Params: Vec3Params = {
+  minVal: [0, 0, 0] as Vec3,
+  maxVal: [1, 1, 1] as Vec3,
+  inputPrecision: 5,
+  expandable: true
+};
+
+export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void, params: Partial<Vec3Params> = defaultVec3Params): HTMLElement {
+  const {minVal, maxVal, inputPrecision, expandable } = {...defaultVec3Params, ...params};
   const mapper = new DomainMapping(minVal, maxVal, [-1, -1, -1], [1, 1, 1]);
     const state = new Vec3State(mapper.fromAToB(value, true));
     // TODO: Continue with mapper implementation
@@ -133,7 +148,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     wrapper.innerHTML = template;
     const control = wrapper.firstElementChild as HTMLDivElement;
 
-    control.dataset.expanded = "0";
+    control.dataset.expanded = expandable ? "0" : "1";
     const label = control.querySelector('header .label')! as HTMLDivElement;
     const expandRadio = control.querySelector('header .expand-radio')! as HTMLInputElement;
     const panelSelectors = control.querySelectorAll('header .panel-selector *[data-type]');
@@ -156,13 +171,17 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
 
     label.innerHTML = name;
 
-    expandRadio.onclick = (e: Event) => {
-      if (e.currentTarget === e.target) {
-        const newValue = control.dataset.expanded === "1" ? "0" : "1";
-        control.dataset.expanded = newValue;
-        expandRadio.checked = newValue === "1";
-      }
-    };
+    if (expandable) {
+      expandRadio.onclick = (e: Event) => {
+        if (e.currentTarget === e.target) {
+          const newValue = control.dataset.expanded === "1" ? "0" : "1";
+          control.dataset.expanded = newValue;
+          expandRadio.checked = newValue === "1";
+        }
+      };
+    } else {
+      expandRadio.parentElement?.removeChild(expandRadio);
+    }
     panelSelectors.forEach((s: Element) => {
       const elmt = s as HTMLDivElement;
       elmt.onclick = (e: Event) => {
