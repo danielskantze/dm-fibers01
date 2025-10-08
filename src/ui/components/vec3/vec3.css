@@ -157,6 +157,10 @@
   opacity: 1.0;
   text-shadow: var(--text-glow);
 }
+.vec3[data-panel="L"] header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
 
 .vec3[data-panel="L"] header .panel-selector > div[data-type="L"] {
   opacity: 1.0;
