@@ -10,7 +10,7 @@ import * as stage_simulate from "./render/stages/simulate";
 import { WebGLTextureError } from "./types/error";
 import { UniformComponents, type Uniform, type UniformType, type UniformUI } from "./types/gl/uniforms";
 import { type Settings } from "./types/settings";
-import { createButton } from "./ui/components/button";
+import { createButtons } from "./ui/components/buttons";
 import { createCosPalette } from "./ui/components/cos-palette";
 import { createScalar } from "./ui/components/scalar";
 import { createVec3 } from "./ui/components/vec3";
@@ -85,10 +85,11 @@ function createUi(
     toggleVisibilityFn: () => void,
 ) {
     createUniformControls(controlsContainer, parameters);
-    controlsContainer.appendChild(createButton("Clear", () => {
-        resetFn();
-    }));
-    controlsContainer.appendChild(createButton("Pause", pauseFn));
+    controlsContainer.appendChild(createButtons([
+        {title: "Clear", onClick: () => { resetFn(); }, color: 2},
+        {title: "Pause", onClick: pauseFn, color: 2}
+    ]));
+
     document.addEventListener("keypress", (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key.charCodeAt(0) === 112) { // 112 = p
         toggleVisibilityFn();

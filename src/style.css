@@ -5,11 +5,17 @@
   /* Need to be defined in pixels! */
   --ui-width: 320px;
   --component-color-background: #222;
-  --component-color-background-1: #333;
+  --component-color-background-1: #444;
   --component-color-accent-1: #ddd;
   --component-padding: 5px;
   --component-margin: 1px;
   --component-range-height: 24px;
+  --component-collapsed-height: 28px;
+  --component-border-radius: 8px;
+  --color-1: #10d5a4;
+  --color-2: #ecaa70;
+  --color-3: #93a0f1;
+  --color-4: #e776c1;
 }
 
 input[type=text] {

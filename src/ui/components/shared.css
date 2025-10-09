@@ -37,11 +37,31 @@ input[type="range"]::-webkit-slider-runnable-track {
   border: var(--rotate-track-border);
 }
 
-input.secondary[type="range"]::-webkit-slider-runnable-track {
+input[type="range"].secondary::-webkit-slider-runnable-track {
   background: var(--scale-track-background);
   border-radius: var(--scale-height);
   height: var(--scale-track-height);
   border: var(--scale-track-border);
+}
+
+input[type="range"].color-1::-webkit-slider-runnable-track {
+  background: var(--rotate-track-background);
+  border-color: var(--color-1);
+}
+
+input[type="range"].color-2::-webkit-slider-runnable-track {
+  background: var(--rotate-track-background);
+  border-color: var(--color-2);
+}
+
+input[type="range"].color-3::-webkit-slider-runnable-track {
+  background: var(--rotate-track-background);
+  border-color: var(--color-3);
+}
+
+input[type="range"].color-4::-webkit-slider-runnable-track {
+  background: var(--rotate-track-background);
+  border-color: var(--color-4);
 }
 
 input[type="range"]::-moz-range-track {
@@ -51,11 +71,31 @@ input[type="range"]::-moz-range-track {
   height: var(--rotate-track-height);
 }
 
-input.secondary[type="range"]::-moz-range-track {
+input[type="range"].secondary::-moz-range-track {
   background: var(--scale-track-background);
   border-radius: var(--scale-height);
   border: var(--scale-track-border);
   height: var(--scale-track-height);
+}
+
+input[type="range"].color-1::-moz-range-track {
+  background: var(--scale-track-background);
+  border-color: var(--color-1);
+}
+
+input[type="range"].color-2::-moz-range-track {
+  background: var(--scale-track-background);
+  border-color: var(--color-2);
+}
+
+input[type="range"].color-3::-moz-range-track {
+  background: var(--scale-track-background);
+  border-color: var(--color-3);
+}
+
+input[type="range"].color-4::-moz-range-track {
+  background: var(--scale-track-background);
+  border-color: var(--color-4);
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -71,7 +111,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* TODO: Add firefox styles */
 
-input.secondary[type="range"]::-webkit-slider-thumb {
+input[type="range"].secondary::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   border-radius: var(--scale-height);
@@ -80,4 +120,24 @@ input.secondary[type="range"]::-webkit-slider-thumb {
   margin-top: calc(((var(--scale-track-height) - 2 * var(--scale-track-border-width)) - var(--scale-thumb-height)) * 0.5);
   background-color: var(--scale-thumb-color);
   border: var(--scale-thumb-border);
+}
+
+input[type="range"].color-1::-webkit-slider-thumb {
+  background-color: var(--color-1);
+  border-color: var(--color-1);
+}
+
+input[type="range"].color-2::-webkit-slider-thumb {
+  background-color: var(--color-2);
+  border-color: var(--color-2);
+}
+
+input[type="range"].color-3::-webkit-slider-thumb {
+  background-color: var(--color-3);
+  border-color: var(--color-3);
+}
+
+input[type="range"].color-4::-webkit-slider-thumb {
+  background-color: var(--color-4);
+  border-color: var(--color-4);
 }

@@ -1,5 +1,6 @@
-import { createScalarInner } from "../scalar";
+import { createScalar, createScalarInner } from "../scalar";
 import './vector.css';
+import template from './vector.html?raw';
 
 const VECTOR_COMPONENTS = ["x", "y", "z", "w"];
 
@@ -11,25 +12,38 @@ function vecCompName(i: number) {
 }
 
 export function createVector(name: string, values: number[], onChange: (i: number, value: number) => void, min?: number, max?: number, step?: number): HTMLElement {
-    const container: HTMLDivElement = document.createElement("div");
-    container.classList.add("vector");
-    container.dataset.collapsed = "1";
-    
-    const label = document.createElement("div");
-    label.classList.add("label");
-    label.innerText = name;
-    container.appendChild(label);
+  const wrapper: HTMLDivElement = document.createElement("div");
+  wrapper.innerHTML = template;
+  const control = wrapper.firstElementChild as HTMLDivElement;
 
-    container.onclick = (e: Event) => {
-      if (e.currentTarget === e.target || label.contains(e.target as Node)) {
-        const newValue = container.dataset.collapsed === "1" ? "0" : "1";
-        container.dataset.collapsed = newValue;
-      }
-    };
-    for (let i = 0; i < values.length; i++) {
-      const wrapper = document.createElement("div");
-      createScalarInner(wrapper, vecCompName(i), values[i], (v: number) => onChange(i, v), min, max, step);
-      container.appendChild(wrapper);
+  control.dataset.expanded = "0";
+  const label = control.querySelector('header .label')! as HTMLDivElement;
+  const expandRadio = control.querySelector('header .expand-radio')! as HTMLInputElement;
+  const components = control.querySelector('.components');
+
+  label.innerText = name;
+
+  expandRadio.onclick = (e: Event) => {
+    if (e.currentTarget === e.target) {
+      const newValue = control.dataset.expanded === "1" ? "0" : "1";
+      control.dataset.expanded = newValue;
+      expandRadio.checked = newValue === "1";
     }
-    return container;
+  };
+
+  for (let i = 0; i < values.length; i++) {
+    //const wrapper = document.createElement("div");
+    //createScalarInner(wrapper, vecCompName(i), values[i], (v: number) => onChange(i, v), min, max, step);
+    //container.appendChild(wrapper);
+    const scalar = createScalar(
+      vecCompName(i), 
+      values[i],
+      (v: number) => { onChange(i, v); },
+      min,
+      max,
+      step
+    );
+    components?.appendChild(scalar);
+  }
+  return wrapper;
 }
