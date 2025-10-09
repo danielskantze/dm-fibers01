@@ -31,7 +31,7 @@ export function createCosPalette(
     const container = wrapper.querySelector('.cos-palette') as HTMLDivElement;
     const canvas = wrapper.querySelector('.palette') as HTMLCanvasElement;
     const components = wrapper.querySelector('.components') as HTMLDivElement;
-    const expandRadio = wrapper.querySelector('.cos-palette .expand-radio') as HTMLInputElement;
+    const expandRadio = wrapper.querySelector('.cos-palette .expand-checkbox') as HTMLInputElement;
     container.dataset.collapsed = "1";
 
 

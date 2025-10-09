@@ -1,3 +1,32 @@
+/* Checkbox style */
+
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--component-color-background);
+  margin: 0;
+  font: inherit;
+  color: currentColor;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  width: .75rem;
+  height: .75rem;
+  display: grid;
+  place-content: center;  
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  width: 0.5em;
+  height: 0.5em;
+  transform: scale(0);
+  box-shadow: inset 1em 1em var(--component-color-accent-1);
+}
+
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
 /* Slider style */
 
 input[type="range"] {
