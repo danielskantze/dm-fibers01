@@ -205,15 +205,15 @@ export default main;
 
 // TODO:
 
-// Make UI scrollable (handle case when many params are expanded)
-
+// Ensure that UI parameters does not affect performance (e.g. since we use 3d context)
 // Expose particle fade time as parameter
-
-// Make vector field less jittery
 // Toggle trail
+// Fix or remove clear
+// Toggle performance mode
 // Store parameters
-// Screenshot function
 // Random seed
+// Make vector field less jittery
+// Screenshot function
 
 // Add music.
 // - Sync beats with stroke noise x/y (each kick will pulse these)
