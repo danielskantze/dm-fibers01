@@ -1,13 +1,10 @@
-:root {
-  --input-range-height: 24px;
-}
 .scalar .parameter {
-  background: white;
-  color: black;
+  background-color: var(--component-color-background-1);
+  color: var(--component-color-accent-1);
   padding: 3px 0px 3px 9px;
   border-radius: 6px;
-  margin: 2px;
-  width: 250px;
+  margin: var(--component-margin);
+  width: var(--ui-width);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -19,12 +16,14 @@
 .scalar .parameter > input {
   display: block;
   width: 100%;
+  height: var(--component-range-height);
 }
 .scalar .parameter .digits {
   margin-left: 8px;
   width: 2.75rem;
   text-align: right;
-  background-color: #ddd;
+  color: var(--component-color-accent-1);
+  background-color: var(--component-color-background-1);
 }
 
 .scalar > .parameter {
@@ -35,13 +34,4 @@
 
 .scalar > .parameter > label {
   margin-right: 8px;
-}
-
-.scalar input[type="number"] {
-  background-color: rgba(255, 255, 255, 0.125);
-  color: white;
-  border: none;
-  border-radius: 2px;
-  padding: 0.167rem 0.33rem;
-  margin-bottom: 0.5rem;
 }

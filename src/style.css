@@ -1,8 +1,15 @@
 @import './ui/components/shared.css';
 
 :root {
-  --vec3-component-internal-width: 100px;
-  --vec3-component-internal-height: 100px;
+  /* COMPONENT GLOBALS */
+  /* Need to be defined in pixels! */
+  --ui-width: 320px;
+  --component-color-background: #222;
+  --component-color-background-1: #333;
+  --component-color-accent-1: #ddd;
+  --component-padding: 5px;
+  --component-margin: 1px;
+  --component-range-height: 24px;
 }
 
 input[type=text] {

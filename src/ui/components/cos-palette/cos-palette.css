@@ -5,7 +5,7 @@
 .cos-palette .palette-wrapper {
   position: relative;
   width: var(--total-width);
-  height: 22.5px;
+  height: var(--component-range-height);
   border-radius: 0.5rem;
   background-color: #222;
   overflow: hidden;
