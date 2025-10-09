@@ -9,7 +9,6 @@ import type { Stage, StageOutput, Resources, BufferedStageOutput } from "../../t
 import fShaderSource from "../shaders/simulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 import * as mat43 from "../../math/mat43";
-import type { Matrix4x3, Vec3 } from "../../math/types";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
@@ -233,7 +232,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform4fv(u.strokeNoise.location, u.strokeNoise.value as number[]);
     gl.uniform4fv(u.strokeDrift.location, u.strokeDrift.value as number[]);
     gl.uniform4fv(u.colorNoise.location, u.colorNoise.value as number[]);
-    
+
     gl.uniformMatrix4x3fv(u.cosPalette.location, false, u.cosPalette.value as Float32Array);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sources[0].texture);
