@@ -52,29 +52,29 @@ class Vec3State {
 
 // TEST & DEBUG
 
-function logVec3StateTests() {
-  let testValues: Vec3[] = [
-    vec3.normalize([0.25, 0.75, 0.92] as Vec3),
-    vec3.normalize([0.25, -0.75, -0.92] as Vec3),
-    [0.25, 0.75, 0.92] as Vec3,
-    [0.25, -0.75, -0.92] as Vec3
-  ]
-  for (let tv of testValues) {
-    let isNorm = Math.abs(vec3.length(tv) - 1.0) < 0.000001;
-    console.log("Before: ", `[${tv[0].toFixed(2)}, ${tv[1].toFixed(2)}, ${tv[2].toFixed(2)}]${isNorm ? ' N': ''}`, );
-    let sv = (new Vec3State(tv)).value;
-    isNorm = Math.abs(vec3.length(sv) - 1.0) < 0.000001;
-    console.log("After: ", `[${sv[0].toFixed(2)}, ${sv[1].toFixed(2)}, ${sv[2].toFixed(2)}]${isNorm ? ' N': ''}`, );
-  }
-}
+// function logVec3StateTests() {
+//   let testValues: Vec3[] = [
+//     vec3.normalize([0.25, 0.75, 0.92] as Vec3),
+//     vec3.normalize([0.25, -0.75, -0.92] as Vec3),
+//     [0.25, 0.75, 0.92] as Vec3,
+//     [0.25, -0.75, -0.92] as Vec3
+//   ]
+//   for (let tv of testValues) {
+//     let isNorm = Math.abs(vec3.length(tv) - 1.0) < 0.000001;
+//     console.log("Before: ", `[${tv[0].toFixed(2)}, ${tv[1].toFixed(2)}, ${tv[2].toFixed(2)}]${isNorm ? ' N': ''}`, );
+//     let sv = (new Vec3State(tv)).value;
+//     isNorm = Math.abs(vec3.length(sv) - 1.0) < 0.000001;
+//     console.log("After: ", `[${sv[0].toFixed(2)}, ${sv[1].toFixed(2)}, ${sv[2].toFixed(2)}]${isNorm ? ' N': ''}`, );
+//   }
+// }
 
-function logComponentState(state: Vec3State) {
-  console.log("rotX",
-      (state.rotX * 180 / Math.PI).toFixed(0),
-      "rotZ",
-      (state.rotZ * 180 / Math.PI).toFixed(0),
-      "v: [", state.value[0].toFixed(2), state.value[1].toFixed(2), state.value[2].toFixed(2), "]");
-}
+// function logComponentState(state: Vec3State) {
+//   console.log("rotX",
+//       (state.rotX * 180 / Math.PI).toFixed(0),
+//       "rotZ",
+//       (state.rotZ * 180 / Math.PI).toFixed(0),
+//       "v: [", state.value[0].toFixed(2), state.value[1].toFixed(2), state.value[2].toFixed(2), "]");
+// }
 
 class DomainMapping {
   private aMin: Vec3;
@@ -138,6 +138,12 @@ const defaultVec3Params: Vec3Params = {
   expandable: true
 };
 
+function getCssVar(element: HTMLElement, property: string): string {
+  const style = window.getComputedStyle(element)!;
+  const value = style.getPropertyValue(property);
+  return value;
+}
+
 export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void, params: Partial<Vec3Params> = defaultVec3Params): HTMLElement {
   const {minVal, maxVal, inputPrecision, expandable } = {...defaultVec3Params, ...params};
   const mapper = new DomainMapping(minVal, maxVal, [-1, -1, -1], [1, 1, 1]);
@@ -159,14 +165,15 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     const componentNumberInputs = control.querySelectorAll('.list-control input[type="number"]');
 
     function getVec3InternalSize(): [number, number] {
-      const style = window.getComputedStyle(document.body)!;
-      return [
-        parseInt(style.getPropertyValue('--vec3-component-internal-width')),
-        parseInt(style.getPropertyValue('--vec3-component-internal-height'))
-      ];
+      const uiWidth = parseInt(getCssVar(document.body, '--ui-width'));
+      const outerPadding = parseInt(getCssVar(document.body, '--component-padding'));
+      const rangeHeight = parseInt(getCssVar(document.body, '--component-range-height'));
+      const width = uiWidth * 0.5 - 2 * outerPadding - 2 * rangeHeight;
+      return [width, width];
     }
-    const [internalWidth, internalHeight] = getVec3InternalSize();
 
+    const [internalWidth, internalHeight] = getVec3InternalSize();
+    console.log([internalWidth, internalHeight]);
     // FRAME & PANEL
 
     label.innerHTML = name;

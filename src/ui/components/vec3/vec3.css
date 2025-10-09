@@ -7,12 +7,12 @@
 .vec3,
 .vec3 * {
     box-sizing: border-box;
-    --outer-padding: var(--width) * 0.05;
-    --total-width: calc(var(--width) + 2 * var(--input-range-height) + 2.0 * var(--outer-padding));
-    --width: var(--vec3-component-internal-width);
-    --height: var(--vec3-component-internal-height);
-    --half-width: 50px;
-    --centerZ: -50px;
+    --total-width: calc(0.5 * var(--ui-width) - var(--component-margin) * 2);
+    --width: calc(0.5 * var(--ui-width) - 2 * var(--component-range-height) - 2 * var(--component-padding) - 2 * var(--component-margin));
+    --height: var(--width);
+    --outer-padding: var(--component-padding);
+    --half-width: calc(0.5 * var(--width));
+    --half-width: calc(-0.5 * var(--width));
     --center-size: 3px;
     --marker-border-width: 1px;
     --marker-border: var(--marker-border-width) solid;
@@ -23,8 +23,9 @@
 .vec3 {
   width: var(--total-width);
   border-radius: 0.5rem;
-  background-color: #222;
-  padding: calc(var(--width) * 0.05);
+  background-color: var(--component-color-background);
+  padding: var(--component-padding);
+  margin-bottom: 0;
 }
 
 .vec3[data-expanded="0"] .panels,
@@ -34,7 +35,7 @@
 
 .vec3[data-type="3D"] .panels {
     padding-top: 0.75rem;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--component-color-accent-1);
 }
 
 .vec3[data-panel="L"] .panels > div[data-type="L"],
@@ -45,8 +46,8 @@
 /* Gimbal style */
 
 .vec3 .gimbal-control {
-  width: calc(var(--width) + 2 * var(--input-range-height));
-  height: calc(var(--width) + 1 * var(--input-range-height));
+  width: calc(var(--width) + 2 * var(--component-range-height));
+  height: calc(var(--width) + 1 * var(--component-range-height));
   position: relative;
 }
 
@@ -54,19 +55,18 @@
   position: absolute;
   width: var(--width);
   height: var(--height);
-  left: calc(0.5 * (var(--total-width) - var(--width)) - var(--width) * 0.05 - 0.5px);
+  left: calc(0.5 * (var(--total-width) - var(--width)) - var(--component-padding) - 0.5px);
 }
 
 .vec3 .gimbal-container {
-  margin-left: var(--input-range-height);
+  margin-left: var(--component-range-height);
 }
 
 /* TODO: Add firefox styles */
 
 .vec3 .controls {
   position: absolute;
-  top: calc(-1 * var(--input-range-height));
-  left: 0;
+  top: calc(-1 * var(--component-range-height));
   width: calc(var(--total-width) - 2 * var(--outer-padding));
   height: calc(var(--total-width) - 2 * var(--outer-padding));
 }
@@ -77,7 +77,7 @@
   top: 0;
   left: 0;
   width: var(--width);
-  height: var(--input-range-height);
+  height: var(--component-range-height);
   background: transparent;
 }
 
@@ -87,17 +87,17 @@
 
 .vec3 .controls .horizontal {
     transform: 
-      translateX(calc(var(--input-range-height) - 3px)) translateY(calc(var(--height) + var(--input-range-height) - 2px));
+      translateX(calc(var(--component-range-height) - 1px)) translateY(calc(var(--height) + var(--component-range-height) - 2px));
 }
 
 .vec3 .controls .vertical {
     transform-origin: center right;
-    transform: rotateZ(-90deg) translateY(calc(.5 * var(--input-range-height) - var(--vec3-component-internal-width))) translateX(calc(-0.5 * var(--input-range-height)));
+    transform: rotateZ(-90deg) translateY(calc(.5 * var(--component-range-height) - var(--width))) translateX(calc(-0.5 * var(--component-range-height)));
 }
 
 .vec3 .controls .length {
     transform-origin: center right;
-    transform: rotateZ(-90deg) translateY(calc(1.25 * var(--input-range-height))) translateX(calc(-0.5 * var(--input-range-height)));
+    transform: rotateZ(-90deg) translateY(calc(1.5 * var(--component-range-height))) translateX(calc(-0.5 * var(--component-range-height)));
 }
 
 /* Panel */
