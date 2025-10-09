@@ -1,42 +1,37 @@
+
 .vector {
-  background-color: #fff;
-  margin: 0.125rem 0;
-  cursor: pointer;
-  border-radius: 6px;
-  padding: 0.125rem 0.625rem 0.125rem 0px;
-}
-.vector .label {
-  display: inline-block;
+  width: var(--total-width);
+  padding: 0;
+  margin-bottom: 0;
+  background-color: transparent;
 }
 
-.vector[data-collapsed="1"]::before {
-  content: "+";
-  font-size: 16px;
-  border-radius: 10px;
-  padding: 0px 6px;
-  background-color: #fff;
+.vector header {
+  display: flex;
+  background-color: var(--component-color-background);
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  line-height: 1.25rem;
+  height: var(--component-collapsed-height);
+  /* border-radius: 0.25rem;*/
+  border: none;
+  border-radius: 0.5rem;
+  z-index: 100;
+  position: relative;
+  color: var(--component-color-accent-1);
 }
 
-.vector[data-collapsed="1"] .parameter {
+.vector header input[type="radio"] {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.vector[data-expanded="0"] .components {
   display: none;
 }
 
-.vector[data-collapsed="0"]::before {
-  content: "-";
-  font-size: 16px;
-  border-radius: 10px;
-  padding: 0px 6px;
-  background-color: #fff;
-}
-
-.vector .parameter {
-  display: flex;
-  flex-direction: row;
-  text-decoration: none;
-}
-
-.vector .parameter label {
-  margin-right: 0.5rem;
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: 600;
+.vector .scalar .parameter,
+.vector .scalar .parameter .digits {
+  background-color: var(--component-color-background-1);
 }

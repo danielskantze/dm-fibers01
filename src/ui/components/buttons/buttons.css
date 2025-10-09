@@ -1,0 +1,47 @@
+.buttons .button-wrapper {
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.buttons .button-wrapper:last-child {
+  padding-right: 0;
+}
+
+.buttons .button-wrapper:first-child {
+  padding-left: 0;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  margin-top: 3px;
+}
+
+.buttons button.color-1 {
+  border-color: var(--color-1);
+  color: var(--color-1);
+}
+.buttons button.color-2 {
+  border-color: var(--color-2);
+  color: var(--color-2);
+}
+.buttons button.color-3 {
+  border-color: var(--color-3);
+  color: var(--color-3);
+}
+.buttons button.color-4 {
+  border-color: var(--color-4);
+  color: var(--color-4);
+}
+.buttons button {
+  background: var(--component-color-background);
+  color: var(--component-color-accent-1);
+  border-radius: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.033rem;
+  height: var(--component-collapsed-height);
+  border: 1px solid transparent;
+  margin: 0;
+  width: 100%;
+}

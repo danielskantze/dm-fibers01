@@ -1,5 +1,5 @@
 .scalar .parameter {
-  background-color: var(--component-color-background-1);
+  background-color: var(--component-color-background);
   color: var(--component-color-accent-1);
   padding: 3px 0px 3px 9px;
   border-radius: 6px;
@@ -23,7 +23,7 @@
   width: 2.75rem;
   text-align: right;
   color: var(--component-color-accent-1);
-  background-color: var(--component-color-background-1);
+  background-color: var(--component-color-background);
 }
 
 .scalar > .parameter {
