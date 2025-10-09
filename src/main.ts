@@ -198,22 +198,13 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     );
 
     window.addEventListener("resize", resize);
-    //draw();
+    draw();
 }
 
 export default main;
 
 // TODO:
 
-// Improved palette parameter 
-//  - Change cos palette params to be a unit instead of individual vectors (use Matrix3x4 or Matrix4x4). This way we will not have to map it to multiple uniforms which is nice. We need to figure out the component mapping though. 
-//  - Introduce special uniform type cos-palette and group implicitly in order or occurence
-//  - Make vec3 width component-specific (i.e. smaller ones for cos palette so we can fit 2 per row)
-//  - Hook up cos-palette to createUI and make it handle onChange properly (remove POC hack)
-//  - createCosPalette should manage its own vec3 components
-//  - Fold-out should expand all
-
-// Improved styling of parameters - update all to new dark theme
 // Make UI scrollable (handle case when many params are expanded)
 
 // Expose particle fade time as parameter

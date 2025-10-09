@@ -233,14 +233,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform4fv(u.strokeNoise.location, u.strokeNoise.value as number[]);
     gl.uniform4fv(u.strokeDrift.location, u.strokeDrift.value as number[]);
     gl.uniform4fv(u.colorNoise.location, u.colorNoise.value as number[]);
-
-    [
-      ...u.cosPalette1.value as Vec3, 
-      ...u.cosPalette2.value as Vec3, 
-      ...u.cosPalette3.value as Vec3, 
-      ...u.cosPalette4.value as Vec3].forEach((v, i) => {
-      (u.cosPalette.value as Matrix4x3)[i] = v;
-    })
+    
     gl.uniformMatrix4x3fv(u.cosPalette.location, false, u.cosPalette.value as Float32Array);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sources[0].texture);

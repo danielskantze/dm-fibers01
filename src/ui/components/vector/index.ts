@@ -1,4 +1,4 @@
-import { createScalar, createScalarInner } from "../scalar";
+import { createScalar } from "../scalar";
 import './vector.css';
 import template from './vector.html?raw';
 
@@ -18,7 +18,7 @@ export function createVector(name: string, values: number[], onChange: (i: numbe
 
   control.dataset.expanded = "0";
   const label = control.querySelector('header .label')! as HTMLDivElement;
-  const expandRadio = control.querySelector('header .expand-radio')! as HTMLInputElement;
+  const expandRadio = control.querySelector('header .expand-checkbox')! as HTMLInputElement;
   const components = control.querySelector('.components');
 
   label.innerText = name;
@@ -32,11 +32,8 @@ export function createVector(name: string, values: number[], onChange: (i: numbe
   };
 
   for (let i = 0; i < values.length; i++) {
-    //const wrapper = document.createElement("div");
-    //createScalarInner(wrapper, vecCompName(i), values[i], (v: number) => onChange(i, v), min, max, step);
-    //container.appendChild(wrapper);
     const scalar = createScalar(
-      vecCompName(i), 
+      vecCompName(i),
       values[i],
       (v: number) => { onChange(i, v); },
       min,

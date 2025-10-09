@@ -156,7 +156,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
 
     control.dataset.expanded = expandable ? "0" : "1";
     const label = control.querySelector('header .label')! as HTMLDivElement;
-    const expandRadio = control.querySelector('header .expand-radio')! as HTMLInputElement;
+    const expandRadio = control.querySelector('header .expand-checkbox')! as HTMLInputElement;
     const panelSelectors = control.querySelectorAll('header .panel-selector *[data-type]');
     const panels = control.querySelector('.panels') as HTMLDivElement;
     const canvasContainer = control.querySelector('.gimbal') as HTMLDivElement;
@@ -173,7 +173,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     }
 
     const [internalWidth, internalHeight] = getVec3InternalSize();
-    console.log([internalWidth, internalHeight]);
+
     // FRAME & PANEL
 
     label.innerHTML = name;
