@@ -4,6 +4,7 @@ import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
+import type { Uniform } from "../../types/gl/uniforms";
 import type { BufferedStageOutput, Resources, Stage, StageOutput } from "../../types/stage";
 import fShaderSource from "../shaders/accumulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
@@ -17,6 +18,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const stampUpdatedLocation = gl.getUniformLocation(program, "stamp_updated_tex");
             const frameLocation = gl.getUniformLocation(program, "u_frame");
             const timeLocation = gl.getUniformLocation(program, "u_time");
+            const fadeTimeLocation = gl.getUniformLocation(program, "u_fade_time");
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
             };
@@ -44,6 +46,17 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             time: {
               location: timeLocation,
               slot: 5,
+            },
+            fadeTime: {
+              location: fadeTimeLocation,
+              slot: 6,
+              ui: {
+                name: "Fade time",
+                min: 0.1,
+                max: 10.0,
+              },
+              value: 2.0,
+              type: "float"
             }
           };
             return { program, attributes, uniforms } as ShaderProgram;
@@ -72,6 +85,12 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
         createOutput(gl, width, height, "accumulate_output_1"), 
         createOutput(gl, width, height, "accumulate_output_2")] as BufferedStageOutput;
 
+    const uniforms = shaders.accumulate!.uniforms;
+    const parameters = Object.keys(uniforms)
+      .map((k) => (uniforms[k]))
+      .filter((u: Uniform) => (!!u.ui));
+    parameters.sort((a: Uniform, b: Uniform) => (a.ui!.name.localeCompare(b.ui!.name)));
+
     return {
         name: "accumulate",
         resources: {
@@ -81,7 +100,7 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
         },
         input,
         targets: output[0].textures,
-        parameters: [],
+        parameters,
     };
 }
 
@@ -109,6 +128,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform1i(u.stampUpdatedTexture.location, u.stampUpdatedTexture.slot);
     gl.uniform1i(accumulate.uniforms.frame.location, frame);
     gl.uniform1f(accumulate.uniforms.time.location, time);
+    gl.uniform1f(u.fadeTime.location, u.fadeTime.value as number);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sources[0].texture);
     gl.activeTexture(gl.TEXTURE1);

@@ -282,7 +282,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   function resize() {
     configureCanvas(canvas);
   }
-  createUi(controls, [numParticlesParam, accumulateParam, updatesPerDrawParam, useBloomParam, bloomIntensityParam, lumaThresholdParam, ...stages.simulate.parameters],
+  createUi(controls, [numParticlesParam, accumulateParam, updatesPerDrawParam, useBloomParam, bloomIntensityParam, lumaThresholdParam, ...stages.simulate.parameters, ...stages.accumulate.parameters],
     () => { resize(); },
     () => {
       isRunning = !isRunning;
@@ -306,7 +306,6 @@ export default main;
 
 // TODO:
 
-// Expose particle fade time as parameter
 // Toggle trail
 // Fix or remove clear
 // Store parameters

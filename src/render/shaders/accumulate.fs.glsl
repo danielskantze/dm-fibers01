@@ -9,12 +9,10 @@ uniform sampler2D stamp_color_tex;
 uniform sampler2D stamp_updated_tex;
 uniform int u_frame;
 uniform float u_time;
+uniform float u_fade_time;
 
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out float out_updated;
-
-const float fade_time = 3.0;
-
 
 void main() {
   vec3 p_color = texelFetch(previous_color_tex, ivec2(gl_FragCoord.xy), 0).rgb;
@@ -22,7 +20,7 @@ void main() {
   vec4 color = texelFetch(stamp_color_tex, ivec2(gl_FragCoord.xy), 0);
   float updated = texelFetch(stamp_updated_tex, ivec2(gl_FragCoord.xy), 0).x;
 
-  float p_i = clamp(1.0 - (u_time - p_updated) / fade_time, 0.0, 1.0);
+  float p_i = clamp(1.0 - (u_time - p_updated) / u_fade_time, 0.0, 1.0);
 
   // Fade new partciles aggressively at first. Creates a more dynamic look where we get more contrasts. 
   p_i = p_i * p_i * p_i;
