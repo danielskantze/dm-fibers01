@@ -155,21 +155,25 @@ type RenderingState = {
   }
 }
 
-
-function drawRenderStages(gl: WebGL2RenderingContext, config: RenderingConfig, stages: RenderingStages, state: RenderingState) {
-  const { maxNumParticles, useBloom } = config;
-  const { time, frame, width, height, numParticles, stages: { bloom } } = state;
+function updateSimulationStages(gl: WebGL2RenderingContext, config: RenderingConfig, stages: RenderingStages, state: RenderingState) {
+  const { maxNumParticles } = config;
+  const { time, frame, numParticles } = state;
   const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
   stage_simulate.draw(gl, stages.simulate, time, frame, drawSize);
   stage_materialize.draw(gl, stages.materialize, time, frame, numParticles);
   stage_accumulate.draw(gl, stages.accumulate, time, frame);
+}
+
+
+function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, stages: RenderingStages, state: RenderingState) {
+  const { useBloom } = config;
+  const { width, height, stages: { bloom } } = state;
   if (useBloom) {
     stage_luma.draw(gl, stages.luma, bloom.lumaThreshold);
     stage_blur.draw(gl, stages.blur);
     stage_combine.draw(gl, stages.combine, stages.blur, 1.0, bloom.bloomIntensity);
   }
   stage_display.draw(gl, stages.display, width, height);
-//  console.log(config, state, width, height);
 }
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
@@ -223,8 +227,6 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   if (!ext) {
     throw new WebGLTextureError("This browser does not support rendering to half float textures");
   }
-  //const simulateStage = stage_simulate.create(gl, maxNumParticles);
-  //const testStage = stage_test.create(gl, canvas.width, canvas.height);
   const dpr = window.devicePixelRatio;
   const renderWidth = settings.width * dpr;
   const renderHeight = settings.height * dpr;
@@ -268,9 +270,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     };
     for (let i = 0; i < renderConfig.updatesPerDraw; i++) {
       renderingState.frame = frame;
-      drawRenderStages(gl, renderConfig, stages, renderingState);
+      updateSimulationStages(gl, renderConfig, stages, renderingState);
       frame++;
     }
+    drawOutputStages(gl, renderConfig, stages, renderingState);
     requestAnimationFrame(() => {
       draw();
     });
@@ -307,6 +310,8 @@ export default main;
 // Toggle trail
 // Fix or remove clear
 // Store parameters
+// Better control for boolean parameters
+// Group parameters of different types (e.g. bloom)
 // Random seed
 // Make vector field less jittery
 // Screenshot function
