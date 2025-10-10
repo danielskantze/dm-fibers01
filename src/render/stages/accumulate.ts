@@ -19,6 +19,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const frameLocation = gl.getUniformLocation(program, "u_frame");
             const timeLocation = gl.getUniformLocation(program, "u_time");
             const fadeTimeLocation = gl.getUniformLocation(program, "u_fade_time");
+            const accumulateLocation = gl.getUniformLocation(program, "u_accumulate");
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
             };
@@ -57,6 +58,18 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
               },
               value: 2.0,
               type: "float"
+            },
+            accumulate: {
+              location: accumulateLocation,
+              slot: 7,
+              ui: {
+                name: "Accumulate",
+                min: 0,
+                max: 1,
+                step: 1,
+              },
+              value: 1.0,
+              type: "int"
             }
           };
             return { program, attributes, uniforms } as ShaderProgram;
@@ -129,6 +142,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform1i(accumulate.uniforms.frame.location, frame);
     gl.uniform1f(accumulate.uniforms.time.location, time);
     gl.uniform1f(u.fadeTime.location, u.fadeTime.value as number);
+    gl.uniform1i(u.accumulate.location, u.accumulate.value as number);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sources[0].texture);
     gl.activeTexture(gl.TEXTURE1);

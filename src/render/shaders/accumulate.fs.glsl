@@ -11,6 +11,8 @@ uniform int u_frame;
 uniform float u_time;
 uniform float u_fade_time;
 
+uniform int u_accumulate;
+
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out float out_updated;
 
@@ -20,28 +22,32 @@ void main() {
   vec4 color = texelFetch(stamp_color_tex, ivec2(gl_FragCoord.xy), 0);
   float updated = texelFetch(stamp_updated_tex, ivec2(gl_FragCoord.xy), 0).x;
 
-  float p_i = clamp(1.0 - (u_time - p_updated) / u_fade_time, 0.0, 1.0);
+  if (u_accumulate == 1) {
+    float p_i = clamp(1.0 - (u_time - p_updated) / u_fade_time, 0.0, 1.0);
 
-  // Fade new partciles aggressively at first. Creates a more dynamic look where we get more contrasts. 
-  p_i = p_i * p_i * p_i;
-  bool isNew = u_time - updated < 0.1;
+    // Fade new partciles aggressively at first. Creates a more dynamic look where we get more contrasts. 
+    p_i = p_i * p_i * p_i;
+    bool isNew = u_time - updated < 0.1;
 
-  // State Strategy:
-  // RGB = pure accumulated color.
-  // Alpha = decay factor (remaining life), used for custom fading in a later pass.
-  // This avoids a simple exponential feedback-loop fade.
+    // State Strategy:
+    // RGB = pure accumulated color.
+    // Alpha = decay factor (remaining life), used for custom fading in a later pass.
+    // This avoids a simple exponential feedback-loop fade.
 
-  if (isNew) {
-    // New particle: Blend with the DECAYED old trail (`p_color * p_i`) to
-    // prevent the trail from unnaturally brightening. The result is the new
-    // pure color, and its decay (alpha) is reset to 1.0.
-    out_color = vec4(
-      p_color * vec3(1.0 - color.a) * p_i + vec3(color.rgb * color.a), 
-      1.0
-    );
+    if (isNew) {
+      // New particle: Blend with the DECAYED old trail (`p_color * p_i`) to
+      // prevent the trail from unnaturally brightening. The result is the new
+      // pure color, and its decay (alpha) is reset to 1.0.
+      out_color = vec4(
+        p_color * vec3(1.0 - color.a) * p_i + vec3(color.rgb * color.a), 
+        1.0
+      );
+    } else {
+      // Aging trail: Preserve the pure color and update the decay factor.
+      out_color = vec4(p_color, p_i);
+    }    
   } else {
-    // Aging trail: Preserve the pure color and update the decay factor.
-    out_color = vec4(p_color, p_i);
-  }    
+    out_color = vec4(color.xyz, 1.0);
+  }
   out_updated = max(updated, p_updated);
 }

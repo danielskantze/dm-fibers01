@@ -306,14 +306,14 @@ export default main;
 
 // TODO:
 
-// Toggle trail
-// Fix or remove clear
+// Replace clear button with screenshot button
 // Store parameters
+
+// Bloom quality parameters
 // Better control for boolean parameters
 // Group parameters of different types (e.g. bloom)
 // Random seed
 // Make vector field less jittery
-// Screenshot function
 
 // Add music.
 // - Sync beats with stroke noise x/y (each kick will pulse these)
