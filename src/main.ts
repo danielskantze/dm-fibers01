@@ -42,7 +42,9 @@ type RenderingStages = {
 
 type RenderingConfig = {
   maxNumParticles: number,
-  useBloom: boolean,
+  maxBloomSteps: number,
+  bloomSteps: number,
+  bloomQuality: number,
   updatesPerDraw: number
 }
 
@@ -130,12 +132,12 @@ function createUIParameter(type: UniformType, value: number | number[], ui: Unif
   return { type, value, ui };
 }
 
-function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: number, renderWidth: number, renderHeight: number): RenderingStages {
+function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: number, maxBloomSteps: number, renderWidth: number, renderHeight: number): RenderingStages {
   const simulate = stage_simulate.create(gl, maxNumParticles);
   const materialize = stage_materialize.create(gl, simulate, renderWidth, renderHeight, maxNumParticles, settings.msaa);
   const accumulate = stage_accumulate.create(gl, materialize);
   const luma = stage_luma.create(gl, accumulate);
-  const blur = stage_blur.create(gl, luma, "high", 7);
+  const blur = stage_blur.create(gl, luma, "low", maxBloomSteps);
   const combine = stage_combine.create(gl, accumulate);
   const display = stage_output.create(gl, combine, false);
   const screenshot = stage_output.create(gl, combine, true);
@@ -145,7 +147,7 @@ function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: numb
 }
 
 function configureRenderingStages(config: RenderingConfig, stages: RenderingStages) {
-  if (config.useBloom) {
+  if (config.bloomSteps > 2) {
     stages.display.input = stages.combine;
     stages.screenshot.input = stages.combine;
   } else {
@@ -156,7 +158,7 @@ function configureRenderingStages(config: RenderingConfig, stages: RenderingStag
 
 type BloomStageParams = {
   lumaThreshold: number,
-  bloomIntensity: number
+  bloomIntensity: number,
 }
 
 type RenderingState = {
@@ -187,11 +189,11 @@ function downloadScreenshot(dataURL: string) {
 }
 
 function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, stages: RenderingStages, state: RenderingState, screenshot: boolean = false) {
-  const { useBloom } = config;
   const { width, height, stages: { bloom } } = state;
-  if (useBloom) {
+  const blurQuality = stage_blur.lookupBlurQuality(config.bloomQuality);
+  if (blurQuality !== "off") {
     stage_luma.draw(gl, stages.luma, bloom.lumaThreshold);
-    stage_blur.draw(gl, stages.blur);
+    stage_blur.draw(gl, stages.blur, undefined, config.bloomSteps, blurQuality);
     stage_combine.draw(gl, stages.combine, stages.blur, 1.0, bloom.bloomIntensity);
   }
   if (screenshot) {
@@ -203,20 +205,22 @@ function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, s
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   configureCanvas(canvas);
+
+  const renderConfig: RenderingConfig = {
+    maxNumParticles: 4 * 50000,
+    maxBloomSteps: 8,
+    bloomSteps: 0,
+    bloomQuality: 2,
+    updatesPerDraw: 4
+  };
+
   let isRunning = true;
   let elapsedTime = 0;
   let startTime = performance.now();
-  const maxNumParticles = 4 * 50000;
   let numParticlesParam = createUIParameter("int", 1000, {
     name: "Particles",
     min: 10,
-    max: maxNumParticles
-  });
-  let accumulateParam = createUIParameter("int", 1, {
-    name: "Accumulate",
-    min: 0,
-    step: 1,
-    max: 1
+    max: renderConfig.maxNumParticles
   });
   let bloomIntensityParam = createUIParameter("float", 0.5, {
     name: "Bloom Intensity",
@@ -230,10 +234,16 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     step: 0.01,
     max: 1.0
   });
-  let useBloomParam = createUIParameter("int", 0, {
-    name: "Bloom",
+  let bloomQualityParam = createUIParameter("int", 0, {
+    name: "Bloom quality",
     min: 0,
-    max: 1,
+    max: 2,
+    step: 1
+  });
+  let bloomStepsParam = createUIParameter("int", 0, {
+    name: "Bloom",
+    min: 3,
+    max: renderConfig.maxBloomSteps,
     step: 1
   });
   let updatesPerDrawParam = createUIParameter("int", 4, {
@@ -256,22 +266,22 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const renderWidth = settings.width * dpr;
   const renderHeight = settings.height * dpr;
 
-  const stages = createRenderingStages(gl, maxNumParticles, renderWidth, renderHeight);
+  const stages = createRenderingStages(gl, renderConfig.maxNumParticles, renderConfig.maxBloomSteps, renderWidth, renderHeight);
 
   let frame = 0;
-
-  const renderConfig: RenderingConfig = {
-    maxNumParticles,
-    useBloom: (useBloomParam.value as number) === 1,
-    updatesPerDraw: 4
-  };
 
   configureRenderingStages(renderConfig, stages);
 
   function render(screenshot: boolean = false) {
-    const useBloom = (useBloomParam.value as number) === 1;
-    if (useBloom !== renderConfig.useBloom) {
-      renderConfig.useBloom = useBloom;
+    const bloomSteps = bloomStepsParam.value as number;
+    const bloomQuality = bloomQualityParam.value as number;
+
+    if (bloomSteps !== renderConfig.bloomSteps) {
+      renderConfig.bloomSteps = bloomSteps;
+      configureRenderingStages(renderConfig, stages);
+    }
+    if (bloomQuality !== renderConfig.bloomQuality) {
+      renderConfig.bloomQuality = bloomQuality;
       configureRenderingStages(renderConfig, stages);
     }
     renderConfig.updatesPerDraw = updatesPerDrawParam.value as number;
@@ -283,7 +293,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       stages: {
         bloom: {
           lumaThreshold: lumaThresholdParam.value as number,
-          bloomIntensity: bloomIntensityParam.value as number
+          bloomIntensity: bloomIntensityParam.value as number,
         }
       },
       width: canvas.width,
@@ -310,7 +320,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   function resize() {
     configureCanvas(canvas);
   }
-  createUi(controls, [numParticlesParam, accumulateParam, updatesPerDrawParam, useBloomParam, bloomIntensityParam, lumaThresholdParam, ...stages.simulate.parameters, ...stages.accumulate.parameters],
+  createUi(controls, [numParticlesParam, updatesPerDrawParam, bloomQualityParam, bloomStepsParam, bloomIntensityParam, lumaThresholdParam, ...stages.simulate.parameters, ...stages.accumulate.parameters],
     () => {
       if (!isRunning) {
         startTime = performance.now();
@@ -345,7 +355,6 @@ export default main;
 
 // Store parameters
 
-// Bloom quality parameters
 // Better control for boolean parameters
 // Group parameters of different types (e.g. bloom)
 // Random seed

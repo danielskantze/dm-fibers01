@@ -224,10 +224,11 @@ function create(gl: WebGL2RenderingContext, input: Stage, quality: BlurQuality, 
     return stage;
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, mix?: number) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, mix?: number, maxSteps?: number, blurQuality?: BlurQuality) {
     const resources = stage.resources as TypedResources<BlurStageInternalData>;
     const { buffers, shaders, output } = resources as Resources & { output: StageOutput };
-    const { layers, quality } = resources.internal;
+    const { layers } = resources.internal;
+    const quality = blurQuality ?? resources.internal;
     const { quad } = buffers;
     const input = stage.input!.resources.currentOutput! as StageOutput;
 
@@ -236,17 +237,17 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, mix?: number) {
 
     const blurPass = createBlurPass(shaders.blur, quad);
     const addPass = createAddPass(shaders.add, quad);
-    
+    const numSteps = maxSteps ? Math.min(Math.max(maxSteps, 1), layers.length) : layers.length;
     // Copy and downsample
     if (quality === "high") {
       const downsamplePass = createDownsamplePass(shaders.downsample, quad);
       downsamplePass.start(gl);
-      for (let i = 0, src = input; i < layers.length; src = layers[i][0], i++) {
+      for (let i = 0, src = input; i < numSteps; src = layers[i][0], i++) {
         downsamplePass.render(gl, src, layers[i][0]);
       }
       downsamplePass.cleanup(gl);
     } else {
-      for (let i = 0, src = input; i < layers.length; src = layers[i][0], i++) {
+      for (let i = 0, src = input; i < numSteps; src = layers[i][0], i++) {
         copyStageOutput(gl, src, layers[i][0]);
       }
     }
@@ -255,9 +256,9 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, mix?: number) {
 
     // Blur downsampled textures, using separable gaussian blur
     blurPass.start(gl);
-    for (let i = layers.length - 1; i >= 0; i--) {
+    for (let i = numSteps - 1; i >= 0; i--) {
       // Interpolate the blur radius based on the current layer.
-      const t = i / (layers.length - 1);
+      const t = i / (numSteps - 1);
       const blurRadius = minBlurRadius + t * (maxBlurRadius - minBlurRadius);
 
       const [a, b] = layers[i];
@@ -275,13 +276,13 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, mix?: number) {
     // than a procedural calculation, while maintaining the performance of the iterative approach.
     // A smaller final weight de-emphasizes the sharpest, innermost layer.
     
-    const stepWeights = seq(layers.length - 1).map((_, i, a) => {
+    const stepWeights = seq(numSteps - 1).map((_, i, a) => {
       const p = 1.0 - i / (a.length - 1); 
       //return 1.0 - 0.5 * p * p * p * p;
       return 1.0 - 0.5 * p * p;
     });
 
-    for (let i = layers.length - 1; i > 0; i--) {
+    for (let i = numSteps - 1; i > 0; i--) {
       // The step weight index is i-1, corresponding to the blur layer being processed.
       // E.g., when i=4 (smallest layer), we use weight at index 3.
       const weight = stepWeights[i - 1];
@@ -297,4 +298,15 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, mix?: number) {
     }
 }
 
-export { create, draw };
+function lookupBlurQuality(qNum: number): BlurQuality {
+  switch (qNum) {
+    case 1:
+      return "low";
+    case 2:
+      return "high";
+    default:
+      return "off";
+  }
+}
+
+export { create, draw, lookupBlurQuality };
