@@ -3,11 +3,11 @@ import type { Matrix4x3, Vec3 } from "./math/types";
 import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
 import * as stage_combine from "./render/stages/combine";
-import * as stage_display from "./render/stages/display";
+//import * as stage_display from "./render/stages/display";
 import * as stage_luma from "./render/stages/luma";
 import * as stage_materialize from "./render/stages/materialize";
 import * as stage_simulate from "./render/stages/simulate";
-import * as stage_screenshot from "./render/stages/screenshot";
+import * as stage_output from "./render/stages/output";
 import { WebGLTextureError } from "./types/error";
 import { UniformComponents, type Uniform, type UniformType, type UniformUI } from "./types/gl/uniforms";
 import { type Settings } from "./types/settings";
@@ -137,8 +137,8 @@ function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: numb
   const luma = stage_luma.create(gl, accumulate);
   const blur = stage_blur.create(gl, luma, "high", 7);
   const combine = stage_combine.create(gl, accumulate);
-  const display = stage_display.create(gl, combine);
-  const screenshot = stage_screenshot.create(gl, combine);
+  const display = stage_output.create(gl, combine, false);
+  const screenshot = stage_output.create(gl, combine, true);
   return {
     simulate, materialize, accumulate, luma, blur, combine, display, screenshot
   }
@@ -195,9 +195,9 @@ function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, s
     stage_combine.draw(gl, stages.combine, stages.blur, 1.0, bloom.bloomIntensity);
   }
   if (screenshot) {
-    stage_screenshot.draw(gl, stages.screenshot);
+    stage_output.draw(gl, stages.screenshot);
   } else {
-    stage_display.draw(gl, stages.display, width, height);
+    stage_output.draw(gl, stages.display, width, height);
   }
 }
 
