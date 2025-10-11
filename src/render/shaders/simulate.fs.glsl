@@ -346,7 +346,7 @@ void main() {
     } else {
       // existing particle
       float angle = angleAt(position.xy);
-      vec2 step = 1.5 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
+      vec2 step = 1.0 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
       float p = clamp(properties.z / properties.w, 0.0, 1.0);
       float t = sinBounce(p);
 
