@@ -106,7 +106,7 @@ function createMultisampler(gl: WebGL2RenderingContext, width: number, height: n
     const framebuffer = createMultisamplerFrameBuffer(gl, width, height, renderbuffer);
     const multisampler: MultiSampleAntiAlias = {
         samples,
-        internalformat: gl.RGBA8,
+        internalformat: gl.RGBA16F,
         width,
         height,
         renderbuffer,
