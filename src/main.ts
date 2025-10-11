@@ -7,16 +7,19 @@ import * as stage_display from "./render/stages/display";
 import * as stage_luma from "./render/stages/luma";
 import * as stage_materialize from "./render/stages/materialize";
 import * as stage_simulate from "./render/stages/simulate";
+import * as stage_screenshot from "./render/stages/screenshot";
 import { WebGLTextureError } from "./types/error";
 import { UniformComponents, type Uniform, type UniformType, type UniformUI } from "./types/gl/uniforms";
 import { type Settings } from "./types/settings";
-import type { Stage } from "./types/stage";
+import type { Stage, StageOutput } from "./types/stage";
 import { createButtons } from "./ui/components/buttons";
 import { createCosPalette } from "./ui/components/cos-palette";
 import { createScalar } from "./ui/components/scalar";
 import { createVec3 } from "./ui/components/vec3";
 import { createVector } from "./ui/components/vector";
 import ControlFactory from "./ui/controls";
+import { timestamp } from "./ui/util/date";
+import * as screenshot from "./render/util/screenshot";
 
 export type ControlFactoryUniform = Omit<Uniform, "location" | "slot">;
 
@@ -33,7 +36,8 @@ type RenderingStages = {
   luma: Stage,
   blur: Stage,
   combine: Stage,
-  display: Stage
+  display: Stage,
+  screenshot: Stage
 };
 
 type RenderingConfig = {
@@ -103,8 +107,16 @@ function createUi(
 ) {
   createUniformControls(controlsContainer, parameters);
   controlsContainer.appendChild(createButtons([
-    { title: "Clear", onClick: () => { resetFn(); }, color: 2 },
-    { title: "Pause", onClick: pauseFn, color: 2 }
+    {
+      title: "Screenshot", 
+      onClick: resetFn,
+      color: 2
+    },
+    { 
+      title: "Pause", 
+      onClick: pauseFn, 
+      color: 2 
+    }
   ]));
 
   document.addEventListener("keypress", (e: KeyboardEvent) => {
@@ -126,16 +138,19 @@ function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: numb
   const blur = stage_blur.create(gl, luma, "high", 7);
   const combine = stage_combine.create(gl, accumulate);
   const display = stage_display.create(gl, combine);
+  const screenshot = stage_screenshot.create(gl, combine);
   return {
-    simulate, materialize, accumulate, luma, blur, combine, display
+    simulate, materialize, accumulate, luma, blur, combine, display, screenshot
   }
 }
 
 function configureRenderingStages(config: RenderingConfig, stages: RenderingStages) {
   if (config.useBloom) {
     stages.display.input = stages.combine;
+    stages.screenshot.input = stages.combine;
   } else {
     stages.display.input = stages.accumulate;
+    stages.screenshot.input = stages.accumulate;
   }
 }
 
@@ -164,8 +179,14 @@ function updateSimulationStages(gl: WebGL2RenderingContext, config: RenderingCon
   stage_accumulate.draw(gl, stages.accumulate, time, frame);
 }
 
+function downloadScreenshot(dataURL: string) {
+  const aElmt = document.createElement("a");
+  aElmt.download = `fibers-${timestamp()}`;
+  aElmt.href = dataURL;
+  aElmt.click();
+}
 
-function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, stages: RenderingStages, state: RenderingState) {
+function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, stages: RenderingStages, state: RenderingState, screenshot: boolean = false) {
   const { useBloom } = config;
   const { width, height, stages: { bloom } } = state;
   if (useBloom) {
@@ -173,7 +194,11 @@ function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, s
     stage_blur.draw(gl, stages.blur);
     stage_combine.draw(gl, stages.combine, stages.blur, 1.0, bloom.bloomIntensity);
   }
-  stage_display.draw(gl, stages.display, width, height);
+  if (screenshot) {
+    stage_screenshot.draw(gl, stages.screenshot);
+  } else {
+    stage_display.draw(gl, stages.display, width, height);
+  }
 }
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
@@ -218,7 +243,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     step: 1
   });
   const controlFactory = new ControlFactory(controls);
-  const gl = canvas.getContext("webgl2")!
+  const gl = canvas.getContext("webgl2")!;
   let ext = gl.getExtension("EXT_color_buffer_float");
   if (!ext) {
     throw new WebGLTextureError("This browser does not support rendering to float textures");
@@ -243,11 +268,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   configureRenderingStages(renderConfig, stages);
 
-  function draw() {
-    if (!isRunning) {
-      return;
-    }
-
+  function render(screenshot: boolean = false) {
     const useBloom = (useBloomParam.value as number) === 1;
     if (useBloom !== renderConfig.useBloom) {
       renderConfig.useBloom = useBloom;
@@ -273,7 +294,14 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       updateSimulationStages(gl, renderConfig, stages, renderingState);
       frame++;
     }
-    drawOutputStages(gl, renderConfig, stages, renderingState);
+    drawOutputStages(gl, renderConfig, stages, renderingState, screenshot);
+  }
+
+  function draw() {
+    if (!isRunning) {
+      return;
+    }
+    render();
     requestAnimationFrame(() => {
       draw();
     });
@@ -283,7 +311,16 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     configureCanvas(canvas);
   }
   createUi(controls, [numParticlesParam, accumulateParam, updatesPerDrawParam, useBloomParam, bloomIntensityParam, lumaThresholdParam, ...stages.simulate.parameters, ...stages.accumulate.parameters],
-    () => { resize(); },
+    () => {
+      if (!isRunning) {
+        startTime = performance.now();
+      }
+      render(true);
+      downloadScreenshot(screenshot.getTexturePng(gl, stages.screenshot.resources.output as StageOutput));
+      if (!isRunning) {
+        elapsedTime += (performance.now() - startTime) / 1000;
+      }
+    },
     () => {
       isRunning = !isRunning;
       if (!isRunning) {
@@ -306,7 +343,6 @@ export default main;
 
 // TODO:
 
-// Replace clear button with screenshot button
 // Store parameters
 
 // Bloom quality parameters
