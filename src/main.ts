@@ -122,8 +122,8 @@ function createUi(
     }
   ]));
 
-  document.addEventListener("keypress", (e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key.charCodeAt(0) === 112) { // 112 = p
+  document.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) { // 112 = p
       toggleVisibilityFn();
     }
   });
@@ -226,13 +226,13 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   let bloomIntensityParam = createUIParameter("float", 0.5, {
     name: "Bloom Intensity",
     min: 0,
-    step: 0.01,
+    step: 0.0001,
     max: 1.0
   });
   let lumaThresholdParam = createUIParameter("float", 0.25, {
     name: "Luma",
     min: 0,
-    step: 0.01,
+    step: 0.0001,
     max: 1.0
   });
   let bloomQualityParam = createUIParameter("int", 0, {
