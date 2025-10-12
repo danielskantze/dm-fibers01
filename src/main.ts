@@ -358,7 +358,6 @@ export default main;
 
 // Store parameters
 
-// Group parameters of different types (e.g. bloom)
 // Random seed
 
 // Add music.
@@ -369,6 +368,8 @@ export default main;
 // - And of course, test controlling number of particles (possibly relate to radius)
 
 // 3D support (each particle has Z component)
+
+// Group parameters of different types (e.g. bloom)
 
 // Consider adding LFOs
 // Support brightness, contrast and color temperature post controls
