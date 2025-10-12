@@ -17,12 +17,16 @@ export const UniformComponents: Record<UniformType, number> = {
   int: 1
 };
 
+export type ScalarUIType = "int" | "float" | "enum";
+
 export type UniformUI = {
   name: string;
   min?: number;
   max?: number;
   step?: number;
   component?: string;
+  type?: ScalarUIType;
+  options?: string[];
 }
 
 type Uniform = {

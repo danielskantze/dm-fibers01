@@ -85,7 +85,8 @@ function createUniformControls(controlsContainer: HTMLElement, uniforms: Control
         }
       } else {
         const value = u.value as number;
-        controlsContainer.appendChild(createScalar(name, value, (v: number) => { u.value = v; }, min, max, step));
+        const scalarType = u.ui?.type ?? (u.type == "int" ? "int" : "float");
+        controlsContainer.appendChild(createScalar(name, value, (v: number) => { u.value = v; }, min, max, step, scalarType, ui.options));
       }
     }
   }
@@ -238,7 +239,9 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     name: "Bloom quality",
     min: 0,
     max: 2,
-    step: 1
+    step: 1,
+    type: "enum",
+    options: ["off", "low", "high"]
   });
   let bloomStepsParam = createUIParameter("int", 0, {
     name: "Bloom",
@@ -356,9 +359,9 @@ export default main;
 // Store parameters
 
 // Better control for boolean parameters
+// Enum parameters (bloom quality)
 // Group parameters of different types (e.g. bloom)
 // Random seed
-// Make vector field less jittery
 
 // Add music.
 // - Sync beats with stroke noise x/y (each kick will pulse these)
