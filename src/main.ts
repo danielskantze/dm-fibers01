@@ -148,7 +148,7 @@ function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: numb
 }
 
 function configureRenderingStages(config: RenderingConfig, stages: RenderingStages) {
-  if (config.bloomSteps > 2) {
+  if (config.bloomQuality > 0) {
     stages.display.input = stages.combine;
     stages.screenshot.input = stages.combine;
   } else {
@@ -243,8 +243,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     type: "enum",
     options: ["off", "low", "high"]
   });
-  let bloomStepsParam = createUIParameter("int", 0, {
-    name: "Bloom",
+  let bloomStepsParam = createUIParameter("int", 3, {
+    name: "Bloom blur",
     min: 3,
     max: renderConfig.maxBloomSteps,
     step: 1
@@ -371,5 +371,6 @@ export default main;
 // 3D support (each particle has Z component)
 
 // Consider adding LFOs
-
+// Support brightness, contrast and color temperature post controls
+// Consider removing support for bloom 
 // Make post chain pluggable and easier to rearrange (array of steps)
