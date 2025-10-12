@@ -67,8 +67,10 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 min: 0,
                 max: 1,
                 step: 1,
+                type: "enum",
+                options: ["no", "yes"]
               },
-              value: 1.0,
+              value: 1,
               type: "int"
             }
           };

@@ -358,8 +358,6 @@ export default main;
 
 // Store parameters
 
-// Better control for boolean parameters
-// Enum parameters (bloom quality)
 // Group parameters of different types (e.g. bloom)
 // Random seed
 
