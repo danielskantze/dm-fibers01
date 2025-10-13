@@ -41,7 +41,7 @@ type Stage<T = {}> = {
     resources: Resources | TypedResources<T>;
     input: Stage | null;
     targets: Texture[]; // see currentOutput FIXNME
-    parameters: Uniform[];
+    parameters: Record<string, Uniform>;
 }
 
 export type { Stage, Resources, StageOutput, BufferedStageOutput, Buffers };

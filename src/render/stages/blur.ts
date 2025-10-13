@@ -219,7 +219,7 @@ function create(gl: WebGL2RenderingContext, input: Stage, quality: BlurQuality, 
         },
         input,
         targets: output.textures,
-        parameters: [],
+        parameters: {},
     }
     return stage;
 }

@@ -9,6 +9,7 @@ import type { Stage, StageOutput, Resources, BufferedStageOutput } from "../../t
 import fShaderSource from "../shaders/simulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 import * as mat43 from "../../math/mat43";
+import { filter } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
@@ -171,10 +172,7 @@ function create(gl: WebGL2RenderingContext, numParticles: number): Stage {
         createOutput(gl, width, height, "simulate_output_1"), 
         createOutput(gl, width, height, "simulate_output_2")] as BufferedStageOutput;
     const uniforms = shaders.simulate!.uniforms;
-    const parameters = Object.keys(uniforms)
-      .map((k) => (uniforms[k]))
-      .filter((u: Uniform) => (!!u.ui));
-    parameters.sort((a: Uniform, b: Uniform) => (a.ui!.name.localeCompare(b.ui!.name)));
+    const parameters = filter<Uniform>((_, v) => (!!v.ui), uniforms);
     return {
         name: "simulate",
         resources: {
