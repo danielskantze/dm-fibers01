@@ -4,14 +4,16 @@ import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
 import * as stage_combine from "./render/stages/combine";
 //import * as stage_display from "./render/stages/display";
-import { ParameterRegistry } from "./parameters";
+import { defaultParameters, defaultParameterPreset, defaultRenderConfig } from "./config/parameters";
+import { ParameterRegistry, type ParameterData } from "./parameters";
 import * as stage_luma from "./render/stages/luma";
 import * as stage_materialize from "./render/stages/materialize";
 import * as stage_output from "./render/stages/output";
 import * as stage_simulate from "./render/stages/simulate";
 import * as screenshot from "./render/util/screenshot";
+import type { RenderingConfig } from "./types/config";
 import { WebGLTextureError } from "./types/error";
-import { UniformComponents, type Uniform } from "./types/gl/uniforms";
+import { UniformComponents } from "./types/gl/uniforms";
 import { type Settings } from "./types/settings";
 import type { Stage, StageOutput } from "./types/stage";
 import { createButtons } from "./ui/components/buttons";
@@ -21,10 +23,7 @@ import { createVec3 } from "./ui/components/vec3";
 import { createVector } from "./ui/components/vector";
 import ControlFactory from "./ui/controls";
 import { timestamp } from "./ui/util/date";
-import { defaultParameters, defaultRenderConfig } from "./config/parameters";
-import type { RenderingConfig } from "./types/config";
 
-export type ControlFactoryUniform = Omit<Uniform, "location" | "slot">;
 
 const settings: Settings = {
   width: window.screen.width,
@@ -54,7 +53,7 @@ function configureCanvas(canvas: HTMLCanvasElement) {
   canvas.style.height = `${height}px`;
 }
 
-function createUniformControls(controlsContainer: HTMLElement, uniforms: ControlFactoryUniform[]) {
+function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[]) {
   for (const u of uniforms) {
     const { ui } = u;
     if (ui) {
@@ -198,6 +197,7 @@ function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, s
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const params = ParameterRegistry.fromConfig(defaultParameters);
+  params.load(defaultParameterPreset);
   const renderConfig = defaultRenderConfig;
 
   configureCanvas(canvas);

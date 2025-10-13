@@ -19,6 +19,8 @@ export const UniformComponents: Record<UniformType, number> = {
 
 export type ScalarUIType = "int" | "float" | "enum";
 
+export type UniformValue = number | number[] | Float32Array;
+
 export type UniformUI = {
   name: string;
   min?: number;
@@ -33,7 +35,7 @@ type Uniform = {
     ui?: UniformUI;
     slot: number;
     type?: UniformType;
-    value?: number | number[] | Float32Array;
+    value?: UniformValue;
     location: WebGLUniformLocation;
 }
 
