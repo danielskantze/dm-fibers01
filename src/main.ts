@@ -323,6 +323,7 @@ export default main;
 // Store parameters
 // Support storing and loading list of parameters from localStorage
 // Cleanup parameter access pattern in main (type, use keyeof?)
+// RenderingSettings vs RenderingConfig clarify, improve typing separation
 // Maybe: Support parameter groups in UI
 // Handle outdated parameters (wrong version)
 
