@@ -1,11 +1,20 @@
-import type { ParameterGroup, ParameterGroupDescriptor } from "../parameters";
+import type { ParameterGroup, ParameterGroupDescriptor, ParameterPreset } from "../parameters";
 import type { RenderingConfig } from "../types/config";
 import * as constants from "./constants";
 
 export const defaultParameters = {
   groups: {
     descriptors: [
-
+      {
+        id: "main",
+        order: 1,
+        displayName: "General"
+      },
+      {
+        id: "bloom",
+        order: 2,
+        displayName: "Bloom"
+      }
     ] as ParameterGroupDescriptor[],
     parameters: [
       {
@@ -42,13 +51,14 @@ export const defaultParameters = {
               name: "Quality",
               min: 0,
               max: 2,
+              step: 1,
               type: "enum",
               options: ["off", "low", "high"]
             }
           },
           "steps": {
             type: "int",
-            value: 0,
+            value: 3,
             ui: {
               name: "Blur steps",
               min: 3,
@@ -82,10 +92,26 @@ export const defaultParameters = {
   }
 }
 
+export const defaultParameterPreset: ParameterPreset = {
+  version: 1,
+  data: {
+    "main": {
+      "particles": 1000,
+      "updatesPerDraw": 4
+    },
+    "bloom": {
+      "quality": 0,
+      "steps": 6,
+      "luma": 0.25,
+      "intensity": 0.5
+    }
+  }
+}
+
 export const defaultRenderConfig: RenderingConfig = {
-    maxNumParticles: constants.maxNumParticles,
-    maxBloomSteps: constants.maxBlurSteps,
-    bloomSteps: constants.minBlurSteps,
-    bloomQuality: 2,
-    updatesPerDraw: 4
-  };
+  maxNumParticles: constants.maxNumParticles,
+  maxBloomSteps: constants.maxBlurSteps,
+  bloomSteps: constants.minBlurSteps,
+  bloomQuality: 2,
+  updatesPerDraw: 4
+};

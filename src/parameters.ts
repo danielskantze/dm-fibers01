@@ -1,9 +1,13 @@
-import type { ControlFactoryUniform } from "./main";
 import { orderedValues } from "./render/util/dict";
+import type { Uniform, UniformValue } from "./types/gl/uniforms";
+
+export type ParameterData = Omit<Uniform, "location" | "slot">;
+
+const presetFormatVersion = 1.0;
 
 export type ParameterGroup = {
     group: string;
-    parameters: Record<string, ControlFactoryUniform>;
+    parameters: Record<string, ParameterData>;
 };
 
 export type ParameterGroupDescriptor = {
@@ -19,6 +23,13 @@ export type ParameterConfig = {
   }
 };
 
+type ParameterValues = Record<string, Record<string, UniformValue>>;
+
+export type ParameterPreset = {
+  version: number,
+  data: ParameterValues
+}
+
 export class ParameterRegistry {
     private registry: Record<string, ParameterGroup>;
     private groups: Record<string, ParameterGroupDescriptor>;
@@ -33,16 +44,31 @@ export class ParameterRegistry {
       const { groups: { descriptors, parameters }} = parameterConfig;
       parameters.forEach(({group, parameters: gParams }) => {
         Object.entries(gParams).forEach(([id, v]) => (
-          instance.register(group, id, v as ControlFactoryUniform)))
+          instance.register(group, id, v as ParameterData)))
         }
       );
-      descriptors.forEach((d) => (
-        instance.setGroupInfo(d.id, d.order, d.displayName)
-      ));
+      descriptors.forEach((d) => {
+        instance.groups[d.id] = d;
+      });
       return instance;
     }
 
-    register(group: string, parameter: string, descriptor: ControlFactoryUniform) {
+    load(preset: ParameterPreset) {
+      if (Object.entries(this.groups).length === 0) {
+        throw new Error("Cannot load values without config");
+      }
+      const { version, data } = preset;
+      if (version !== presetFormatVersion) {
+        throw new Error("Wrong preset version - migration not supported yet");
+      }
+      Object.entries(data).forEach(([group, parameters]) => {
+        Object.entries(parameters).forEach(([id, data]) => {
+          this.setValue(group, id, data);
+        });
+      });
+    }
+
+    register(group: string, parameter: string, descriptor: ParameterData) {
         if (!this.groups[group]) {
             this.groups[group] = {
                 id: group,
@@ -57,6 +83,7 @@ export class ParameterRegistry {
             }
         }
         this.registry[group].parameters[parameter] = descriptor;
+        console.log(descriptor);
     }
 
     setGroupInfo(group: string, order?: number, displayName?: string) {
@@ -66,20 +93,24 @@ export class ParameterRegistry {
         }
     }
 
-    getParameter(group: string, parameter: string): ControlFactoryUniform {
+    getParameter(group: string, parameter: string): ParameterData {
         return this.registry[group].parameters[parameter];
+    }
+    
+    setValue(group: string, parameter: string, value: UniformValue) {
+        this.getParameter(group, parameter).value = value;
+    }
+
+    getValue(group: string, parameter: string): UniformValue {
+        return this.getParameter(group, parameter).value!;
     }
 
     getNumberValue(group: string, parameter: string): number {
         return this.getParameter(group, parameter).value as number;
     }
 
-    setNumberValue(group: string, parameter: string, value: number) {
-        this.getParameter(group, parameter).value = value;
-    }
-
-    list(): ControlFactoryUniform[] {
-      const result: ControlFactoryUniform[] = [];
+    list(): ParameterData[] {
+      const result: ParameterData[] = [];
       const orderedGroups = orderedValues<ParameterGroupDescriptor>((a, b) => {
         return a.order - b.order
       }, this.groups);
