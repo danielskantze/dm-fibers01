@@ -1,5 +1,9 @@
 import type { Vec3, Matrix3x3Vec, Vec4 } from "./types";
 
+export function create(a: [number, number, number] | Float32Array): Vec3 {
+  return new Float32Array(a);
+}
+
 function multiplyMatrix(v: Vec3, m: Matrix3x3Vec): Vec3 {
   return [
     v[0] * m[0][0] + v[1] * m[1][0] + v[2] * m[2][0],

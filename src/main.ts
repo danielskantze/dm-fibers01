@@ -4,8 +4,9 @@ import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
 import * as stage_combine from "./render/stages/combine";
 //import * as stage_display from "./render/stages/display";
-import { defaultParameters, defaultParameterPreset, defaultRenderConfig } from "./config/parameters";
-import { ParameterRegistry, type ParameterData } from "./parameters";
+import defaultValues from "./config/defaultValues.json";
+import { defaultParameters, defaultRenderConfig } from "./config/parameters";
+import { ParameterRegistry, type ParameterData, type ParameterPreset } from "./parameters";
 import * as stage_luma from "./render/stages/luma";
 import * as stage_materialize from "./render/stages/materialize";
 import * as stage_output from "./render/stages/output";
@@ -197,7 +198,7 @@ function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, s
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const params = ParameterRegistry.fromConfig(defaultParameters);
-  params.load(defaultParameterPreset);
+  //params.load(defaultParameterPreset);
   const renderConfig = defaultRenderConfig;
 
   configureCanvas(canvas);
@@ -225,6 +226,17 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   let frame = 0;
 
   configureRenderingStages(renderConfig, stages);
+
+  // REGISTER PARAMETERS
+
+  Object.keys(stages.simulate.parameters).forEach((k) => (
+    params.register("simulate", k, stages.simulate.parameters[k]))
+  );
+
+  Object.keys(stages.accumulate.parameters).forEach((k) => (
+    params.register("accumulate", k, stages.accumulate.parameters[k]))
+  );
+  params.load(defaultValues as ParameterPreset);
 
   function render(screenshot: boolean = false) {
     const bloomSteps = params.getNumberValue("bloom", "steps");
@@ -275,14 +287,6 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     configureCanvas(canvas);
   }
 
-  Object.keys(stages.simulate.parameters).forEach((k) => (
-    params.register("simulate", k, stages.simulate.parameters[k]))
-  );
-
-  Object.keys(stages.accumulate.parameters).forEach((k) => (
-    params.register("accumulate", k, stages.accumulate.parameters[k]))
-  );
-
   createUi(controls, params,
     () => {
       if (!isRunning) {
@@ -310,7 +314,6 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   window.addEventListener("resize", resize);
   draw();
-  console.log(params.toPreset());
 }
 
 export default main;

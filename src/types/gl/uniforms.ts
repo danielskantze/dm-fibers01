@@ -3,6 +3,22 @@ type UniformType =
   "ivec4" | "ivec3" | "ivec2" | "int" | 
   "mat4" | "mat3" | "mat43";
 
+export const UniformFloatVectorTypes: UniformType[] = [
+  "vec2", "vec3", "vec4", "mat3", "mat43", "mat4"
+];
+
+export const UniformFloatTypes: UniformType[] = [
+  "float", ...UniformFloatVectorTypes
+];
+
+export const UniformIntVectorTypes: UniformType[] = [
+  "ivec2", "ivec3", "ivec4"
+];
+
+export const UniformIntTypes: UniformType[] = [
+  "int", ...UniformIntVectorTypes
+];
+
 export const UniformComponents: Record<UniformType, number> = {
   mat4: 16,
   mat43: 12,
