@@ -1,0 +1,73 @@
+.dropdown {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  height: var(--component-collapsed-height);
+  gap: 1px;
+}
+
+.dropdown select {
+  flex: 1;
+  height: 100%;
+
+  outline: none;
+  appearance: none;
+  background-color: transparent;
+  border: none;
+  padding: 0 .5em;
+  margin: 0;
+  width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: inherit;
+  line-height: inherit;
+
+  background: var(--component-color-background);
+  color: var(--component-color-accent-1);
+  border-radius: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.033rem;
+  height: var(--component-collapsed-height);
+  border: 1px solid transparent;
+}
+
+.dropdown .select-wrapper {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  overflow: hidden; 
+  background: var(--component-color-background);
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.dropdown .select-wrapper {
+  height: 100%;
+}
+
+.dropdown .select-wrapper::after {
+  content: "▼"; /* Or use an SVG/image for a cleaner look */
+  position: absolute;
+  top: 50%; /* Center vertically */
+  right: 0.5rem; /* Position from the right edge */
+  transform: translateY(-50%) scaleX(1.25); /* Fine-tune vertical centering */
+  z-index: 1; /* Place the arrow *below* the select's clickable area */
+  
+  /* Style the arrow */
+  color: var(--component-color-accent-1); /* Change this to change arrow color */
+  font-size: 0.6rem; /* Adjust size */
+  pointer-events: none; /* Crucial: ensures clicks go through to the select element */
+}
+
+.dropdown button {
+  background: var(--component-color-background);
+  color: var(--component-color-accent-1);
+  border-radius: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.033rem;
+  width: var(--component-collapsed-height);
+  height: var(--component-collapsed-height);
+  margin: 0;
+  border: 1px solid transparent;
+  border-color: var(--component-color-accent-2);
+}

@@ -24,6 +24,7 @@ import { createVec3 } from "./ui/components/vec3";
 import { createVector } from "./ui/components/vector";
 import ControlFactory from "./ui/controls";
 import { timestamp } from "./ui/util/date";
+import { createDropdown } from "./ui/components/dropdown";
 
 
 const settings: Settings = {
@@ -104,6 +105,19 @@ function createUi(
   pauseFn: () => void,
   toggleVisibilityFn: () => void,
 ) {
+  const items = [{title: "a"}, {title: "b"}, {title: "c"}, {title: "d"}];
+  controlsContainer.appendChild(createDropdown(
+    "test",
+    items, 
+    (item: {title: string}, index: number) => {
+      console.log(item, index);
+    }, () => {
+      return { title: "hej" };
+    }, (_, index) => {
+      items.splice(index, 1);
+    }
+  )
+  );
   createUniformControls(controlsContainer, params.list());
   controlsContainer.appendChild(createButtons([
     {
@@ -313,7 +327,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   );
 
   window.addEventListener("resize", resize);
-  draw();
+  // draw();
 }
 
 export default main;
