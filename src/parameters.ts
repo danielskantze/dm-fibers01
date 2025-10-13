@@ -68,6 +68,22 @@ export class ParameterRegistry {
       });
     }
 
+    toPreset() {
+      const result: ParameterPreset = {
+        version: presetFormatVersion,
+        data: {}
+      };
+      Object.values(this.registry).forEach(({group, parameters}) => {
+        if (!result.data[group]) {
+          result.data[group] = {};
+        }
+        Object.entries(parameters).forEach(([id, data]) => {
+          result.data[group][id] = data.value!;
+        });
+      });
+      return result;
+    }
+
     register(group: string, parameter: string, descriptor: ParameterData) {
         if (!this.groups[group]) {
             this.groups[group] = {
@@ -83,7 +99,6 @@ export class ParameterRegistry {
             }
         }
         this.registry[group].parameters[parameter] = descriptor;
-        console.log(descriptor);
     }
 
     setGroupInfo(group: string, order?: number, displayName?: string) {

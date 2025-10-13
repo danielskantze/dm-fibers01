@@ -81,7 +81,6 @@ export function createScalarInner(wrapper: HTMLElement, name: string, value: num
 export function createScalar(name: string, value: number, onChange: (value: number) => void, min?: number, max?: number, step?: number, type: ScalarUIType = "float", enumValues?: string[]): HTMLElement {
     const container: HTMLDivElement = document.createElement("div");
     container.classList.add("scalar");
-    console.log("name", name, "type", type);
 
     const wrapper: HTMLDivElement = document.createElement("div");
     createScalarInner(wrapper, name, value, onChange, min, max, step, type, enumValues);

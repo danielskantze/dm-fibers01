@@ -310,6 +310,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   window.addEventListener("resize", resize);
   draw();
+  console.log(params.toPreset());
 }
 
 export default main;
