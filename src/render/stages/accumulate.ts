@@ -8,6 +8,7 @@ import type { Uniform } from "../../types/gl/uniforms";
 import type { BufferedStageOutput, Resources, Stage, StageOutput } from "../../types/stage";
 import fShaderSource from "../shaders/accumulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
+import { filter } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
@@ -101,11 +102,7 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
         createOutput(gl, width, height, "accumulate_output_2")] as BufferedStageOutput;
 
     const uniforms = shaders.accumulate!.uniforms;
-    const parameters = Object.keys(uniforms)
-      .map((k) => (uniforms[k]))
-      .filter((u: Uniform) => (!!u.ui));
-    parameters.sort((a: Uniform, b: Uniform) => (a.ui!.name.localeCompare(b.ui!.name)));
-
+    const parameters = filter<Uniform>((_, v) => (!!v.ui), uniforms);
     return {
         name: "accumulate",
         resources: {
