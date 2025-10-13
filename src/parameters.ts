@@ -1,5 +1,6 @@
+import * as uniforms from "./gl/uniforms";
 import { orderedValues } from "./render/util/dict";
-import type { Uniform, UniformValue } from "./types/gl/uniforms";
+import { type Uniform, type UniformValue } from "./types/gl/uniforms";
 
 export type ParameterData = Omit<Uniform, "location" | "slot">;
 
@@ -63,7 +64,9 @@ export class ParameterRegistry {
       }
       Object.entries(data).forEach(([group, parameters]) => {
         Object.entries(parameters).forEach(([id, data]) => {
-          this.setValue(group, id, data);
+          console.log("group", group, "id", id);
+          const desc = this.getParameter(group, id);
+          this.setValue(group, id, uniforms.createFromJson(data, desc.type));
         });
       });
     }
@@ -78,7 +81,7 @@ export class ParameterRegistry {
           result.data[group] = {};
         }
         Object.entries(parameters).forEach(([id, data]) => {
-          result.data[group][id] = data.value!;
+          result.data[group][id] = uniforms.valueToJson(data.value, data.type);
         });
       });
       return result;
