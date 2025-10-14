@@ -113,8 +113,8 @@ function createUi(
     items: presets,
     optionId: (o) => (o.id),
     optionTitle: (o) => (o.name),
-    onSelect: (item, index: number) => {
-      console.log(item, index);
+    onSelect: (item) => {
+      params.load(item);
     },
     onAdd: () => {
       const newItem = params.toPreset(generateId(), (new Date()).toLocaleString());
@@ -338,7 +338,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   );
 
   window.addEventListener("resize", resize);
-  // draw();
+  draw();
 }
 
 export default main;
