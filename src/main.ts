@@ -26,6 +26,7 @@ import ControlFactory from "./ui/controls";
 import { timestamp } from "./ui/util/date";
 import { createDropdown } from "./ui/components/dropdown";
 import { generateId } from "./ui/util/id";
+import { createStore, type LocalStorageSettings, type Store } from "./storage";
 
 
 const settings: Settings = {
@@ -102,15 +103,15 @@ function textureSizeFromNumParticles(numParticles: number, maxNumParticles: numb
 function createUi(
   controlsContainer: HTMLElement,
   params: ParameterRegistry,
+  presets: Store<ParameterPreset>,
   resetFn: () => void,
   pauseFn: () => void,
   toggleVisibilityFn: () => void,
 ) {
-  const presets = [(defaultValues as ParameterPreset)];
   controlsContainer.appendChild(
     createDropdown<ParameterPreset>({
     id: "",
-    items: presets,
+    items: presets.load("presets"),
     optionId: (o) => (o.id),
     optionTitle: (o) => (o.name),
     onSelect: (item) => {
@@ -118,16 +119,17 @@ function createUi(
     },
     onAdd: () => {
       const newItem = params.toPreset(generateId(), (new Date()).toLocaleString());
-      presets.push(newItem);
       return newItem;
     },
-    onRemove: (index: number) => {
-      if (presets.length < 2) {
+    onRemove: () => {
+      if (presets.load("presets").length < 2) {
         return false;
       }
-      presets.splice(index, 1);
       return true;
     },
+    onUpdate: (items) => {
+      presets.save("presets", items);
+    }
   }));
   createUniformControls(controlsContainer, params.list());
   controlsContainer.appendChild(createButtons([
@@ -223,7 +225,7 @@ function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, s
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const params = ParameterRegistry.fromConfig(defaultParameters);
-  //params.load(defaultParameterPreset);
+  const presets = createStore<ParameterPreset>({type: "localStorage", prefix: "fibers01"} as LocalStorageSettings);
   const renderConfig = defaultRenderConfig;
 
   configureCanvas(canvas);
@@ -262,6 +264,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     params.register("accumulate", k, stages.accumulate.parameters[k]))
   );
   params.load(defaultValues as ParameterPreset);
+  
 
   function render(screenshot: boolean = false) {
     const bloomSteps = params.getNumberValue("bloom", "steps");
@@ -312,7 +315,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     configureCanvas(canvas);
   }
 
-  createUi(controls, params,
+  createUi(controls, params, presets,
     () => {
       if (!isRunning) {
         startTime = performance.now();
