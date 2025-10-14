@@ -1,68 +1,101 @@
 import './dropdown.css';
 
-export type DropdownItem = {
-  title: string
-};
-
-export function createDropdown<T extends DropdownItem>(
-  id: string, 
-  dropdownItems: T[], 
+type DropDownArguments<T> = {
+  id: string,
+  items: T[],
+  optionId: (item: T) => string,
+  optionTitle: (item: T) => string,
   onSelect: (item: T, index: number) => void,
   onAdd?: () => T,
-  onRemove?: (item: T, index: number) => void,
-): HTMLDivElement {
-    const items = [...dropdownItems];
-    const container = document.createElement("div");
-    container.classList.add("dropdown");
-    const addButton = document.createElement("button");
-    const removeButton = document.createElement("button"); 
-    const selectWrapper = document.createElement("div");
-    const select = document.createElement("select");
-    select.id = `id-${id}`;
-    selectWrapper.classList.add("select-wrapper");
+  onRemove?: (index: number, item: T) => boolean,
+  onUpdate?: (items: T[]) => void
+}
 
-    function createOption(t: T) {
-      const option = document.createElement("option");
-      option.text = t.title;
-      option.id = t.title;
-      return option;
+export function createDropdown<T>(
+  args: DropDownArguments<T>
+): HTMLDivElement {
+  const { id, optionId, optionTitle, onSelect, onAdd, onRemove, onUpdate } = args;
+  const items = [...args.items];
+  console.log(items);
+  const container = document.createElement("div");
+  container.classList.add("dropdown");
+  const addButton = document.createElement("button");
+  const removeButton = document.createElement("button");
+  const selectWrapper = document.createElement("div");
+  const select = document.createElement("select");
+  select.id = `id-${id}`;
+  selectWrapper.classList.add("select-wrapper");
+
+  function createOption(t: T) {
+    const option = document.createElement("option");
+    option.text = optionTitle(t);
+    option.value = optionId(t);
+    return option;
+  }
+
+  // Select handler
+
+  select.addEventListener("change", (e: Event) => {
+    const elmt = (e.target as HTMLSelectElement);
+    console.log(elmt.value, select.value);
+    const index = items.findIndex((i) => (optionId(i) === select.value));
+    if (index >= 0) {
+      onSelect(items[index], index);
     }
-    if (onAdd) {
-      addButton.textContent = "＋";
-      addButton.addEventListener('click', () => {
-        const newItem = onAdd();
-        select.appendChild(createOption(newItem));
-        items.push(newItem);
-        select.value = newItem.title;
-      });
-      container.appendChild(addButton);
-    }
-    if (onRemove) {
-      removeButton.textContent = "－";
-      removeButton.addEventListener('click', () => {
-        const index = items.findIndex((i) => (i.title === select.value));
-        if (index < 0) {
-          return;
+  });
+
+  // Add handler
+
+  if (onAdd) {
+    addButton.textContent = "＋";
+    addButton.addEventListener('click', () => {
+      const newItem = onAdd();
+      select.appendChild(createOption(newItem));
+      items.push(newItem);
+      select.value = optionId(newItem);
+      if (onUpdate) {
+        onUpdate(items);
+      }
+    });
+    container.appendChild(addButton);
+  }
+
+  // Remove handler
+
+  if (onRemove) {
+    removeButton.textContent = "－";
+    removeButton.addEventListener('click', () => {
+      const index = items.findIndex((o) => (optionId(o) === select.value));
+      if (index < 0) {
+        return;
+      }
+      if (!onRemove(index, items[index])) {
+        return;
+      }
+      let opt: HTMLOptionElement | null = null;
+      select.childNodes.forEach((o: ChildNode) => {
+        if ((o as HTMLOptionElement).value === select.value) {
+          opt = o as HTMLOptionElement;
         }
-        onRemove(items[index], index);
-        let opt: HTMLOptionElement | null = null;
-        select.childNodes.forEach((o: ChildNode) => {
-          if ((o as HTMLOptionElement).id === select.value) {
-            opt = o as HTMLOptionElement;
-          }
-        });
-        if (opt) {
-          select.removeChild(opt);
-        }
-        items.splice(index, 1);
-        select.value = items[Math.max(0, index - 1)].title;
       });
-      container.appendChild(removeButton);
-    }
-    for (const item of items) {
-      select.appendChild(createOption(item));
-    }
-    container.appendChild(selectWrapper);
-    selectWrapper.appendChild(select);
-    return container;
+      if (opt) {
+        select.removeChild(opt);
+      }
+      items.splice(index, 1);
+      select.value = optionId(items[Math.max(0, index - 1)]);
+      if (onUpdate) {
+        onUpdate(items);
+      }
+    });
+    container.appendChild(removeButton);
+  }
+
+  // Add options
+
+  for (const item of items) {
+    select.appendChild(createOption(item));
+  }
+  container.appendChild(selectWrapper);
+  selectWrapper.appendChild(select);
+  return container;
 }

@@ -25,6 +25,7 @@ import { createVector } from "./ui/components/vector";
 import ControlFactory from "./ui/controls";
 import { timestamp } from "./ui/util/date";
 import { createDropdown } from "./ui/components/dropdown";
+import { generateId } from "./ui/util/id";
 
 
 const settings: Settings = {
@@ -105,19 +106,29 @@ function createUi(
   pauseFn: () => void,
   toggleVisibilityFn: () => void,
 ) {
-  const items = [{title: "a"}, {title: "b"}, {title: "c"}, {title: "d"}];
-  controlsContainer.appendChild(createDropdown(
-    "test",
-    items, 
-    (item: {title: string}, index: number) => {
+  const presets = [(defaultValues as ParameterPreset)];
+  controlsContainer.appendChild(
+    createDropdown<ParameterPreset>({
+    id: "",
+    items: presets,
+    optionId: (o) => (o.id),
+    optionTitle: (o) => (o.name),
+    onSelect: (item, index: number) => {
       console.log(item, index);
-    }, () => {
-      return { title: "hej" };
-    }, (_, index) => {
-      items.splice(index, 1);
-    }
-  )
-  );
+    },
+    onAdd: () => {
+      const newItem = params.toPreset(generateId(), (new Date()).toLocaleString());
+      presets.push(newItem);
+      return newItem;
+    },
+    onRemove: (index: number) => {
+      if (presets.length < 2) {
+        return false;
+      }
+      presets.splice(index, 1);
+      return true;
+    },
+  }));
   createUniformControls(controlsContainer, params.list());
   controlsContainer.appendChild(createButtons([
     {

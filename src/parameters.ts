@@ -27,6 +27,9 @@ export type ParameterConfig = {
 type ParameterValues = Record<string, Record<string, UniformValue>>;
 
 export type ParameterPreset = {
+  id: string,
+  name: string,
+  createdAt: string,
   version: number,
   data: ParameterValues
 }
@@ -64,15 +67,17 @@ export class ParameterRegistry {
       }
       Object.entries(data).forEach(([group, parameters]) => {
         Object.entries(parameters).forEach(([id, data]) => {
-          console.log("group", group, "id", id);
           const desc = this.getParameter(group, id);
           this.setValue(group, id, uniforms.createFromJson(data, desc.type));
         });
       });
     }
 
-    toPreset() {
+    toPreset(id: string, name: string) {
       const result: ParameterPreset = {
+        id,
+        name,
+        createdAt: (new Date()).toJSON(),
         version: presetFormatVersion,
         data: {}
       };
