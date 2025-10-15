@@ -1,5 +1,5 @@
 // import * as stage_test from "./render/stages/test";
-import type { Matrix4x3, Vec3 } from "./math/types";
+import type { Matrix4x3 } from "./math/types";
 import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
 import * as stage_combine from "./render/stages/combine";
@@ -20,7 +20,6 @@ import type { Stage, StageOutput } from "./types/stage";
 import { createButtons } from "./ui/components/buttons";
 import { createCosPalette } from "./ui/components/cos-palette";
 import { createScalar } from "./ui/components/scalar";
-import { createVec3 } from "./ui/components/vec3";
 import { createVector } from "./ui/components/vector";
 import ControlFactory from "./ui/controls";
 import { timestamp } from "./ui/util/date";
@@ -341,6 +340,14 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 export default main;
 
 // TODO:
+
+// Check if enum parans and value fields works correctly with updates for scalars
+// -------
+// New PR:
+// Isolate UI into separate file
+// Consider doing more to keep footprint of main.ts small
+// Migrate all vectors and math classes to use Float32Arrays instead of number[]
+// Improve UI code quality (use interfaces, improve method to put the UI together)
 
 // Store parameters
 // Support storing and loading list of parameters from localStorage
