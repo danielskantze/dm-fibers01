@@ -341,9 +341,6 @@ export default main;
 
 // TODO:
 
-// Check if enum parans and value fields works correctly with updates for scalars
-// -------
-// New PR:
 // Isolate UI into separate file
 // Consider doing more to keep footprint of main.ts small
 // Migrate all vectors and math classes to use Float32Arrays instead of number[]

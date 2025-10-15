@@ -90,7 +90,8 @@ export function createScalarInner(
     return {
       element: wrapper,
       update: (value: UniformValue) => {
-        input.value = getValue(value as number, valueConfig)
+        input.value = value.toString();
+        text.value = getValue(value as number, valueConfig);
       }
     }
 }
