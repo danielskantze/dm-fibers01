@@ -57,35 +57,29 @@ function configureCanvas(canvas: HTMLCanvasElement) {
   canvas.style.height = `${height}px`;
 }
 
-function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[]) {
+function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry) {
   for (const u of uniforms) {
     const { ui } = u;
     if (ui) {
       const { name, min, max, step, component } = u.ui!;
       const numComponents = UniformComponents[u.type!]!;
       if (component === "cos-palette") {
-        controlsContainer.appendChild(
-          createCosPalette(u.value as Matrix4x3)
-        )
+        const { element, update } = createCosPalette(u.value as Matrix4x3, (v: Matrix4x3) => {
+          u.value = v;
+        });
+        controlsContainer.appendChild(element);
+        registry.subscribeParam(u, update);
       } else if (numComponents > 1) {
         const values = u.value as number[];
-        if (numComponents === 3) {
-          controlsContainer.appendChild(
-            createVec3(name, values as Vec3,
-              (v: Vec3) => {
-                values[0] = v[0];
-                values[1] = v[1];
-                values[2] = v[2];
-              }
-            )
-          );
-        } else {
-          controlsContainer.appendChild(createVector(name, values, (i: number, v: number) => { values[i] = v; }, min, max, step));
-        }
+        const { element, update } = createVector(name, values, (i: number, v: number) => { values[i] = v; }, min, max, step);
+        controlsContainer.appendChild(element);
+        registry.subscribeParam(u, update);
       } else {
         const value = u.value as number;
         const scalarType = u.ui?.type ?? (u.type == "int" ? "int" : "float");
-        controlsContainer.appendChild(createScalar(name, value, (v: number) => { u.value = v; }, min, max, step, scalarType, ui.options));
+        const { element, update } = createScalar(name, value, (v: number) => { u.value = v; }, min, max, step, scalarType, ui.options);
+        controlsContainer.appendChild(element);
+        registry.subscribeParam(u, update);
       }
     }
   }
@@ -131,7 +125,7 @@ function createUi(
       presets.save("presets", items);
     }
   }));
-  createUniformControls(controlsContainer, params.list());
+  createUniformControls(controlsContainer, params.list().map(([,,u]) => (u)), params);
   controlsContainer.appendChild(createButtons([
     {
       title: "Screenshot", 

@@ -34,13 +34,21 @@ export type ParameterPreset = {
   data: ParameterValues
 }
 
+type Subscriber = {
+  group: string,
+  parameter: string,
+  update: (value: UniformValue) => void
+};
+
 export class ParameterRegistry {
     private registry: Record<string, ParameterGroup>;
     private groups: Record<string, ParameterGroupDescriptor>;
-    
+    private subscribers: Subscriber[];
+
     constructor() {
         this.registry = {};
         this.groups = {};
+        this.subscribers = [];
     }
 
     static fromConfig(parameterConfig: ParameterConfig) {
@@ -55,6 +63,37 @@ export class ParameterRegistry {
         instance.groups[d.id] = d;
       });
       return instance;
+    }
+
+    subscribe(group: string, parameter: string, update: (value: UniformValue) => void) {
+      const subscriber: Subscriber = { group, parameter, update };
+      this.subscribers.push(subscriber);
+
+      return () => {
+        const idx = this.subscribers.indexOf(subscriber);
+        this.subscribers.splice(idx, 1);
+      };
+    }
+
+    lookup(param: ParameterData): [string, string] | undefined {
+      const p = this.list().find(([g, p, data]) => (param === data));
+      return p ? [p[0], p[1]] : undefined;
+    }
+
+    subscribeParam(param: ParameterData, update: (value: UniformValue) => void) {
+      const result = this.lookup(param);
+      if (!result) {
+        throw new Error("ParameterData is not found in registry");
+      }
+      const [ group, parameter ] = result;
+      return this.subscribe(group, parameter, update);
+    }
+
+    private notify(group: string, parameter: string, value: UniformValue) {
+      const subscriber = this.subscribers.find(
+        (s) => (s.group === group && s.parameter === parameter)
+      );
+      subscriber?.update(value);
     }
 
     load(preset: ParameterPreset) {
@@ -122,6 +161,7 @@ export class ParameterRegistry {
     
     setValue(group: string, parameter: string, value: UniformValue) {
         this.getParameter(group, parameter).value = value;
+        this.notify(group, parameter, value);
     }
 
     getValue(group: string, parameter: string): UniformValue {
@@ -132,15 +172,15 @@ export class ParameterRegistry {
         return this.getParameter(group, parameter).value as number;
     }
 
-    list(): ParameterData[] {
-      const result: ParameterData[] = [];
+    list(): [string, string, ParameterData][] {
+      const result: [string, string, ParameterData][] = [];
       const orderedGroups = orderedValues<ParameterGroupDescriptor>((a, b) => {
         return a.order - b.order
       }, this.groups);
       orderedGroups.forEach((g) => {
         const keys = Object.keys(this.registry[g.id].parameters);
         keys.forEach((k) => {
-          result.push(this.registry[g.id].parameters[k]);
+          result.push([g.id, k, this.registry[g.id].parameters[k]]);
         })
       });
       return result;

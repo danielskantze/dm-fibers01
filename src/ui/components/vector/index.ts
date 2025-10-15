@@ -1,4 +1,6 @@
+import type { UniformValue } from "../../../types/gl/uniforms";
 import { createScalar } from "../scalar";
+import type { UIComponent } from "../types";
 import './vector.css';
 import template from './vector.html?raw';
 
@@ -11,7 +13,7 @@ function vecCompName(i: number) {
   return VECTOR_COMPONENTS[i];
 }
 
-export function createVector(name: string, values: number[], onChange: (i: number, value: number) => void, min?: number, max?: number, step?: number): HTMLElement {
+export function createVector(name: string, values: number[], onChange: (i: number, value: number) => void, min?: number, max?: number, step?: number): UIComponent {
   const wrapper: HTMLDivElement = document.createElement("div");
   wrapper.innerHTML = template;
   const control = wrapper.firstElementChild as HTMLDivElement;
@@ -31,8 +33,10 @@ export function createVector(name: string, values: number[], onChange: (i: numbe
     }
   };
 
+  const updateFunctions: ((value: UniformValue) => void)[] = [];
+
   for (let i = 0; i < values.length; i++) {
-    const scalar = createScalar(
+    const { element, update } = createScalar(
       vecCompName(i),
       values[i],
       (v: number) => { onChange(i, v); },
@@ -40,7 +44,15 @@ export function createVector(name: string, values: number[], onChange: (i: numbe
       max,
       step
     );
-    components?.appendChild(scalar);
+    components?.appendChild(element);
+    updateFunctions.push(update);
   }
-  return wrapper;
+  return {
+    element: wrapper,
+    update: (values: UniformValue) => (
+      updateFunctions.forEach(
+        (fn, i) => (fn((values as number[])[i]))
+      )
+    )
+  }
 }

@@ -65,7 +65,7 @@ export function createDropdown<T>(
   if (onRemove) {
     removeButton.textContent = "－";
     removeButton.addEventListener('click', () => {
-      const index = items.findIndex((o) => (optionId(o) === select.value));
+      let index = items.findIndex((o) => (optionId(o) === select.value));
       if (index < 0) {
         return;
       }
@@ -82,10 +82,12 @@ export function createDropdown<T>(
         select.removeChild(opt);
       }
       items.splice(index, 1);
-      select.value = optionId(items[Math.max(0, index - 1)]);
+      const newIndex = Math.max(0, index - 1);
+      select.value = optionId(items[newIndex]);
       if (onUpdate) {
         onUpdate(items);
       }
+      onSelect(items[newIndex], newIndex);
     });
     container.appendChild(removeButton);
   }

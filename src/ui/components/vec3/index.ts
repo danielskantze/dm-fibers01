@@ -2,7 +2,9 @@ import * as mat4 from "../../../math/mat4";
 import type { Matrix4x4, Vec3 } from "../../../math/types";
 import * as vec3 from "../../../math/vec3";
 import * as vec4 from "../../../math/vec4";
+import type { UniformValue } from "../../../types/gl/uniforms";
 import { createVec3GimbalView } from "../../3d/vec3-gimbal";
+import type { UIComponent } from "../types";
 import './vec3.css';
 import template from './vec3.html?raw';
 class Vec3State {
@@ -144,7 +146,7 @@ function getCssVar(element: HTMLElement, property: string): string {
   return value;
 }
 
-export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void, params: Partial<Vec3Params> = defaultVec3Params): HTMLElement {
+export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) => void, params: Partial<Vec3Params> = defaultVec3Params): UIComponent {
   const {minVal, maxVal, inputPrecision, expandable } = {...defaultVec3Params, ...params};
   const mapper = new DomainMapping(minVal, maxVal, [-1, -1, -1], [1, 1, 1]);
     const state = new Vec3State(mapper.fromAToB(value, true));
@@ -161,8 +163,8 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     const panels = control.querySelector('.panels') as HTMLDivElement;
     const canvasContainer = control.querySelector('.gimbal') as HTMLDivElement;
 
-    const componentRangeInputs = control.querySelectorAll('.list-control input[type="range"]');
-    const componentNumberInputs = control.querySelectorAll('.list-control input[type="number"]');
+    const componentRangeInputs = control.querySelectorAll('.list-control input[type="range"]') as NodeListOf<HTMLInputElement>;
+    const componentNumberInputs = control.querySelectorAll('.list-control input[type="number"]') as NodeListOf<HTMLInputElement>;
 
     function getVec3InternalSize(): [number, number] {
       const uiWidth = parseInt(getCssVar(document.body, '--ui-width'));
@@ -245,8 +247,19 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       componentRangeInputs.forEach((node: Node, c: number) => {
         const inputElmt = node as HTMLInputElement;
         inputElmt.value = vector[c].toPrecision(inputPrecision);
-        (componentNumberInputs[c] as HTMLInputElement).value = aVector[c].toPrecision(5);
+        componentNumberInputs[c].value = aVector[c].toPrecision(5);
       });
+    }
+
+    function setComponentValues(v: Vec3) {
+      const b = mapper.fromAToB(v, true);
+      componentRangeInputs[0]!.value = b[0].toPrecision(inputPrecision);
+      componentNumberInputs[0]!.value = v[0].toPrecision(inputPrecision);
+      componentRangeInputs[1]!.value = b[1].toPrecision(inputPrecision);
+      componentNumberInputs[1]!.value = v[1].toPrecision(inputPrecision);
+      componentRangeInputs[2]!.value = b[2].toPrecision(inputPrecision);
+      componentNumberInputs[2]!.value = v[2].toPrecision(inputPrecision);
+      state.value = b;
     }
 
     function onChangeComponent(e: Event) {
@@ -259,8 +272,8 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
       }
       v[c] = newValue;
       const aV = mapper.fromBToA(v, true);
-      (componentRangeInputs[c]! as HTMLInputElement).value = v[c].toPrecision(inputPrecision);
-      (componentNumberInputs[c]! as HTMLInputElement).value = aV[c].toPrecision(inputPrecision);
+      componentRangeInputs[c]!.value = v[c].toPrecision(inputPrecision);
+      componentNumberInputs[c]!.value = aV[c].toPrecision(inputPrecision);
       state.value = v;
       onChange(mapper.fromBToA(state.value));
     }
@@ -280,5 +293,12 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
     updateGimbal(state.matrix, state.matrixI, state.length);
     initializeControls();
 
-    return control;
+    return {
+      element: control,
+      update: (value: UniformValue) => {
+        setComponentValues(value as Vec3);
+        updateGimbal(state.matrix, state.matrixI, state.length);
+        initializeControls();
+      }
+    }
 }

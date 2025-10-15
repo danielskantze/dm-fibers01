@@ -1,4 +1,5 @@
-import type { ScalarUIType } from '../../../types/gl/uniforms';
+import type { ScalarUIType, UniformValue } from '../../../types/gl/uniforms';
+import type { UIComponent } from '../types';
 import './scalar.css';
 
 let idSeq = 1;
@@ -28,7 +29,16 @@ function getValue(value: number, config: ValueConfig): string {
   }
 }
 
-export function createScalarInner(wrapper: HTMLElement, name: string, value: number, onChange: (value: number) => void, min?: number, max?: number, step?: number, type: ScalarUIType = "float", enumValues?: string[]) {
+export function createScalarInner(
+  wrapper: HTMLElement, 
+  name: string, 
+  value: number, 
+  onChange: (value: number) => void, 
+  min?: number, 
+  max?: number, 
+  step?: number, 
+  type: ScalarUIType = "float", 
+  enumValues?: string[]): UIComponent {
     const label: HTMLLabelElement = document.createElement("label");
     const input: HTMLInputElement = document.createElement("input");
     const text: HTMLInputElement = document.createElement("input");
@@ -76,15 +86,34 @@ export function createScalarInner(wrapper: HTMLElement, name: string, value: num
     wrapper.appendChild(text);
     text.classList.add("digits");
     wrapper.classList.add("parameter");
+
+    return {
+      element: wrapper,
+      update: (value: UniformValue) => {
+        input.value = getValue(value as number, valueConfig)
+      }
+    }
 }
 
-export function createScalar(name: string, value: number, onChange: (value: number) => void, min?: number, max?: number, step?: number, type: ScalarUIType = "float", enumValues?: string[]): HTMLElement {
+export function createScalar(
+  name: string, 
+  value: number, 
+  onChange: (value: number) => void, 
+  min?: number, 
+  max?: number, 
+  step?: number, 
+  type: ScalarUIType = "float", 
+  enumValues?: string[]
+): UIComponent {
     const container: HTMLDivElement = document.createElement("div");
     container.classList.add("scalar");
 
     const wrapper: HTMLDivElement = document.createElement("div");
-    createScalarInner(wrapper, name, value, onChange, min, max, step, type, enumValues);
+    const { update } = createScalarInner(wrapper, name, value, onChange, min, max, step, type, enumValues);
     container.appendChild(wrapper);
 
-    return container;
+    return {
+      element: container,
+      update
+    }
 }
