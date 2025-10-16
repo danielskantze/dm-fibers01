@@ -8,20 +8,29 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
 }
 .scalar .parameter > label {
   display: block;
   white-space: nowrap;
   margin-top: 2px;
+  width: 4.5rem;
+}
+.scalar.auto-label .parameter > label {
+  width: auto;
 }
 .scalar .parameter > input {
   display: block;
-  width: 100%;
   height: var(--component-range-height);
 }
+
+.scalar .parameter > input[type="range"] {
+  flex: 1;
+}
+
 .scalar .parameter .digits {
   margin-left: 8px;
-  width: 2.75rem;
+  width: 3.0rem;
   text-align: right;
   color: var(--component-color-accent-1);
   background-color: var(--component-color-background);

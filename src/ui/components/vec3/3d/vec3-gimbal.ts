@@ -1,8 +1,8 @@
-import { createQuad } from "../../gl/buffers";
-import { assembleProgram } from "../../gl/shaders";
-import * as mat4 from "../../math/mat4";
-import type { Matrix4x4 } from "../../math/types";
-import type { Uniform } from "../../types/gl/uniforms";
+import { createQuad } from "../../../../gl/buffers";
+import { assembleProgram } from "../../../../gl/shaders";
+import * as mat4 from "../../../../math/mat4";
+import type { Matrix4x4 } from "../../../../math/types";
+import type { Uniform } from "../../../../types/gl/uniforms";
 import vShaderSource from "./shaders/quad.vs.glsl?raw";
 import fShaderSource from "./shaders/vec3-gimbal.fs.glsl?raw";
 
