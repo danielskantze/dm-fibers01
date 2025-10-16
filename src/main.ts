@@ -59,7 +59,7 @@ function textureSizeFromNumParticles(numParticles: number, maxNumParticles: numb
   return [w, w];
 }
 
-function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: number, maxBloomSteps: number, renderWidth: number, renderHeight: number): RenderingStages {
+function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: number, maxBloomSteps: number, renderWidth: number, renderHeight: number, params: ParameterRegistry): RenderingStages {
   const simulate = stage_simulate.create(gl, maxNumParticles);
   const materialize = stage_materialize.create(gl, simulate, renderWidth, renderHeight, maxNumParticles, settings.msaa);
   const accumulate = stage_accumulate.create(gl, materialize);
@@ -68,6 +68,15 @@ function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: numb
   const combine = stage_combine.create(gl, accumulate);
   const display = stage_output.create(gl, combine, false);
   const screenshot = stage_output.create(gl, combine, true);
+  
+  Object.keys(simulate.parameters).forEach((k) => (
+    params.register(simulate.name, k, simulate.parameters[k]))
+  );
+
+  Object.keys(accumulate.parameters).forEach((k) => (
+    params.register(accumulate.name, k, accumulate.parameters[k]))
+  );
+
   return {
     simulate, materialize, accumulate, luma, blur, combine, display, screenshot
   }
@@ -154,21 +163,12 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const renderWidth = settings.width * dpr;
   const renderHeight = settings.height * dpr;
 
-  const stages = createRenderingStages(gl, renderConfig.maxNumParticles, renderConfig.maxBloomSteps, renderWidth, renderHeight);
+  const stages = createRenderingStages(gl, renderConfig.maxNumParticles, renderConfig.maxBloomSteps, renderWidth, renderHeight, params);
 
   let frame = 0;
 
   configureRenderingStages(renderConfig, stages);
 
-  // REGISTER PARAMETERS
-
-  Object.keys(stages.simulate.parameters).forEach((k) => (
-    params.register("simulate", k, stages.simulate.parameters[k]))
-  );
-
-  Object.keys(stages.accumulate.parameters).forEach((k) => (
-    params.register("accumulate", k, stages.accumulate.parameters[k]))
-  );
   params.load(defaultValues as ParameterPreset);
   
 
@@ -264,10 +264,11 @@ export default main;
 
 // TODO:
 
-// Isolate UI into separate file
-// Consider doing more to keep footprint of main.ts small
+// Refactoring cont'd (is this needed?):
+// - Consider doing more to keep footprint of main.ts small
+// - Improve UI code quality (use interfaces, improve method to put the UI together)
+
 // Migrate all vectors and math classes to use Float32Arrays instead of number[]
-// Improve UI code quality (use interfaces, improve method to put the UI together)
 
 // Store parameters
 // Support storing and loading list of parameters from localStorage
