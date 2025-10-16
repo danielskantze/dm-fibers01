@@ -1,42 +1,24 @@
 // import * as stage_test from "./render/stages/test";
-import * as stage_accumulate from "./render/stages/accumulate";
-import * as stage_blur from "./render/stages/blur";
-import * as stage_combine from "./render/stages/combine";
 //import * as stage_display from "./render/stages/display";
 import defaultValues from "./config/defaultValues.json";
 import { defaultParameters, defaultRenderConfig } from "./config/parameters";
-import * as stage_luma from "./render/stages/luma";
-import * as stage_materialize from "./render/stages/materialize";
-import * as stage_output from "./render/stages/output";
-import * as stage_simulate from "./render/stages/simulate";
 import * as screenshot from "./render/util/screenshot";
 import { ParameterRegistry, type ParameterPreset } from "./service/parameters";
 import { presetStore } from "./service/stores";
-import type { RenderingConfig } from "./types/config";
 import { WebGLTextureError } from "./types/error";
 import { type Settings } from "./types/settings";
-import type { Stage, StageOutput } from "./types/stage";
+import type { StageOutput } from "./types/stage";
 import ControlFactory from "./ui/components/controls";
 import { createUi } from "./ui/views/parameter-panel";
 import { timestamp } from "./ui/util/date";
-
+import { createRenderingStages, configureRenderingStages, updateSimulationStages, drawOutputStages } from "./render/webgl-renderer";
+import type { CreateRenderingStagesProps, RenderingState } from "./render/webgl-renderer";
 
 const settings: Settings = {
   width: window.screen.width,
   height: window.screen.height,
   msaa: undefined
 }
-
-type RenderingStages = {
-  simulate: Stage,
-  materialize: Stage,
-  accumulate: Stage,
-  luma: Stage,
-  blur: Stage,
-  combine: Stage,
-  display: Stage,
-  screenshot: Stage
-};
 
 
 function configureCanvas(canvas: HTMLCanvasElement) {
@@ -50,73 +32,6 @@ function configureCanvas(canvas: HTMLCanvasElement) {
 }
 
 
-function textureSizeFromNumParticles(numParticles: number, maxNumParticles: number): [number, number] {
-  let pts = numParticles;
-  if (pts > maxNumParticles) {
-    pts = maxNumParticles;
-  }
-  const w = Math.floor(Math.sqrt(pts));
-  return [w, w];
-}
-
-function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: number, maxBloomSteps: number, renderWidth: number, renderHeight: number, params: ParameterRegistry): RenderingStages {
-  const simulate = stage_simulate.create(gl, maxNumParticles);
-  const materialize = stage_materialize.create(gl, simulate, renderWidth, renderHeight, maxNumParticles, settings.msaa);
-  const accumulate = stage_accumulate.create(gl, materialize);
-  const luma = stage_luma.create(gl, accumulate);
-  const blur = stage_blur.create(gl, luma, "low", maxBloomSteps);
-  const combine = stage_combine.create(gl, accumulate);
-  const display = stage_output.create(gl, combine, false);
-  const screenshot = stage_output.create(gl, combine, true);
-  
-  Object.keys(simulate.parameters).forEach((k) => (
-    params.register(simulate.name, k, simulate.parameters[k]))
-  );
-
-  Object.keys(accumulate.parameters).forEach((k) => (
-    params.register(accumulate.name, k, accumulate.parameters[k]))
-  );
-
-  return {
-    simulate, materialize, accumulate, luma, blur, combine, display, screenshot
-  }
-}
-
-function configureRenderingStages(config: RenderingConfig, stages: RenderingStages) {
-  if (config.bloomQuality > 0) {
-    stages.display.input = stages.combine;
-    stages.screenshot.input = stages.combine;
-  } else {
-    stages.display.input = stages.accumulate;
-    stages.screenshot.input = stages.accumulate;
-  }
-}
-
-type BloomStageParams = {
-  lumaThreshold: number,
-  bloomIntensity: number,
-}
-
-type RenderingState = {
-  time: number,
-  frame: number,
-  width: number,
-  height: number,
-  numParticles: number,
-  stages: {
-    bloom: BloomStageParams
-  }
-}
-
-function updateSimulationStages(gl: WebGL2RenderingContext, config: RenderingConfig, stages: RenderingStages, state: RenderingState) {
-  const { maxNumParticles } = config;
-  const { time, frame, numParticles } = state;
-  const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
-  stage_simulate.draw(gl, stages.simulate, time, frame, drawSize);
-  stage_materialize.draw(gl, stages.materialize, time, frame, numParticles);
-  stage_accumulate.draw(gl, stages.accumulate, time, frame);
-}
-
 function downloadScreenshot(dataURL: string) {
   const aElmt = document.createElement("a");
   aElmt.download = `fibers-${timestamp()}`;
@@ -124,20 +39,6 @@ function downloadScreenshot(dataURL: string) {
   aElmt.click();
 }
 
-function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, stages: RenderingStages, state: RenderingState, screenshot: boolean = false) {
-  const { width, height, stages: { bloom } } = state;
-  const blurQuality = stage_blur.lookupBlurQuality(config.bloomQuality);
-  if (blurQuality !== "off") {
-    stage_luma.draw(gl, stages.luma, bloom.lumaThreshold);
-    stage_blur.draw(gl, stages.blur, undefined, config.bloomSteps, blurQuality);
-    stage_combine.draw(gl, stages.combine, stages.blur, 1.0, bloom.bloomIntensity);
-  }
-  if (screenshot) {
-    stage_output.draw(gl, stages.screenshot);
-  } else {
-    stage_output.draw(gl, stages.display, width, height);
-  }
-}
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const params = ParameterRegistry.fromConfig(defaultParameters);
@@ -162,8 +63,18 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const dpr = window.devicePixelRatio;
   const renderWidth = settings.width * dpr;
   const renderHeight = settings.height * dpr;
+  
+  const renderingStagesProps: CreateRenderingStagesProps = {
+    gl,
+    maxNumParticles: renderConfig.maxNumParticles,
+    maxBloomSteps: renderConfig.maxBloomSteps,
+    renderWidth,
+    renderHeight,
+    params,
+    settings,
+  }
 
-  const stages = createRenderingStages(gl, renderConfig.maxNumParticles, renderConfig.maxBloomSteps, renderWidth, renderHeight, params);
+  const stages = createRenderingStages(renderingStagesProps);
 
   let frame = 0;
 
