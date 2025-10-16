@@ -188,16 +188,16 @@ export class WebGLRenderer {
     this._renderHeight = settings.height * settings.dpr;
     this._settings = settings;
     this._renderConfig = defaultRenderConfig;
-    this._gl = this.createGl(canvas);
-    this._stages = this.createStages();
-    this.configure();
+    this._gl = this._createGl(canvas);
+    this._stages = this._createStages();
+    this._configure();
   }
 
   public get isRunning(): boolean {
     return this._isRunning;
   }
 
-  private createGl(canvas: HTMLCanvasElement) {
+  private _createGl(canvas: HTMLCanvasElement) {
     const gl = canvas.getContext("webgl2")!;
     let ext = gl.getExtension("EXT_color_buffer_float");
     if (!ext) {
@@ -210,7 +210,7 @@ export class WebGLRenderer {
     return gl;
   }
 
-  private createStages(): RenderingStages {
+  private _createStages(): RenderingStages {
     const renderingStagesProps: CreateRenderingStagesProps = {
       gl: this._gl,
       maxNumParticles: this._renderConfig.maxNumParticles,
@@ -224,11 +224,11 @@ export class WebGLRenderer {
     return stages;
   }
 
-  private configure() {
+  private _configure() {
     configureRenderingStages(this._renderConfig, this._stages);
   }
 
-  private draw(renderProps: RenderProps) {
+  private _draw(renderProps: RenderProps) {
     if (!this.isRunning) {
       return;
     }
@@ -242,7 +242,7 @@ export class WebGLRenderer {
     );
     this._frame = render(renderProps, renderingState);
     requestAnimationFrame(() => {
-      this.draw(renderProps);
+      this._draw(renderProps);
     });
   }
 
@@ -288,6 +288,6 @@ export class WebGLRenderer {
     }
     this._startTime = performance.now();
     this._isRunning = true;
-    this.draw(renderProps);
+    this._draw(renderProps);
   }
 }
