@@ -3,7 +3,7 @@ import type { Matrix4x4, Vec3 } from "../../../math/types";
 import * as vec3 from "../../../math/vec3";
 import * as vec4 from "../../../math/vec4";
 import type { UniformValue } from "../../../types/gl/uniforms";
-import { createVec3GimbalView } from "../../3d/vec3-gimbal";
+import { createVec3GimbalView } from "./3d/vec3-gimbal";
 import type { UIComponent } from "../types";
 import './vec3.css';
 import template from './vec3.html?raw';

@@ -1,3 +1,4 @@
+import type { UIComponent } from '../types';
 import './dropdown.css';
 
 type DropDownArguments<T> = {
@@ -13,7 +14,7 @@ type DropDownArguments<T> = {
 
 export function createDropdown<T>(
   args: DropDownArguments<T>
-): HTMLDivElement {
+): UIComponent {
   const { id, optionId, optionTitle, onSelect, onAdd, onRemove, onUpdate } = args;
   const items = [...args.items];
   console.log(items);
@@ -99,5 +100,8 @@ export function createDropdown<T>(
   }
   container.appendChild(selectWrapper);
   selectWrapper.appendChild(select);
-  return container;
+  return {
+    element: container,
+    update: () => {}
+  }
 }

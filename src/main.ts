@@ -1,31 +1,24 @@
 // import * as stage_test from "./render/stages/test";
-import type { Matrix4x3 } from "./math/types";
 import * as stage_accumulate from "./render/stages/accumulate";
 import * as stage_blur from "./render/stages/blur";
 import * as stage_combine from "./render/stages/combine";
 //import * as stage_display from "./render/stages/display";
 import defaultValues from "./config/defaultValues.json";
 import { defaultParameters, defaultRenderConfig } from "./config/parameters";
-import { ParameterRegistry, type ParameterData, type ParameterPreset } from "./parameters";
 import * as stage_luma from "./render/stages/luma";
 import * as stage_materialize from "./render/stages/materialize";
 import * as stage_output from "./render/stages/output";
 import * as stage_simulate from "./render/stages/simulate";
 import * as screenshot from "./render/util/screenshot";
+import { ParameterRegistry, type ParameterPreset } from "./service/parameters";
+import { presetStore } from "./service/stores";
 import type { RenderingConfig } from "./types/config";
 import { WebGLTextureError } from "./types/error";
-import { UniformComponents } from "./types/gl/uniforms";
 import { type Settings } from "./types/settings";
 import type { Stage, StageOutput } from "./types/stage";
-import { createButtons } from "./ui/components/buttons";
-import { createCosPalette } from "./ui/components/cos-palette";
-import { createScalar } from "./ui/components/scalar";
-import { createVector } from "./ui/components/vector";
-import ControlFactory from "./ui/controls";
+import ControlFactory from "./ui/components/controls";
+import { createUi } from "./ui/parameter-panel";
 import { timestamp } from "./ui/util/date";
-import { createDropdown } from "./ui/components/dropdown";
-import { generateId } from "./ui/util/id";
-import { createStore, type LocalStorageSettings, type Store } from "./storage";
 
 
 const settings: Settings = {
@@ -56,33 +49,6 @@ function configureCanvas(canvas: HTMLCanvasElement) {
   canvas.style.height = `${height}px`;
 }
 
-function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry) {
-  for (const u of uniforms) {
-    const { ui } = u;
-    if (ui) {
-      const { name, min, max, step, component } = u.ui!;
-      const numComponents = UniformComponents[u.type!]!;
-      if (component === "cos-palette") {
-        const { element, update } = createCosPalette(u.value as Matrix4x3, (v: Matrix4x3) => {
-          u.value = v;
-        });
-        controlsContainer.appendChild(element);
-        registry.subscribeParam(u, update);
-      } else if (numComponents > 1) {
-        const values = u.value as number[];
-        const { element, update } = createVector(name, values, (i: number, v: number) => { values[i] = v; }, min, max, step);
-        controlsContainer.appendChild(element);
-        registry.subscribeParam(u, update);
-      } else {
-        const value = u.value as number;
-        const scalarType = u.ui?.type ?? (u.type == "int" ? "int" : "float");
-        const { element, update } = createScalar(name, value, (v: number) => { u.value = v; }, min, max, step, scalarType, ui.options);
-        controlsContainer.appendChild(element);
-        registry.subscribeParam(u, update);
-      }
-    }
-  }
-}
 
 function textureSizeFromNumParticles(numParticles: number, maxNumParticles: number): [number, number] {
   let pts = numParticles;
@@ -91,58 +57,6 @@ function textureSizeFromNumParticles(numParticles: number, maxNumParticles: numb
   }
   const w = Math.floor(Math.sqrt(pts));
   return [w, w];
-}
-
-function createUi(
-  controlsContainer: HTMLElement,
-  params: ParameterRegistry,
-  presets: Store<ParameterPreset>,
-  resetFn: () => void,
-  pauseFn: () => void,
-  toggleVisibilityFn: () => void,
-) {
-  controlsContainer.appendChild(
-    createDropdown<ParameterPreset>({
-    id: "",
-    items: presets.load("presets"),
-    optionId: (o) => (o.id),
-    optionTitle: (o) => (o.name),
-    onSelect: (item) => {
-      params.load(item);
-    },
-    onAdd: () => {
-      const newItem = params.toPreset(generateId(), (new Date()).toLocaleString());
-      return newItem;
-    },
-    onRemove: () => {
-      if (presets.load("presets").length < 2) {
-        return false;
-      }
-      return true;
-    },
-    onUpdate: (items) => {
-      presets.save("presets", items);
-    }
-  }));
-  createUniformControls(controlsContainer, params.list().map(([,,u]) => (u)), params);
-  controlsContainer.appendChild(createButtons([
-    {
-      title: "Screenshot", 
-      onClick: resetFn,
-      color: 2
-    },
-    { 
-      title: "Pause", 
-      onClick: pauseFn, 
-      color: 2 
-    }
-  ]));
-
-  document.addEventListener("keydown", (e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) { // 112 = p
-      toggleVisibilityFn();
-    }
-  });
 }
 
 function createRenderingStages(gl: WebGL2RenderingContext, maxNumParticles: number, maxBloomSteps: number, renderWidth: number, renderHeight: number): RenderingStages {
@@ -218,7 +132,6 @@ function drawOutputStages(gl: WebGL2RenderingContext, config: RenderingConfig, s
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const params = ParameterRegistry.fromConfig(defaultParameters);
-  const presets = createStore<ParameterPreset>({type: "localStorage", prefix: "fibers01"} as LocalStorageSettings);
   const renderConfig = defaultRenderConfig;
 
   configureCanvas(canvas);
@@ -308,30 +221,40 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     configureCanvas(canvas);
   }
 
-  createUi(controls, params, presets,
-    () => {
-      if (!isRunning) {
-        startTime = performance.now();
-      }
-      render(true);
-      downloadScreenshot(screenshot.getTexturePng(gl, stages.screenshot.resources.output as StageOutput));
-      if (!isRunning) {
-        elapsedTime += (performance.now() - startTime) / 1000;
-      }
-    },
-    () => {
-      isRunning = !isRunning;
-      if (!isRunning) {
-        elapsedTime += (performance.now() - startTime) / 1000;
-      } else {
-        startTime = performance.now();
-        draw();
-      }
-    },
-    () => {
-      controlFactory.visible = !controlFactory.visible;
+  function onScreenshot() {
+    if (!isRunning) {
+      startTime = performance.now();
     }
-  );
+    render(true);
+    downloadScreenshot(screenshot.getTexturePng(gl, stages.screenshot.resources.output as StageOutput));
+    if (!isRunning) {
+      elapsedTime += (performance.now() - startTime) / 1000;
+    }
+  }
+
+  function onPause() {
+    isRunning = !isRunning;
+    if (!isRunning) {
+      elapsedTime += (performance.now() - startTime) / 1000;
+    } else {
+      startTime = performance.now();
+      draw();
+    }
+  }
+
+  function onToggleVisibility() {
+    controlFactory.visible = !controlFactory.visible;
+  }
+
+  createUi({
+    element: controls,
+    params,
+    loadPresets: presetStore.load,
+    savePresets: presetStore.save,
+    onScreenshot,
+    onPause,
+    onToggleVisibility,
+  });
 
   window.addEventListener("resize", resize);
   draw();

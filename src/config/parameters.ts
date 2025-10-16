@@ -1,4 +1,4 @@
-import type { ParameterGroup, ParameterGroupDescriptor, ParameterPreset } from "../parameters";
+import type { ParameterGroup, ParameterGroupDescriptor, ParameterPreset } from "../service/parameters";
 import type { RenderingConfig } from "../types/config";
 import * as constants from "./constants";
 
@@ -33,7 +33,7 @@ export const defaultParameters = {
             type: "int",
             value: 4,
             ui: {
-              name: "Updates / Draw",
+              name: "Steps/draw",
               min: 1,
               max: 10,
               step: 1
@@ -93,6 +93,9 @@ export const defaultParameters = {
 }
 
 export const defaultParameterPreset: ParameterPreset = {
+  id: "default",
+  name: "Default",
+  createdAt: "2025-10-16T00:00:00.000Z",
   version: 1,
   data: {
     "main": {
@@ -105,7 +108,7 @@ export const defaultParameterPreset: ParameterPreset = {
       "luma": 0.25,
       "intensity": 0.5
     }
-  }
+  },
 }
 
 export const defaultRenderConfig: RenderingConfig = {

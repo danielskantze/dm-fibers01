@@ -1,8 +1,10 @@
-import * as uniforms from "./gl/uniforms";
-import { orderedValues } from "./render/util/dict";
-import { type Uniform, type UniformValue } from "./types/gl/uniforms";
+import * as uniforms from "../gl/uniforms";
+import { orderedValues } from "../render/util/dict";
+import { type Uniform, type UniformValue } from "../types/gl/uniforms";
 
 export type ParameterData = Omit<Uniform, "location" | "slot">;
+
+export type ParameterPresetKey = "presets";
 
 const presetFormatVersion = 1.0;
 
@@ -76,7 +78,7 @@ export class ParameterRegistry {
     }
 
     lookup(param: ParameterData): [string, string] | undefined {
-      const p = this.list().find(([g, p, data]) => (param === data));
+      const p = this.list().find(([, , data]) => (param === data));
       return p ? [p[0], p[1]] : undefined;
     }
 
