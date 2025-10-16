@@ -3,16 +3,16 @@
 import defaultValues from "./config/defaultValues.json";
 import { defaultParameters, defaultRenderConfig } from "./config/parameters";
 import * as screenshot from "./render/util/screenshot";
+import type { CreateRenderingStagesProps, RenderProps } from "./render/webgl-renderer";
+import { configureRenderingStages, createRenderingStages, createRenderingState, render } from "./render/webgl-renderer";
 import { ParameterRegistry, type ParameterPreset } from "./service/parameters";
 import { presetStore } from "./service/stores";
 import { WebGLTextureError } from "./types/error";
 import { type Settings } from "./types/settings";
 import type { StageOutput } from "./types/stage";
 import ControlFactory from "./ui/components/controls";
-import { createUi } from "./ui/views/parameter-panel";
 import { timestamp } from "./ui/util/date";
-import { createRenderingStages, configureRenderingStages, updateSimulationStages, drawOutputStages } from "./render/webgl-renderer";
-import type { CreateRenderingStagesProps, RenderingState } from "./render/webgl-renderer";
+import { createUi } from "./ui/views/parameter-panel";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -81,48 +81,19 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   configureRenderingStages(renderConfig, stages);
 
   params.load(defaultValues as ParameterPreset);
-  
 
-  function render(screenshot: boolean = false) {
-    const bloomSteps = params.getNumberValue("bloom", "steps");
-    const bloomQuality = params.getNumberValue("bloom", "quality");
-
-    if (bloomSteps !== renderConfig.bloomSteps) {
-      renderConfig.bloomSteps = bloomSteps;
-      configureRenderingStages(renderConfig, stages);
-    }
-    if (bloomQuality !== renderConfig.bloomQuality) {
-      renderConfig.bloomQuality = bloomQuality;
-      configureRenderingStages(renderConfig, stages);
-    }
-    renderConfig.updatesPerDraw = params.getNumberValue("main", "updatesPerDraw");
-
-    const renderingState: RenderingState = {
-      time: elapsedTime + (performance.now() - startTime) / 1000,
-      frame,
-      numParticles: params.getNumberValue("main", "particles"),
-      stages: {
-        bloom: {
-          lumaThreshold: params.getNumberValue("bloom", "luma"),
-          bloomIntensity: params.getNumberValue("bloom", "intensity"),
-        }
-      },
-      width: canvas.width,
-      height: canvas.height
-    };
-    for (let i = 0; i < renderConfig.updatesPerDraw; i++) {
-      renderingState.frame = frame;
-      updateSimulationStages(gl, renderConfig, stages, renderingState);
-      frame++;
-    }
-    drawOutputStages(gl, renderConfig, stages, renderingState, screenshot);
+  const renderProps: RenderProps = {
+    gl,
+    config: renderConfig,
+    stages,
+    params,
   }
-
+  
   function draw() {
     if (!isRunning) {
       return;
     }
-    render();
+    frame = render(renderProps, createRenderingState(params, elapsedTime, startTime, frame, renderWidth, renderHeight));
     requestAnimationFrame(() => {
       draw();
     });
@@ -136,7 +107,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     if (!isRunning) {
       startTime = performance.now();
     }
-    render(true);
+    frame = render(renderProps, createRenderingState(params, elapsedTime, startTime, frame, renderWidth, renderHeight), true);
     downloadScreenshot(screenshot.getTexturePng(gl, stages.screenshot.resources.output as StageOutput));
     if (!isRunning) {
       elapsedTime += (performance.now() - startTime) / 1000;

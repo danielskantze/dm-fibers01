@@ -114,3 +114,48 @@ export type RenderingStages = {
       stage_output.draw(gl, stages.display, width, height);
     }
   }
+
+  export type RenderProps = {
+    gl: WebGL2RenderingContext,
+    config: RenderingConfig,
+    stages: RenderingStages,
+    params: ParameterRegistry,
+  }
+
+  export function createRenderingState(params: ParameterRegistry, elapsedTime: number, startTime: number, frame: number, width: number, height: number): RenderingState {
+    return {
+        time: elapsedTime + (performance.now() - startTime) / 1000,
+        frame,
+        numParticles: params.getNumberValue("main", "particles"),
+        stages: {
+          bloom: {
+            lumaThreshold: params.getNumberValue("bloom", "luma"),
+            bloomIntensity: params.getNumberValue("bloom", "intensity"),
+          }
+        },
+        width,
+        height
+      };    
+  }
+
+  export function render({ gl, config, stages, params }: RenderProps, state: RenderingState, screenshot?: boolean): number {
+    const bloomSteps = params.getNumberValue("bloom", "steps");
+    const bloomQuality = params.getNumberValue("bloom", "quality");
+    let renderingState = {...state };
+    if (bloomSteps !== config.bloomSteps) {
+        config.bloomSteps = bloomSteps;
+      configureRenderingStages(config, stages);
+    }
+    if (bloomQuality !== config.bloomQuality) {
+        config.bloomQuality = bloomQuality;
+      configureRenderingStages(config, stages);
+    }
+    config.updatesPerDraw = params.getNumberValue("main", "updatesPerDraw");
+
+    for (let i = 0; i < config.updatesPerDraw; i++) {
+      updateSimulationStages(gl, config, stages, renderingState);
+      renderingState.frame++;
+    }
+    drawOutputStages(gl, config, stages, renderingState, screenshot);
+    return renderingState.frame;
+  }
