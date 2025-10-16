@@ -1,13 +1,13 @@
-import type { Matrix4x3 } from "../math/types";
-import type { ParameterData, ParameterPreset, ParameterRegistry } from "../service/parameters";
-import { UniformComponents } from "../types/gl/uniforms";
-import { createButtons } from "./components/buttons";
-import { createCosPalette } from "./components/cos-palette";
-import { createDropdown } from "./components/dropdown";
-import { createScalar } from "./components/scalar";
-import type { UIComponent } from "./components/types";
-import { createVector } from "./components/vector";
-import { generateId } from "./util/id";
+import type { Matrix4x3 } from "../../math/types";
+import type { ParameterData, ParameterPreset, ParameterRegistry } from "../../service/parameters";
+import { UniformComponents } from "../../types/gl/uniforms";
+import { createButtons } from "../components/buttons";
+import { createCosPalette } from "../components/cos-palette";
+import { createDropdown } from "../components/dropdown";
+import { createScalar } from "../components/scalar";
+import type { UIComponent } from "../components/types";
+import { createVector } from "../components/vector";
+import { generateId } from "../util/id";
 
 export function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry) {
     for (const u of uniforms) {
