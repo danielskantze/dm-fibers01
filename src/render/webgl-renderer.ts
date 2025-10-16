@@ -166,30 +166,30 @@ export function render({ gl, config, stages, params }: RenderProps, state: Rende
 export class WebGLRenderer {
 
   private _isRunning: boolean = false;
-  private elapsedTime: number = 0;
-  private startTime: number = 0;
-  private frame: number = 0;
-  private renderWidth: number; // use renderSize / Vec2 instead
-  private renderHeight: number; // use renderSize / Vec2 instead
-  private canvas: HTMLCanvasElement;
-  private gl: WebGL2RenderingContext;
-  private params: ParameterRegistry;
+  private _elapsedTime: number = 0;
+  private _startTime: number = 0;
+  private _frame: number = 0;
+  private _renderWidth: number; // use renderSize / Vec2 instead
+  private _renderHeight: number; // use renderSize / Vec2 instead
+  private _canvas: HTMLCanvasElement;
+  private _gl: WebGL2RenderingContext;
+  private _params: ParameterRegistry;
 
   // TODO: Remove
-  private settings: Settings;
-  private stages: RenderingStages;
-  private renderConfig: RenderingConfig;
+  private _settings: Settings;
+  private _stages: RenderingStages;
+  private _renderConfig: RenderingConfig;
 
   constructor(settings: Settings, canvas: HTMLCanvasElement, params: ParameterRegistry) {
-    this.startTime = performance.now();
-    this.canvas = canvas;
-    this.params = params;
-    this.renderWidth = settings.width * settings.dpr;
-    this.renderHeight = settings.height * settings.dpr;
-    this.settings = settings;
-    this.renderConfig = defaultRenderConfig;
-    this.gl = this.createGl(canvas);
-    this.stages = this.createStages();
+    this._startTime = performance.now();
+    this._canvas = canvas;
+    this._params = params;
+    this._renderWidth = settings.width * settings.dpr;
+    this._renderHeight = settings.height * settings.dpr;
+    this._settings = settings;
+    this._renderConfig = defaultRenderConfig;
+    this._gl = this.createGl(canvas);
+    this._stages = this.createStages();
     this.configure();
   }
 
@@ -212,20 +212,20 @@ export class WebGLRenderer {
 
   private createStages(): RenderingStages {
     const renderingStagesProps: CreateRenderingStagesProps = {
-      gl: this.gl,
-      maxNumParticles: this.renderConfig.maxNumParticles,
-      maxBloomSteps: this.renderConfig.maxBloomSteps,
-      renderWidth: this.renderHeight,
-      renderHeight: this.renderWidth,
-      params: this.params,
-      settings: this.settings
+      gl: this._gl,
+      maxNumParticles: this._renderConfig.maxNumParticles,
+      maxBloomSteps: this._renderConfig.maxBloomSteps,
+      renderWidth: this._renderWidth,
+      renderHeight: this._renderHeight,
+      params: this._params,
+      settings: this._settings
     }
     const stages = createRenderingStages(renderingStagesProps);    
     return stages;
   }
 
   private configure() {
-    configureRenderingStages(this.renderConfig, this.stages);
+    configureRenderingStages(this._renderConfig, this._stages);
   }
 
   private draw(renderProps: RenderProps) {
@@ -233,14 +233,14 @@ export class WebGLRenderer {
       return;
     }
     const renderingState = createRenderingState(
-      this.params, 
-      this.elapsedTime, 
-      this.startTime, 
-      this.frame, 
-      this.renderWidth, 
-      this.renderHeight
+      this._params, 
+      this._elapsedTime, 
+      this._startTime, 
+      this._frame, 
+      this._renderWidth, 
+      this._renderHeight
     );
-    this.frame = render(renderProps, renderingState);
+    this._frame = render(renderProps, renderingState);
     requestAnimationFrame(() => {
       this.draw(renderProps);
     });
@@ -248,45 +248,45 @@ export class WebGLRenderer {
 
   screenshot(): any {
     if (!this._isRunning) {
-      this.startTime = performance.now();
+      this._startTime = performance.now();
     }
     const renderProps: RenderProps = {
-      gl: this.gl,
-      config: this.renderConfig,
-      stages: this.stages,
-      params: this.params,
+      gl: this._gl,
+      config: this._renderConfig,
+      stages: this._stages,
+      params: this._params,
     }
     const renderingState = createRenderingState(
-      this.params, 
-      this.elapsedTime, 
-      this.startTime, 
-      this.frame, 
-      this.renderWidth, 
-      this.renderHeight
+      this._params, 
+      this._elapsedTime, 
+      this._startTime, 
+      this._frame, 
+      this._renderWidth, 
+      this._renderHeight
     );
-    this.frame = render(renderProps, renderingState, true);
+    this._frame = render(renderProps, renderingState, true);
     const imageData = screenshot.getTexturePng(
-      this.gl, 
-      this.stages.screenshot.resources.output as StageOutput);
+      this._gl, 
+      this._stages.screenshot.resources.output as StageOutput);
     if (!this._isRunning) {
-      this.elapsedTime += (performance.now() - this.startTime) / 1000;
+      this._elapsedTime += (performance.now() - this._startTime) / 1000;
     }
     return imageData;
   }
 
   pause() {
     this._isRunning = false;
-    this.elapsedTime += (performance.now() - this.startTime) / 1000;
+    this._elapsedTime += (performance.now() - this._startTime) / 1000;
   }
 
   start() {
     const renderProps: RenderProps = {
-      gl: this.gl,
-      config: this.renderConfig,
-      stages: this.stages,
-      params: this.params,
+      gl: this._gl,
+      config: this._renderConfig,
+      stages: this._stages,
+      params: this._params,
     }
-    this.startTime = performance.now();
+    this._startTime = performance.now();
     this._isRunning = true;
     this.draw(renderProps);
   }
