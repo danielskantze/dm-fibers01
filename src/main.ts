@@ -17,7 +17,7 @@ import { WebGLTextureError } from "./types/error";
 import { type Settings } from "./types/settings";
 import type { Stage, StageOutput } from "./types/stage";
 import ControlFactory from "./ui/components/controls";
-import { createUi } from "./ui/parameter-panel";
+import { createUi } from "./ui/views/parameter-panel";
 import { timestamp } from "./ui/util/date";
 
 
