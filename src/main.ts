@@ -1,15 +1,11 @@
 // import * as stage_test from "./render/stages/test";
 //import * as stage_display from "./render/stages/display";
 import defaultValues from "./config/defaultValues.json";
-import { defaultParameters, defaultRenderConfig } from "./config/parameters";
-import * as screenshot from "./render/util/screenshot";
-import type { CreateRenderingStagesProps, RenderProps } from "./render/webgl-renderer";
-import { configureRenderingStages, createRenderingStages, createRenderingState, render } from "./render/webgl-renderer";
+import { defaultParameters } from "./config/parameters";
+import { WebGLRenderer } from "./render/webgl-renderer";
 import { ParameterRegistry, type ParameterPreset } from "./service/parameters";
 import { presetStore } from "./service/stores";
-import { WebGLTextureError } from "./types/error";
 import { type Settings } from "./types/settings";
-import type { StageOutput } from "./types/stage";
 import ControlFactory from "./ui/components/controls";
 import { timestamp } from "./ui/util/date";
 import { createUi } from "./ui/views/parameter-panel";
@@ -17,6 +13,7 @@ import { createUi } from "./ui/views/parameter-panel";
 const settings: Settings = {
   width: window.screen.width,
   height: window.screen.height,
+  dpr: window.devicePixelRatio,
   msaa: undefined
 }
 
@@ -42,86 +39,24 @@ function downloadScreenshot(dataURL: string) {
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const params = ParameterRegistry.fromConfig(defaultParameters);
-  const renderConfig = defaultRenderConfig;
-
   configureCanvas(canvas);
-
-  let isRunning = true;
-  let elapsedTime = 0;
-  let startTime = performance.now();
-  
   const controlFactory = new ControlFactory(controls);
-  const gl = canvas.getContext("webgl2")!;
-  let ext = gl.getExtension("EXT_color_buffer_float");
-  if (!ext) {
-    throw new WebGLTextureError("This browser does not support rendering to float textures");
-  }
-  ext = gl.getExtension("EXT_color_buffer_half_float");
-  if (!ext) {
-    throw new WebGLTextureError("This browser does not support rendering to half float textures");
-  }
-  const dpr = window.devicePixelRatio;
-  const renderWidth = settings.width * dpr;
-  const renderHeight = settings.height * dpr;
-  
-  const renderingStagesProps: CreateRenderingStagesProps = {
-    gl,
-    maxNumParticles: renderConfig.maxNumParticles,
-    maxBloomSteps: renderConfig.maxBloomSteps,
-    renderWidth,
-    renderHeight,
-    params,
-    settings,
-  }
-
-  const stages = createRenderingStages(renderingStagesProps);
-
-  let frame = 0;
-
-  configureRenderingStages(renderConfig, stages);
+  const renderer = new WebGLRenderer(settings, canvas, params);
 
   params.load(defaultValues as ParameterPreset);
 
-  const renderProps: RenderProps = {
-    gl,
-    config: renderConfig,
-    stages,
-    params,
-  }
-  
-  function draw() {
-    if (!isRunning) {
-      return;
-    }
-    frame = render(renderProps, createRenderingState(params, elapsedTime, startTime, frame, renderWidth, renderHeight));
-    requestAnimationFrame(() => {
-      draw();
-    });
-  }
 
   function resize() {
     configureCanvas(canvas);
   }
 
   function onScreenshot() {
-    if (!isRunning) {
-      startTime = performance.now();
-    }
-    frame = render(renderProps, createRenderingState(params, elapsedTime, startTime, frame, renderWidth, renderHeight), true);
-    downloadScreenshot(screenshot.getTexturePng(gl, stages.screenshot.resources.output as StageOutput));
-    if (!isRunning) {
-      elapsedTime += (performance.now() - startTime) / 1000;
-    }
+    const imageData = renderer.screenshot();
+    downloadScreenshot(imageData);
   }
 
   function onPause() {
-    isRunning = !isRunning;
-    if (!isRunning) {
-      elapsedTime += (performance.now() - startTime) / 1000;
-    } else {
-      startTime = performance.now();
-      draw();
-    }
+    renderer.isRunning ? renderer.pause() : renderer.start();
   }
 
   function onToggleVisibility() {
@@ -139,7 +74,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   });
 
   window.addEventListener("resize", resize);
-  draw();
+  renderer.start();
 }
 
 export default main;
