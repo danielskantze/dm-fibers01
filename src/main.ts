@@ -82,15 +82,11 @@ export default main;
 // TODO:
 
 // Refactoring cont'd (is this needed?):
-// - Consider doing more to keep footprint of main.ts small
 // - Improve UI code quality (use interfaces, improve method to put the UI together)
 
 // Migrate all vectors and math classes to use Float32Arrays instead of number[]
 
-// Store parameters
-// Support storing and loading list of parameters from localStorage
 // Cleanup parameter access pattern in main (type, use keyeof?)
-// RenderingSettings vs RenderingConfig clarify, improve typing separation
 // Maybe: Support parameter groups in UI
 // Handle outdated parameters (wrong version)
 
