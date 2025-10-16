@@ -40,15 +40,8 @@ type BloomStageParams = {
   bloomIntensity: number,
 }
 
-type RenderingState = {
-  time: number,
-  frame: number,
-  width: number,
-  height: number,
-  numParticles: number,
-  stages: {
-    bloom: BloomStageParams
-  }
+type RenderingStagesState = {
+  bloom: BloomStageParams,
 }
 
 export class WebGLRenderer {
@@ -141,41 +134,31 @@ export class WebGLRenderer {
         this._configureStages();
     }
     this._renderConfig.updatesPerDraw = this._params.getNumberValue("main", "updatesPerDraw");
-  
-    const state: RenderingState = {
-      time: this.renderTime,
-      frame: this._frame,
-      numParticles: this._params.getNumberValue("main", "particles"),
-      stages: {
-        bloom: {
-          lumaThreshold: this._params.getNumberValue("bloom", "luma"),
-          bloomIntensity: this._params.getNumberValue("bloom", "intensity"),
-        },
-      },
-      width: this._renderWidth,
-      height: this._renderHeight,
-    };
-    
-    let currentFrame = state.frame;
-    for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
-      this._updateSimulationStages({ ...state, frame: currentFrame });
-      currentFrame++;
+    const numParticles = this._params.getNumberValue("main", "particles");
+    const bloomState: BloomStageParams = {
+      lumaThreshold: this._params.getNumberValue("bloom", "luma"),
+      bloomIntensity: this._params.getNumberValue("bloom", "intensity"),
     }
-    this._drawOutputStages(state, isScreenshot);
-    this._frame = currentFrame;
+      
+    for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
+      this._updateSimulationStages(numParticles);
+      this._frame++;
+    }
+    this._drawOutputStages({ bloom: bloomState }, isScreenshot);
   }
   
-  private _updateSimulationStages(state: RenderingState): void {
+  private _updateSimulationStages(numParticles: number): void {
     const { maxNumParticles } = this._renderConfig;
-    const { time, frame, numParticles } = state;
+    let frame = this._frame;
+    let time = this.renderTime;
     const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
     stage_simulate.draw(this._gl, this._stages.simulate, time, frame, drawSize);
     stage_materialize.draw(this._gl, this._stages.materialize, time, frame, numParticles);
     stage_accumulate.draw(this._gl, this._stages.accumulate, time, frame);
   }
   
-  private _drawOutputStages(state: RenderingState, isScreenshot: boolean = false): void {
-    const { width, height, stages: { bloom } } = state;
+  private _drawOutputStages(state: RenderingStagesState, isScreenshot: boolean = false): void {
+    const { bloom } = state;
     const blurQuality = stage_blur.lookupBlurQuality(this._renderConfig.bloomQuality);
     if (blurQuality !== "off") {
       stage_luma.draw(this._gl, this._stages.luma, bloom.lumaThreshold);
@@ -185,7 +168,7 @@ export class WebGLRenderer {
     if (isScreenshot) {
       stage_output.draw(this._gl, this._stages.screenshot);
     } else {
-      stage_output.draw(this._gl, this._stages.display, width, height);
+      stage_output.draw(this._gl, this._stages.display, this._renderWidth, this._renderHeight);
     }
   }
 
