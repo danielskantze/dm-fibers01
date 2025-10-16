@@ -85,6 +85,10 @@ export class WebGLRenderer {
     return this._isRunning;
   }
 
+  public get renderTime(): number {
+    return this._elapsedTime + (performance.now() - this._startTime) / 1000;
+  }
+
   public start(): void {
     if (this._isRunning) return;
     this._startTime = performance.now();
@@ -99,8 +103,7 @@ export class WebGLRenderer {
   }
   
   public screenshot(): string {
-    const wasRunning = this._isRunning;
-    if (!wasRunning) {
+    if (!this._isRunning) {
       this._startTime = performance.now();
     }
 
@@ -111,8 +114,8 @@ export class WebGLRenderer {
       this._stages.screenshot.resources.output as StageOutput
     );
 
-    if (!wasRunning) {
-      this._elapsedTime += (performance.now() - this._startTime) / 1000;
+    if (!this._isRunning) {
+      this._elapsedTime = this.renderTime;
     }
     return imageData;
   }
@@ -139,7 +142,19 @@ export class WebGLRenderer {
     }
     this._renderConfig.updatesPerDraw = this._params.getNumberValue("main", "updatesPerDraw");
   
-    const state = this._createRenderingState();
+    const state: RenderingState = {
+      time: this.renderTime,
+      frame: this._frame,
+      numParticles: this._params.getNumberValue("main", "particles"),
+      stages: {
+        bloom: {
+          lumaThreshold: this._params.getNumberValue("bloom", "luma"),
+          bloomIntensity: this._params.getNumberValue("bloom", "intensity"),
+        },
+      },
+      width: this._renderWidth,
+      height: this._renderHeight,
+    };
     
     let currentFrame = state.frame;
     for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
@@ -150,22 +165,6 @@ export class WebGLRenderer {
     this._frame = currentFrame;
   }
   
-  private _createRenderingState(): RenderingState {
-    return {
-        time: this._elapsedTime + (performance.now() - this._startTime) / 1000,
-        frame: this._frame,
-        numParticles: this._params.getNumberValue("main", "particles"),
-        stages: {
-          bloom: {
-            lumaThreshold: this._params.getNumberValue("bloom", "luma"),
-            bloomIntensity: this._params.getNumberValue("bloom", "intensity"),
-          }
-        },
-        width: this._renderWidth,
-        height: this._renderHeight
-      };    
-  }
-
   private _updateSimulationStages(state: RenderingState): void {
     const { maxNumParticles } = this._renderConfig;
     const { time, frame, numParticles } = state;
