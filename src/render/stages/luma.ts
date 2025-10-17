@@ -9,7 +9,7 @@ import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
-        luma: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
+        shader: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
             const location = gl.getUniformLocation(program, "tex");
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
@@ -50,15 +50,15 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
         },
         input,
         targets: [output.textures[0]],
-        parameters: [],
+        parameters: {},
     };
 }
 
 function draw(gl: WebGL2RenderingContext, stage: Stage, threshold: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
-    const { luma } = shaders;
+    const { shader } = shaders;
     const { quad } = buffers;
-    const u = luma.uniforms;
+    const u = shader.uniforms;
     const input = stage.input!;
     const framebuffer = output.framebuffer.framebuffer;
     gl.viewport(0, 0, input.targets[0].width, input.targets[0].height);
@@ -66,14 +66,14 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, threshold: number) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.disable(gl.BLEND);
-    gl.useProgram(luma.program);
+    gl.useProgram(shader.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
     gl.activeTexture(gl.TEXTURE0);
     gl.uniform1i(u.tex.location, u.tex.slot);
     gl.uniform1f(u.threshold.location, threshold);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[0].texture);
-    gl.enableVertexAttribArray(luma.attributes.position);
-    gl.vertexAttribPointer(luma.attributes.position, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(shader.attributes.position);
+    gl.vertexAttribPointer(shader.attributes.position, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.useProgram(null);

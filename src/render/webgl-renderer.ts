@@ -122,8 +122,8 @@ export class WebGLRenderer {
   }
 
   private _render(isScreenshot: boolean = false): void {
-    const bloomSteps = this._params.getNumberValue("bloom", "steps");
-    const bloomQuality = this._params.getNumberValue("bloom", "quality");
+    const bloomSteps = this._params.getValue<number>("bloom", "steps");
+    const bloomQuality = this._params.getValue<number>("bloom", "quality");
   
     if (bloomSteps !== this._renderConfig.bloomSteps) {
         this._renderConfig.bloomSteps = bloomSteps;
@@ -133,11 +133,11 @@ export class WebGLRenderer {
         this._renderConfig.bloomQuality = bloomQuality;
         this._configureStages();
     }
-    this._renderConfig.updatesPerDraw = this._params.getNumberValue("main", "updatesPerDraw");
-    const numParticles = this._params.getNumberValue("main", "particles");
+    this._renderConfig.updatesPerDraw = this._params.getValue<number>("main", "updatesPerDraw");
+    const numParticles = this._params.getValue<number>("main", "particles");
     const bloomState: BloomStageParams = {
-      lumaThreshold: this._params.getNumberValue("bloom", "luma"),
-      bloomIntensity: this._params.getNumberValue("bloom", "intensity"),
+      lumaThreshold: this._params.getValue<number>("bloom", "luma"),
+      bloomIntensity: this._params.getValue<number>("bloom", "intensity"),
     }
       
     for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
