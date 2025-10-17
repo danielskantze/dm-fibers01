@@ -9,7 +9,7 @@ import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
-        combine: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
+        shader: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
             };
@@ -55,15 +55,15 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
         },
         input,
         targets: output.textures,
-        parameters: [],
+        parameters: {},
     };
 }
 
 function draw(gl: WebGL2RenderingContext, stage: Stage, stage2: Stage, intensity1: number, intensity2: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
-    const { combine } = shaders;
+    const { shader } = shaders;
     const { quad } = buffers;
-    const u = combine.uniforms;
+    const u = shader.uniforms;
     const stage1Input = stage.input!;
     const framebuffer = output.framebuffer.framebuffer;
 
@@ -73,7 +73,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, stage2: Stage, intensity
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.disable(gl.BLEND);
 
-    gl.useProgram(combine.program);
+    gl.useProgram(shader.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
     gl.uniform1f(u.intensity1.location, intensity1);
     gl.uniform1f(u.intensity2.location, intensity2);
@@ -86,8 +86,8 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, stage2: Stage, intensity
     gl.uniform1i(u.texture2.location, u.texture2.slot);
     gl.bindTexture(gl.TEXTURE_2D, stage2.targets[0].texture);
 
-    gl.enableVertexAttribArray(combine.attributes.position);
-    gl.vertexAttribPointer(combine.attributes.position, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(shader.attributes.position);
+    gl.vertexAttribPointer(shader.attributes.position, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.useProgram(null);

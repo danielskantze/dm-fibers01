@@ -36,8 +36,10 @@ export interface TypedResources<T> extends Resources {
   internal: T
 }
 
+export type StageName = "accumulate" | "simulate" | "blur" | "materialize" | "output" | "luma" | "combine";
+
 type Stage<T = {}> = {
-    name: string;
+    name: StageName;
     resources: Resources | TypedResources<T>;
     input: Stage | null;
     targets: Texture[]; // see currentOutput FIXNME

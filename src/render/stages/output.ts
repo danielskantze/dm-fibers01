@@ -9,7 +9,7 @@ import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
-        output: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
+        shader: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
             const location = gl.getUniformLocation(program, "tex");
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
@@ -45,15 +45,15 @@ function create(gl: WebGL2RenderingContext, input: Stage, bufferOutput: boolean)
         },
         input,
         targets: bufferOutput ? output!.textures : [],
-        parameters: [],
+        parameters: {},
     };
 }
 
 function draw(gl: WebGL2RenderingContext, stage: Stage, width?: number, height?: number) {
     const { buffers, shaders } = stage.resources;
-    const { output: program } = shaders;
+    const { shader } = shaders;
     const { quad } = buffers;
-    const { tex } = program.uniforms;
+    const { tex } = shader.uniforms;
     const output = stage.resources.output;
     const input = stage.input!;
     const renderWidth = width ?? input.targets[0].width;
@@ -67,13 +67,13 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, width?: number, height?:
 
     gl.disable(gl.BLEND);
 
-    gl.useProgram(program.program);
+    gl.useProgram(shader.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
     gl.activeTexture(gl.TEXTURE0);
     gl.uniform1i(tex.location, tex.slot);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[0].texture);
-    gl.enableVertexAttribArray(program.attributes.position);
-    gl.vertexAttribPointer(program.attributes.position, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(shader.attributes.position);
+    gl.vertexAttribPointer(shader.attributes.position, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     if (output) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);

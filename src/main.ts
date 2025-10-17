@@ -3,7 +3,7 @@
 import defaultValues from "./config/defaultValues.json";
 import { defaultParameters } from "./config/parameters";
 import { WebGLRenderer } from "./render/webgl-renderer";
-import { ParameterRegistry, type ParameterPreset } from "./service/parameters";
+import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
 import { presetStore } from "./service/stores";
 import { type Settings } from "./types/settings";
 import ControlFactory from "./ui/components/controls";
@@ -38,7 +38,7 @@ function downloadScreenshot(dataURL: string) {
 
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
-  const params = ParameterRegistry.fromConfig(defaultParameters);
+  const params = createRegistryFromConfig(defaultParameters);
   configureCanvas(canvas);
   const controlFactory = new ControlFactory(controls);
   const renderer = new WebGLRenderer(settings, canvas, params);
@@ -81,12 +81,14 @@ export default main;
 
 // TODO:
 
+// Remove MSAA
+// Remove named key for shader programs inside each stage
+
 // Refactoring cont'd (is this needed?):
 // - Improve UI code quality (use interfaces, improve method to put the UI together)
 
-// Migrate all vectors and math classes to use Float32Arrays instead of number[]
 
-// Cleanup parameter access pattern in main (type, use keyeof?)
+// Migrate all vectors and math classes to use Float32Arrays instead of number[]
 // Maybe: Support parameter groups in UI
 // Handle outdated parameters (wrong version)
 

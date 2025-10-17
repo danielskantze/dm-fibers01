@@ -13,7 +13,7 @@ import { filter } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
-        simulate: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
+        shader: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
             const positionLocation = gl.getUniformLocation(program, "u_position_texture");
             const colorLocation = gl.getUniformLocation(program, "u_color_texture");
             const propertiesLocation = gl.getUniformLocation(program, "u_properties_texture");
@@ -168,10 +168,11 @@ function getTextureSize(numParticles: number) {
 function create(gl: WebGL2RenderingContext, numParticles: number): Stage {
     const shaders = loadShaders(gl);
     const { width, height } = getTextureSize(numParticles);
+    const { shader } = shaders;
     const output = [
         createOutput(gl, width, height, "simulate_output_1"), 
         createOutput(gl, width, height, "simulate_output_2")] as BufferedStageOutput;
-    const uniforms = shaders.simulate!.uniforms;
+    const uniforms = shader!.uniforms;
     const parameters = filter<Uniform>((_, v) => (!!v.ui), uniforms);
     return {
         name: "simulate",
@@ -199,7 +200,7 @@ function resize(gl: WebGL2RenderingContext, numParticles: number, stage: Stage) 
 
 function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, drawSize?: [number, number]) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: BufferedStageOutput };
-    const { simulate } = shaders;
+    const { shader } = shaders;
     const { quad } = buffers;
     const writeIndex = (frame + 1) % 2;
     const readIndex = frame % 2;
@@ -207,7 +208,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     const sources = output[readIndex].textures;
     const framebufferAttachments = Array.from({ length: targets.length }, (_, i) => getFramebufferAttachment(gl, i));
     const framebuffer = output[writeIndex].framebuffer!.framebuffer;
-    const u = simulate.uniforms;
+    const u = shader.uniforms;
     const targetSize = drawSize ? drawSize : [targets[0].width, targets[0].height];
     gl.viewport(0, 0, targetSize[0], targetSize[1]); // all targets have the same size
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
@@ -217,7 +218,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
 
     gl.disable(gl.BLEND);
     
-    gl.useProgram(simulate.program);
+    gl.useProgram(shader.program);
     gl.uniform1f(u.time.location, time);
     gl.uniform2i(u.particlesTextureSize.location, targetSize[0], targetSize[1]);
     gl.uniform2f(u.screenSize.location, gl.canvas.width, gl.canvas.height);
@@ -240,8 +241,8 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.bindTexture(gl.TEXTURE_2D, sources[2].texture);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
-    gl.enableVertexAttribArray(simulate.attributes.position);
-    gl.vertexAttribPointer(simulate.attributes.position, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(shader.attributes.position);
+    gl.vertexAttribPointer(shader.attributes.position, 2, gl.FLOAT, false, 0, 0);
     gl.drawBuffers(framebufferAttachments);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);

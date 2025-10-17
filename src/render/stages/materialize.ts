@@ -12,7 +12,7 @@ import { createRenderBuffer } from "../../gl/renderbuffer";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
-        materialize: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
+        shader: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
             const positionLocation = gl.getUniformLocation(program, "u_position_texture");
             const colorLocation = gl.getUniformLocation(program, "u_color_texture");
             const propertiesLocation = gl.getUniformLocation(program, "u_properties_texture");
@@ -117,15 +117,15 @@ function createMultisampler(gl: WebGL2RenderingContext, width: number, height: n
 
 function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, numParticles: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
-    const { materialize } = shaders;
+    const { shader } = shaders;
     const { particles } = buffers;
 
     const framebuffer = output.framebuffer!.framebuffer;
-    const u = materialize.uniforms;
+    const u = shader.uniforms;
     const input = stage.input!;
 
     // --- Common Setup for Both Passes ---
-    gl.useProgram(materialize.program);
+    gl.useProgram(shader.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, particles);
     gl.viewport(0, 0, stage.targets[0].width, stage.targets[0].height);
     
@@ -145,8 +145,8 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[2].texture);
 
-    gl.enableVertexAttribArray(materialize.attributes.index);
-    gl.vertexAttribIPointer(materialize.attributes.index, 1, gl.INT, 0, 0);
+    gl.enableVertexAttribArray(shader.attributes.index);
+    gl.vertexAttribIPointer(shader.attributes.index, 1, gl.INT, 0, 0);
     gl.disable(gl.BLEND);
     
     if (stage.resources.multisampler) {

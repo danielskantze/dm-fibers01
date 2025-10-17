@@ -12,7 +12,7 @@ import { filter } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
-        accumulate: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
+        shader: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
             const previousColorLocation = gl.getUniformLocation(program, "previous_color_tex");
             const previousUpdatedLocation = gl.getUniformLocation(program, "previous_updated_tex");
             const stampColorLocation = gl.getUniformLocation(program, "stamp_color_tex");
@@ -101,7 +101,7 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
         createOutput(gl, width, height, "accumulate_output_1"), 
         createOutput(gl, width, height, "accumulate_output_2")] as BufferedStageOutput;
 
-    const uniforms = shaders.accumulate!.uniforms;
+    const uniforms = shaders.shader!.uniforms;
     const parameters = filter<Uniform>((_, v) => (!!v.ui), uniforms);
     return {
         name: "accumulate",
@@ -118,9 +118,9 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
 
 function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: BufferedStageOutput };
-    const { accumulate } = shaders;
+    const { shader } = shaders;
     const { quad } = buffers;
-    const u = accumulate.uniforms;
+    const u = shader.uniforms;
 
     const writeIndex = (frame + 1) % 2;
     const readIndex = frame % 2;
@@ -132,14 +132,14 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
 
     const input = stage.input!;
     gl.viewport(0, 0, input.targets[0].width, input.targets[0].height);
-    gl.useProgram(accumulate.program);
+    gl.useProgram(shader.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
     gl.uniform1i(u.previousColorTexture.location, u.previousColorTexture.slot);
     gl.uniform1i(u.previousUpdatedTexture.location, u.previousUpdatedTexture.slot);
     gl.uniform1i(u.stampColorTexture.location, u.stampColorTexture.slot);
     gl.uniform1i(u.stampUpdatedTexture.location, u.stampUpdatedTexture.slot);
-    gl.uniform1i(accumulate.uniforms.frame.location, frame);
-    gl.uniform1f(accumulate.uniforms.time.location, time);
+    gl.uniform1i(shader.uniforms.frame.location, frame);
+    gl.uniform1f(shader.uniforms.time.location, time);
     gl.uniform1f(u.fadeTime.location, u.fadeTime.value as number);
     gl.uniform1i(u.accumulate.location, u.accumulate.value as number);
     gl.activeTexture(gl.TEXTURE0);
@@ -150,8 +150,8 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.bindTexture(gl.TEXTURE_2D, input.targets[0].texture);
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[1].texture);
-    gl.enableVertexAttribArray(accumulate.attributes.position);
-    gl.vertexAttribPointer(accumulate.attributes.position, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(shader.attributes.position);
+    gl.vertexAttribPointer(shader.attributes.position, 2, gl.FLOAT, false, 0, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     gl.drawBuffers(framebufferAttachments);
     gl.drawArrays(gl.TRIANGLES, 0, 6);

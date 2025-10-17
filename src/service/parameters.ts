@@ -1,28 +1,31 @@
 import * as uniforms from "../gl/uniforms";
 import { orderedValues } from "../render/util/dict";
 import { type Uniform, type UniformValue } from "../types/gl/uniforms";
+import type { StageName } from "../types/stage";
 
 export type ParameterData = Omit<Uniform, "location" | "slot">;
 
 export type ParameterPresetKey = "presets";
 
+export type ParameterGroupKey = "main" | "bloom" | StageName;
+
 const presetFormatVersion = 1.0;
 
-export type ParameterGroup = {
-    group: string;
+export type ParameterGroup<G extends string> = {
+    group: G;
     parameters: Record<string, ParameterData>;
 };
 
-export type ParameterGroupDescriptor = {
-    id: string,
+export type ParameterGroupDescriptor<G extends string> = {
+    id: G,
     order: number,
     displayName: string
 };
 
-export type ParameterConfig = {
+export type ParameterConfig<G extends string> = {
   groups: {
-    descriptors: ParameterGroupDescriptor[],
-    parameters: ParameterGroup[]
+    descriptors: ParameterGroupDescriptor<G>[],
+    parameters: ParameterGroup<G>[]
   }
 };
 
@@ -42,27 +45,40 @@ type Subscriber = {
   update: (value: UniformValue) => void
 };
 
-export class ParameterRegistry {
-    private registry: Record<string, ParameterGroup>;
-    private groups: Record<string, ParameterGroupDescriptor>;
+export class NoSuchParameterError extends Error {
+  private _group: string;
+  private _parameter: string;
+  
+  constructor(group: string, parameter: string) {
+    super(`No parameter named "${parameter} was found in group "${group}"`);
+    this._parameter = parameter;
+    this._group = group;
+  }
+  get group() { return this._group; }
+  get parameterer() { return this._parameter; }
+}
+
+class ParameterService<G extends string> {
+    private registry: Record<string, ParameterGroup<G>>;
+    private groups: Record<G, ParameterGroupDescriptor<G>>;
     private subscribers: Subscriber[];
 
     constructor() {
         this.registry = {};
-        this.groups = {};
+        this.groups = {} as Record<G, ParameterGroupDescriptor<G>>;
         this.subscribers = [];
     }
 
-    static fromConfig(parameterConfig: ParameterConfig) {
-      const instance = new ParameterRegistry();
+    static fromConfig<G extends string>(parameterConfig: ParameterConfig<G>) {
+      const instance = new ParameterService<G>();
       const { groups: { descriptors, parameters }} = parameterConfig;
       parameters.forEach(({group, parameters: gParams }) => {
         Object.entries(gParams).forEach(([id, v]) => (
-          instance.register(group, id, v as ParameterData)))
+          instance.register(group as G, id, v as ParameterData)))
         }
       );
       descriptors.forEach((d) => {
-        instance.groups[d.id] = d;
+        instance.groups[d.id as G] = d;
       });
       return instance;
     }
@@ -91,7 +107,7 @@ export class ParameterRegistry {
       return this.subscribe(group, parameter, update);
     }
 
-    private notify(group: string, parameter: string, value: UniformValue) {
+    private notify(group: G, parameter: string, value: UniformValue) {
       const subscriber = this.subscribers.find(
         (s) => (s.group === group && s.parameter === parameter)
       );
@@ -108,8 +124,8 @@ export class ParameterRegistry {
       }
       Object.entries(data).forEach(([group, parameters]) => {
         Object.entries(parameters).forEach(([id, data]) => {
-          const desc = this.getParameter(group, id);
-          this.setValue(group, id, uniforms.createFromJson(data, desc.type));
+          const desc = this.getParameter(group as G, id);
+          this.setValue(group as G, id, uniforms.createFromJson(data, desc.type));
         });
       });
     }
@@ -133,7 +149,7 @@ export class ParameterRegistry {
       return result;
     }
 
-    register(group: string, parameter: string, descriptor: ParameterData) {
+    register(group: G, parameter: string, descriptor: ParameterData) {
         if (!this.groups[group]) {
             this.groups[group] = {
                 id: group,
@@ -150,33 +166,33 @@ export class ParameterRegistry {
         this.registry[group].parameters[parameter] = descriptor;
     }
 
-    setGroupInfo(group: string, order?: number, displayName?: string) {
+    setGroupInfo(group: G, order?: number, displayName?: string) {
         if (this.groups[group]) {
             this.groups[group].order = order ?? this.groups[group].order;
             this.groups[group].displayName = displayName ?? this.groups[group].displayName;
         }
     }
 
-    getParameter(group: string, parameter: string): ParameterData {
+    getParameter(group: G, parameter: string): ParameterData {
+        const data = this.registry[group].parameters[parameter];
+        if (!data) {
+          throw new NoSuchParameterError(group, parameter);
+        }
         return this.registry[group].parameters[parameter];
     }
     
-    setValue(group: string, parameter: string, value: UniformValue) {
+    setValue(group: G, parameter: string, value: UniformValue) {
         this.getParameter(group, parameter).value = value;
         this.notify(group, parameter, value);
     }
 
-    getValue(group: string, parameter: string): UniformValue {
-        return this.getParameter(group, parameter).value!;
-    }
-
-    getNumberValue(group: string, parameter: string): number {
-        return this.getParameter(group, parameter).value as number;
+    getValue<T extends UniformValue>(group: G, parameter: string): T {
+        return this.getParameter(group, parameter).value! as T;
     }
 
     list(): [string, string, ParameterData][] {
       const result: [string, string, ParameterData][] = [];
-      const orderedGroups = orderedValues<ParameterGroupDescriptor>((a, b) => {
+      const orderedGroups = orderedValues<ParameterGroupDescriptor<G>>((a, b) => {
         return a.order - b.order
       }, this.groups);
       orderedGroups.forEach((g) => {
@@ -187,5 +203,10 @@ export class ParameterRegistry {
       });
       return result;
     }
+}
 
+export type ParameterRegistry = ParameterService<ParameterGroupKey>;
+
+export function createRegistryFromConfig(config: ParameterConfig<ParameterGroupKey>): ParameterRegistry {
+  return ParameterService.fromConfig<ParameterGroupKey>(config);
 }
