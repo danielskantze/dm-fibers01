@@ -56,7 +56,6 @@ export class WebGLRenderer {
   private readonly _canvas: HTMLCanvasElement;
   private readonly _gl: WebGL2RenderingContext;
   private readonly _params: ParameterRegistry;
-  private readonly _settings: Settings;
   private readonly _stages: RenderingStages;
   private readonly _renderConfig: RenderingConfig;
 
@@ -64,7 +63,6 @@ export class WebGLRenderer {
     this._startTime = performance.now();
     this._canvas = canvas;
     this._params = params;
-    this._settings = settings;
     this._renderWidth = settings.width * settings.dpr;
     this._renderHeight = settings.height * settings.dpr;
     this._renderConfig = defaultRenderConfig;
@@ -187,7 +185,7 @@ export class WebGLRenderer {
 
   private _createStages(): RenderingStages {
     const simulate = stage_simulate.create(this._gl, this._renderConfig.maxNumParticles);
-    const materialize = stage_materialize.create(this._gl, simulate, this._renderWidth, this._renderHeight, this._renderConfig.maxNumParticles, this._settings.msaa);
+    const materialize = stage_materialize.create(this._gl, simulate, this._renderWidth, this._renderHeight, this._renderConfig.maxNumParticles);
     const accumulate = stage_accumulate.create(this._gl, materialize);
     const luma = stage_luma.create(this._gl, accumulate);
     const blur = stage_blur.create(this._gl, luma, "low", this._renderConfig.maxBloomSteps);
