@@ -14,7 +14,6 @@ const settings: Settings = {
   width: window.screen.width,
   height: window.screen.height,
   dpr: window.devicePixelRatio,
-  msaa: undefined
 }
 
 
@@ -81,18 +80,14 @@ export default main;
 
 // TODO:
 
-// Remove MSAA
-// Remove named key for shader programs inside each stage
+// Random seed
 
 // Refactoring cont'd (is this needed?):
 // - Improve UI code quality (use interfaces, improve method to put the UI together)
 
-
 // Migrate all vectors and math classes to use Float32Arrays instead of number[]
 // Maybe: Support parameter groups in UI
 // Handle outdated parameters (wrong version)
-
-// Random seed
 
 // Add music.
 // - Sync beats with stroke noise x/y (each kick will pulse these)
