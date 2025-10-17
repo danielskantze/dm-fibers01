@@ -1,4 +1,4 @@
-import type { ParameterGroup, ParameterGroupDescriptor, ParameterPreset } from "../service/parameters";
+import type { ParameterGroup, ParameterGroupDescriptor, ParameterGroupKey, ParameterPreset } from "../service/parameters";
 import type { RenderingConfig } from "../types/config";
 import * as constants from "./constants";
 
@@ -15,7 +15,7 @@ export const defaultParameters = {
         order: 2,
         displayName: "Bloom"
       }
-    ] as ParameterGroupDescriptor[],
+    ] as ParameterGroupDescriptor<ParameterGroupKey>[],
     parameters: [
       {
         group: "main",
@@ -88,7 +88,7 @@ export const defaultParameters = {
           }
         }
       }
-    ] as ParameterGroup[]
+    ] as ParameterGroup<ParameterGroupKey>[]
   }
 }
 

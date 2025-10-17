@@ -9,7 +9,10 @@ import type { Stage, StageOutput, Resources, BufferedStageOutput } from "../../t
 import fShaderSource from "../shaders/simulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 import * as mat43 from "../../math/mat43";
+import * as vec3 from "../../math/vec3";
+import * as vec4 from "../../math/vec4";
 import { filter } from "../util/dict";
+import type { Vec3, Vec4 } from "../../math/types";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     return {
@@ -22,6 +25,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const particlesTextureSizeLocation = gl.getUniformLocation(program, "u_particles_texture_size");
             const screenSizeLocation = gl.getUniformLocation(program, "u_screen_size");
             const frameLocation = gl.getUniformLocation(program, "u_frame");
+            const randomSeedLocation = gl.getUniformLocation(program, "u_rnd_seed");
 
             const maxRadiusPLocation = gl.getUniformLocation(program, "u_max_radius");
             const strokeNoisePLocation = gl.getUniformLocation(program, "u_stroke_noise_p");
@@ -32,71 +36,83 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
             };
+            let slot = 0;
             const uniforms = {
                 positionTex: {
                     location: positionLocation,
-                    slot: 0,
+                    slot: slot++,
                 },
                 colorTex: {
                     location: colorLocation,
-                    slot: 1,
+                    slot: slot++,
                 },
                 propertiesTex: {
                     location: propertiesLocation,
-                    slot: 2,
+                    slot: slot++,
                 },
                 time: {
                     location: timeLocation,
-                    slot: 3,
+                    slot: slot++,
                 },
                 particlesTextureSize: {
                     location: particlesTextureSizeLocation,
-                    slot: 4,
+                    slot: slot++,
                 },
                 screenSize: {
                     location: screenSizeLocation,
-                    slot: 5,
+                    slot: slot++,
                 },
                 frame: {
                     location: frameLocation,
-                    slot: 6,
-                },           
+                    slot: slot++,
+                },
+                randomSeed: {
+                    location: randomSeedLocation,
+                    slot: slot++,
+                    ui: {
+                      name: "Seed",
+                      min: -10,
+                      max: 10,
+                    },
+                    value: vec3.create([0, 0, 0]),
+                    type: "vec3",
+                },   
                 strokeNoise: {
                   location: strokeNoisePLocation,
-                  slot: 7,
+                  slot: slot++,
                   ui: {
                     name: "Stroke Noise",
                     min: -5.0,
                     max: 5.0,
                   },
-                  value: [0.5, 0.1, 1.55, 0.33],
+                  value: vec4.create([0.5, 0.1, 1.55, 0.33]),
                   type: "vec4"
                 },
                 strokeDrift: {
                   location: strokeDriftPLocation,
-                  slot: 8,
+                  slot: slot++,
                   ui: {
                     name: "Stroke Drift",
                     min: -1.0,
                     max: 1.0,
                   },
-                  value: [0.03, 0.01, 0.1, 0.1],
+                  value: vec4.create([0.03, 0.01, 0.1, 0.1]),
                   type: "vec4"
                 },
                 colorNoise: {
                   location: colorNoisePLocation,
-                  slot: 9,
+                  slot: slot++,
                   ui: {
                     name: "Color Noise & Drift",
                     min: 0.0,
                     max: 1.0,
                   },                  
-                  value: [0.1, 0.1, 0.001, 0.05],
+                  value: vec4.create([0.1, 0.1, 0.001, 0.05]),
                   type: "vec4"
                 },
                 cosPalette: {
                   location: cosPaletteLocation,
-                  slot: 14,
+                  slot: slot++,
                   type: "mat43",
                   value: mat43.createFrom([
                     [0.5, 0.5, 0.5], 
@@ -113,7 +129,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 },
                 maxRadius: {
                   location: maxRadiusPLocation,
-                  slot: 14,
+                  slot: slot++,
                   ui: {
                     name: "Radius",
                     min: 0.5,
@@ -227,10 +243,10 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform1i(u.colorTex.location, u.colorTex.slot);
     gl.uniform1i(u.propertiesTex.location, u.propertiesTex.slot);
     gl.uniform1f(u.maxRadius.location, u.maxRadius.value as number);
-
-    gl.uniform4fv(u.strokeNoise.location, u.strokeNoise.value as number[]);
-    gl.uniform4fv(u.strokeDrift.location, u.strokeDrift.value as number[]);
-    gl.uniform4fv(u.colorNoise.location, u.colorNoise.value as number[]);
+    gl.uniform3fv(u.randomSeed.location, u.randomSeed.value as Vec3);
+    gl.uniform4fv(u.strokeNoise.location, u.strokeNoise.value as Vec4);
+    gl.uniform4fv(u.strokeDrift.location, u.strokeDrift.value as Vec4);
+    gl.uniform4fv(u.colorNoise.location, u.colorNoise.value as Vec4);
 
     gl.uniformMatrix4x3fv(u.cosPalette.location, false, u.cosPalette.value as Float32Array);
     gl.activeTexture(gl.TEXTURE0);
