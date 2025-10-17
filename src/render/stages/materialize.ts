@@ -57,7 +57,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     };
 }
 
-function create(gl: WebGL2RenderingContext, input: Stage, width: number, height: number, numParticles: number, msaa?: number): Stage {
+function create(gl: WebGL2RenderingContext, input: Stage, width: number, height: number, numParticles: number): Stage {
     const shaders = loadShaders(gl);
     const output = createOutput(gl, width, height, "materialize_output") as StageOutput;
     

@@ -81,6 +81,19 @@ export default main;
 // TODO:
 
 // Random seed
+// - One or multiple? Vector possibly?
+// - Should affect all random generators as early as possible
+
+// Simple add music (hook up to audio features)
+// - Sync beats with stroke noise x/y (each kick will pulse these)
+// - Also pulsate stroke radius (maybe for a new section?)
+// - Possibly tune palette x/y too
+// - Experiment with syncing particle start time too (high intensity - particle restarts immediately)
+// - And of course, test controlling number of particles (possibly relate to radius)
+
+// Hook up midi parameters
+
+// Hook up music timeline file
 
 // Refactoring cont'd (is this needed?):
 // - Improve UI code quality (use interfaces, improve method to put the UI together)
@@ -89,12 +102,6 @@ export default main;
 // Maybe: Support parameter groups in UI
 // Handle outdated parameters (wrong version)
 
-// Add music.
-// - Sync beats with stroke noise x/y (each kick will pulse these)
-// - Also pulsate stroke radius (maybe for a new section?)
-// - Possibly tune palette x/y too
-// - Experiment with syncing particle start time too (high intensity - particle restarts immediately)
-// - And of course, test controlling number of particles (possibly relate to radius)
 
 // 3D support (each particle has Z component)
 
