@@ -56,6 +56,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   function onPause() {
     renderer.isRunning ? renderer.pause() : renderer.start();
+    return renderer.isRunning;
   }
 
   function onToggleVisibility() {
@@ -73,7 +74,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   });
 
   window.addEventListener("resize", resize);
-  renderer.start();
+  //renderer.start();
 }
 
 export default main;

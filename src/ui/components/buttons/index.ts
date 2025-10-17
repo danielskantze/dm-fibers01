@@ -1,9 +1,10 @@
 import './buttons.css';
 
-export function createButtons(buttons: {title: string, onClick: () => void, color?: number}[]): HTMLDivElement {
+export function createButtons(buttons: {title: string, onClick: () => void, color?: number}[]): { element: HTMLElement, setTitle:(i: number, title: string) => void} {
     const container = document.createElement("div");
     const buttonWidth = (100 / buttons.length).toPrecision(4);
     container.classList.add("buttons");
+    const buttonElements: HTMLButtonElement[] = [];
     for (const {title, onClick, color} of buttons) {
       const buttonWrapper = document.createElement("div");
       const button = document.createElement("button");
@@ -19,7 +20,12 @@ export function createButtons(buttons: {title: string, onClick: () => void, colo
         e.stopPropagation();
         onClick();
       };
+      buttonElements.push(button);
       container.appendChild(buttonWrapper);
     }
-    return container;
+    return { 
+      element: container, 
+      setTitle: (i, title) => {
+        buttonElements[i].innerText = title;
+    }};
 }
