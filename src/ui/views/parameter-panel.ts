@@ -1,4 +1,4 @@
-import type { Matrix4x3, Vec3 } from "../../math/types";
+import type { Matrix4x3 } from "../../math/types";
 import type { ParameterData, ParameterPreset, ParameterRegistry } from "../../service/parameters";
 import { UniformComponents } from "../../types/gl/uniforms";
 import { createButtons } from "../components/buttons";

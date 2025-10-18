@@ -81,7 +81,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     onToggleVisibility,
   });
 
-  dispatcher.subscribe("pause", (e: string, isPaused: boolean[]) => {
+  dispatcher.subscribe("pause", (_, isPaused: boolean[]) => {
     isPaused[0] = onPause();
   });
 
