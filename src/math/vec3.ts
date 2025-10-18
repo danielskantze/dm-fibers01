@@ -4,6 +4,14 @@ export function create(a: [number, number, number] | Float32Array): Vec3 {
   return new Float32Array(a);
 }
 
+export function createRandom(min: Vec3, max: Vec3): Vec3 {
+  const dist = sub(max, min);
+  dist[0] = Math.random() * dist[0];
+  dist[1] = Math.random() * dist[1];
+  dist[2] = Math.random() * dist[2];
+  return add(min, dist);
+}
+
 function multiplyMatrix(v: Vec3, m: Matrix3x3Vec): Vec3 {
   return [
     v[0] * m[0][0] + v[1] * m[1][0] + v[2] * m[2][0],
