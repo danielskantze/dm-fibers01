@@ -1,4 +1,4 @@
-import type { Matrix4x3 } from "../../math/types";
+import type { Matrix4x3, Vec3 } from "../../math/types";
 import type { ParameterData, ParameterPreset, ParameterRegistry } from "../../service/parameters";
 import { UniformComponents } from "../../types/gl/uniforms";
 import { createButtons } from "../components/buttons";
@@ -7,9 +7,10 @@ import { createDropdown } from "../components/dropdown";
 import { createScalar } from "../components/scalar";
 import type { UIComponent } from "../components/types";
 import { createVector } from "../components/vector";
+import { Dispatcher } from "../util/events";
 import { generateId } from "../util/id";
 
-export function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry) {
+export function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry, dispatcher: Dispatcher<UIEvents>) {
     for (const u of uniforms) {
       const { ui } = u;
       if (ui) {
@@ -21,10 +22,20 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
           });
           controlsContainer.appendChild(element);
           registry.subscribeParam(u, update);
+        } else if (component === "seed") {
+          const values = u.value as number[];
+          const onChange = (i: number, v: number) => { values[i] = v; };
+          const { element, update } = createVector({name, values, onChange, min, max, step, 
+            accessoryButton: {
+              title: "Randomize",
+              onClick: () => (dispatcher.notify("seed"))
+          }});
+          controlsContainer.appendChild(element);
+          registry.subscribeParam(u, update);
         } else if (numComponents > 1) {
           const values = u.value as number[];
           const onChange = (i: number, v: number) => { values[i] = v; };
-          const { element, update } = createVector(name, values, onChange, min, max, step);
+          const { element, update } = createVector({name, values, onChange, min, max, step});
           controlsContainer.appendChild(element);
           registry.subscribeParam(u, update);
         } else {
@@ -70,31 +81,38 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
     params: ParameterRegistry,
     loadPresets: () => ParameterPreset[],
     savePresets: (items: ParameterPreset[]) => void,
-    onScreenshot: () => void,
-    onPause: () => void,
     onToggleVisibility: () => void,
   }
 
-  export function createUi({ element, params, loadPresets, savePresets, onScreenshot, onPause, onToggleVisibility }: UIProps) {
+  export type UIEvents = "screenshot" | "pause" | "seed";
+
+  export function createUi({ element, params, loadPresets, savePresets, onToggleVisibility }: UIProps): Dispatcher<UIEvents> {
     const presetControls = createPresetControls(loadPresets, savePresets, params);
+    const dispatcher = new Dispatcher<UIEvents>();
     element.appendChild(presetControls.element);
-    createUniformControls(element, params.list().map(([,,u]) => (u)), params);
-    element.appendChild(createButtons([
+    createUniformControls(element, params.list().map(([,,u]) => (u)), params, dispatcher);
+    const buttons = createButtons([
       {
         title: "Screenshot", 
-        onClick: onScreenshot,
+        onClick: () => (dispatcher.notify("screenshot")),
         color: 2
       },
       { 
         title: "Pause", 
-        onClick: onPause, 
+        onClick: () => {
+          const isPaused = [undefined];
+          dispatcher.notify("pause", isPaused); // hack - we let the event modify the arg. The real solution would be to put the pause state in an observable property instead
+          buttons.setTitle(1, isPaused[0] ? "Pause" : "Resume");
+        },
         color: 2 
       }
-    ]));
+    ]);
+    element.appendChild(buttons.element);
   
     document.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) { // 112 = p
         onToggleVisibility();
       }
     });
+    return dispatcher;
   }

@@ -27,6 +27,20 @@
   margin-right: 0.5rem;
 }
 
+.vector header > .label {
+  flex: 1;
+}
+
+.vector header > .accessory-button {
+  margin-right: 1.0rem;
+  cursor: default;
+  user-select: none;
+}
+
+.vector header > .accessory-button:hover {
+  text-decoration: underline;
+}
+
 .vector[data-expanded="0"] .components {
   display: none;
 }

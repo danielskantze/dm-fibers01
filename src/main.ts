@@ -9,6 +9,7 @@ import { type Settings } from "./types/settings";
 import ControlFactory from "./ui/components/controls";
 import { timestamp } from "./ui/util/date";
 import { createUi } from "./ui/views/parameter-panel";
+import * as vec3 from "./math/vec3";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -59,22 +60,36 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     return renderer.isRunning;
   }
 
+  function onRandomSeed() {
+    const data = params.getParameter("simulate", "randomSeed");
+    const { min, max } = data.ui!;
+    params.setValue("simulate", "randomSeed", 
+      vec3.createRandom(vec3.create([min!, min!, min!]), 
+      vec3.create([max!, max!, max!]))
+    );
+  }
+
   function onToggleVisibility() {
     controlFactory.visible = !controlFactory.visible;
   }
 
-  createUi({
+  const dispatcher = createUi({
     element: controls,
     params,
     loadPresets: presetStore.load,
     savePresets: presetStore.save,
-    onScreenshot,
-    onPause,
     onToggleVisibility,
   });
 
+  dispatcher.subscribe("pause", (e: string, isPaused: boolean[]) => {
+    isPaused[0] = onPause();
+  });
+
+  dispatcher.subscribe("screenshot", onScreenshot);
+  dispatcher.subscribe("seed", onRandomSeed);
+
   window.addEventListener("resize", resize);
-  //renderer.start();
+  renderer.start();
 }
 
 export default main;

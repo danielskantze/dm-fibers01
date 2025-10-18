@@ -73,6 +73,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                       name: "Seed",
                       min: -10,
                       max: 10,
+                      component: "seed"
                     },
                     value: vec3.create([0, 0, 0]),
                     type: "vec3",
