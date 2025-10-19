@@ -67,6 +67,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       vec3.createRandom(vec3.create([min!, min!, min!]), 
       vec3.create([max!, max!, max!]))
     );
+    renderer.reset();
   }
 
   function onReset() {
