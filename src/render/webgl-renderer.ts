@@ -83,6 +83,17 @@ export class WebGLRenderer {
     if (!this._isRunning) return;
     this._isRunning = false;
   }
+
+  public reset(): void {
+    this._frame = 0;
+    stage_accumulate.reset(this._gl, this._stages.accumulate);
+    stage_blur.reset(this._gl, this._stages.blur);
+    stage_combine.reset(this._gl, this._stages.combine);
+    stage_luma.reset(this._gl, this._stages.luma);
+    stage_materialize.reset(this._gl, this._stages.materialize);
+    stage_simulate.reset(this._gl, this._stages.simulate);
+    stage_output.reset(this._gl, this._stages.display);
+  }
   
   public screenshot(): string {
     this._render(true);

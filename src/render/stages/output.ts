@@ -4,7 +4,7 @@ import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { TextureUniform } from "../../types/gl/uniforms";
-import type { Stage, StageOutput } from "../../types/stage";
+import type { Resources, Stage, StageOutput } from "../../types/stage";
 import fShaderSource from "../shaders/display.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 
@@ -31,6 +31,15 @@ function createOutput(gl: WebGL2RenderingContext, width: number, height: number,
     const textures = [createTexture(gl, width, height, "RGBA")];
     const framebuffer = createFrameBuffer(gl, width, height, textures);
     return { name, textures, framebuffer} as StageOutput;
+}
+
+function reset(gl: WebGL2RenderingContext, stage: Stage) {
+  const { output } = stage.resources as Resources & { output: StageOutput };
+  const { framebuffer } = output.framebuffer!;
+  const clearFloat = new Float32Array([0.0, 0.0, 0.0, 1.0]);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  gl.clearBufferfv(gl.COLOR_BUFFER_BIT, 0, clearFloat);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
 function create(gl: WebGL2RenderingContext, input: Stage, bufferOutput: boolean): Stage {
@@ -83,4 +92,4 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, width?: number, height?:
     gl.useProgram(null);
 }
 
-export { create, draw };
+export { create, draw, reset };

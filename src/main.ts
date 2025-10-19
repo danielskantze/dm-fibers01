@@ -69,6 +69,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     );
   }
 
+  function onReset() {
+    renderer.reset();
+  }
+
   function onToggleVisibility() {
     controlFactory.visible = !controlFactory.visible;
   }
@@ -87,6 +91,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   dispatcher.subscribe("screenshot", onScreenshot);
   dispatcher.subscribe("seed", onRandomSeed);
+  dispatcher.subscribe("reset", onReset);
 
   window.addEventListener("resize", resize);
   renderer.start();
