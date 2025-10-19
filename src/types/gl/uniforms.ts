@@ -1,7 +1,7 @@
 type UniformType = 
   "vec4" | "vec3" | "vec2" | "float" |
   "ivec4" | "ivec3" | "ivec2" | "int" | 
-  "mat4" | "mat3" | "mat43";
+  "mat4" | "mat3" | "mat43" | "tex2d";
 
 export const UniformFloatVectorTypes: UniformType[] = [
   "vec2", "vec3", "vec4", "mat3", "mat43", "mat4"
@@ -30,7 +30,8 @@ export const UniformComponents: Record<UniformType, number> = {
   ivec4: 4,
   ivec3: 3,
   ivec2: 2,
-  int: 1
+  int: 1,
+  tex2d: 1
 };
 
 export type ScalarUIType = "int" | "float" | "enum";
@@ -49,10 +50,14 @@ export type UniformUI = {
 
 type Uniform = {
     ui?: UniformUI;
-    slot: number;
     type?: UniformType;
     value?: UniformValue;
     location: WebGLUniformLocation;
+  }
+  
+export interface TextureUniform extends Uniform {
+    type: "tex2d";
+    slot: number;
 }
 
 type Uniforms = Record<string, Uniform>;

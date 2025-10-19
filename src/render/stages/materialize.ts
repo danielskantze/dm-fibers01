@@ -5,6 +5,7 @@ import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
+import type { TextureUniform } from "../../types/gl/uniforms";
 import type { Resources, Stage, StageOutput } from "../../types/stage";
 import fShaderSource from "../shaders/materialize.fs.glsl?raw";
 import vShaderSource from "../shaders/materialize.vs.glsl?raw";
@@ -24,32 +25,31 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             };
             const uniforms = {
                 positionTex: {
-                    location: positionLocation,
-                    slot: 0,
-                },
+                  type: "tex2d",
+                  location: positionLocation,
+                  slot: 0,
+                } as TextureUniform,
                 colorTex: {
-                    location: colorLocation,
-                    slot: 1,
-                },
+                  type: "tex2d",
+                  location: colorLocation,
+                  slot: 1,
+                } as TextureUniform,
                 propertiesTex: {
-                    location: propertiesLocation,
-                    slot: 2,
-                },
+                  type: "tex2d",
+                  location: propertiesLocation,
+                  slot: 2,
+                } as TextureUniform,
                 screenSize: {
                     location: screenSizeLocation,
-                    slot: 3,
                 },
                 particlesTextureSize: {
                     location: particlesTextureSizeLocation,
-                    slot: 4,
                 },
                 frame: {
                   location: frameLocation,
-                  slot: 5,
                 },
                 time: {
                   location: timeLocation,
-                  slot: 6,
                 }
             };
             return { program, attributes, uniforms } as ShaderProgram;
@@ -113,9 +113,9 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.viewport(0, 0, stage.targets[0].width, stage.targets[0].height);
     
     // Bind textures and set uniforms once
-    gl.uniform1i(u.positionTex.location, u.positionTex.slot);
-    gl.uniform1i(u.colorTex.location, u.colorTex.slot);
-    gl.uniform1i(u.propertiesTex.location, u.propertiesTex.slot);
+    gl.uniform1i(u.positionTex.location, (u.positionTex as TextureUniform).slot);
+    gl.uniform1i(u.colorTex.location, (u.colorTex as TextureUniform).slot);
+    gl.uniform1i(u.propertiesTex.location, (u.propertiesTex as TextureUniform).slot);
     gl.uniform2f(u.screenSize.location, stage.targets[0].width, stage.targets[0].height);
     gl.uniform2i(u.particlesTextureSize.location, input.targets[0].width, input.targets[0].height);
     gl.uniform1i(u.frame.location, frame);

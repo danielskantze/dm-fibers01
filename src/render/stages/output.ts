@@ -3,6 +3,7 @@ import { createFrameBuffer } from "../../gl/framebuffers";
 import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
+import type { TextureUniform } from "../../types/gl/uniforms";
 import type { Stage, StageOutput } from "../../types/stage";
 import fShaderSource from "../shaders/display.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
@@ -16,9 +17,10 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             };
             const uniforms = {
                 tex: {
-                    location,
-                    slot: 0,
-                },
+                  type: "tex2d",
+                  location,
+                  slot: 0,
+                } as TextureUniform,
             };
             return { program, attributes, uniforms } as ShaderProgram;
         }),
@@ -70,7 +72,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, width?: number, height?:
     gl.useProgram(shader.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
     gl.activeTexture(gl.TEXTURE0);
-    gl.uniform1i(tex.location, tex.slot);
+    gl.uniform1i(tex.location, (tex as TextureUniform).slot);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[0].texture);
     gl.enableVertexAttribArray(shader.attributes.position);
     gl.vertexAttribPointer(shader.attributes.position, 2, gl.FLOAT, false, 0, 0);

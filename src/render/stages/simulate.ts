@@ -4,7 +4,7 @@ import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
-import type { Uniform } from "../../types/gl/uniforms";
+import type { TextureUniform, Uniform } from "../../types/gl/uniforms";
 import type { Stage, StageOutput, Resources, BufferedStageOutput } from "../../types/stage";
 import fShaderSource from "../shaders/simulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
@@ -39,36 +39,34 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             let slot = 0;
             const uniforms = {
                 positionTex: {
-                    location: positionLocation,
-                    slot: slot++,
-                },
+                  type: "tex2d",
+                  location: positionLocation,
+                  slot: 0,
+                } as TextureUniform,
                 colorTex: {
+                    type: "tex2d",
                     location: colorLocation,
-                    slot: slot++,
-                },
+                    slot: 1,
+                } as TextureUniform,
                 propertiesTex: {
+                    type: "tex2d",
                     location: propertiesLocation,
-                    slot: slot++,
-                },
+                    slot: 2,
+                } as TextureUniform,
                 time: {
                     location: timeLocation,
-                    slot: slot++,
                 },
                 particlesTextureSize: {
                     location: particlesTextureSizeLocation,
-                    slot: slot++,
                 },
                 screenSize: {
                     location: screenSizeLocation,
-                    slot: slot++,
                 },
                 frame: {
                     location: frameLocation,
-                    slot: slot++,
                 },
                 randomSeed: {
                     location: randomSeedLocation,
-                    slot: slot++,
                     ui: {
                       name: "Seed",
                       min: -10,
@@ -80,7 +78,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 },   
                 strokeNoise: {
                   location: strokeNoisePLocation,
-                  slot: slot++,
                   ui: {
                     name: "Stroke Noise",
                     min: -5.0,
@@ -91,7 +88,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 },
                 strokeDrift: {
                   location: strokeDriftPLocation,
-                  slot: slot++,
                   ui: {
                     name: "Stroke Drift",
                     min: -1.0,
@@ -102,7 +98,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 },
                 colorNoise: {
                   location: colorNoisePLocation,
-                  slot: slot++,
                   ui: {
                     name: "Color Noise & Drift",
                     min: 0.0,
@@ -113,7 +108,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 },
                 cosPalette: {
                   location: cosPaletteLocation,
-                  slot: slot++,
                   type: "mat43",
                   value: mat43.createFrom([
                     [0.5, 0.5, 0.5], 
@@ -130,7 +124,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 },
                 maxRadius: {
                   location: maxRadiusPLocation,
-                  slot: slot++,
                   ui: {
                     name: "Radius",
                     min: 0.5,
@@ -240,9 +233,9 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform2i(u.particlesTextureSize.location, targetSize[0], targetSize[1]);
     gl.uniform2f(u.screenSize.location, gl.canvas.width, gl.canvas.height);
     gl.uniform1i(u.frame.location, frame);
-    gl.uniform1i(u.positionTex.location, u.positionTex.slot);
-    gl.uniform1i(u.colorTex.location, u.colorTex.slot);
-    gl.uniform1i(u.propertiesTex.location, u.propertiesTex.slot);
+    gl.uniform1i(u.positionTex.location, (u.positionTex as TextureUniform).slot);
+    gl.uniform1i(u.colorTex.location, (u.colorTex as TextureUniform).slot);
+    gl.uniform1i(u.propertiesTex.location, (u.propertiesTex as TextureUniform).slot);
     gl.uniform1f(u.maxRadius.location, u.maxRadius.value as number);
     gl.uniform3fv(u.randomSeed.location, u.randomSeed.value as Vec3);
     gl.uniform4fv(u.strokeNoise.location, u.strokeNoise.value as Vec4);
