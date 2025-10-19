@@ -195,6 +195,19 @@ function seq(length: number): number[] {
   return Array.from({length});
 }
 
+function reset(gl: WebGL2RenderingContext, stage: Stage) {
+  const { internal } = stage.resources as TypedResources<BlurStageInternalData>;
+  const { layers } = internal;
+  for (const layer of layers) {
+    for (const output of layer) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, output.framebuffer.framebuffer);
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
 function create(gl: WebGL2RenderingContext, input: Stage, quality: BlurQuality, steps: number): Stage {
     const shaders = loadShaders(gl);
     const { width, height } = input.targets[0];
@@ -308,4 +321,4 @@ function lookupBlurQuality(qNum: number): BlurQuality {
   }
 }
 
-export { create, draw, lookupBlurQuality };
+export { create, draw, reset,lookupBlurQuality };

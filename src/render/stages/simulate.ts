@@ -170,6 +170,17 @@ function getTextureSize(numParticles: number) {
     return { width, height: width };
 }
 
+function reset(gl: WebGL2RenderingContext, stage: Stage) {
+  const { output } = stage.resources as Resources & { output: BufferedStageOutput };
+  const { framebuffer } = output[0].framebuffer!;
+  const clearFloat = new Float32Array([0.0, 0.0, 0.0, 1.0]);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  gl.clearBufferfv(gl.COLOR_BUFFER_BIT, 0, clearFloat);
+  gl.clearBufferfv(gl.COLOR_BUFFER_BIT, 1, clearFloat);
+  gl.clearBufferfv(gl.COLOR_BUFFER_BIT, 2, clearFloat);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
 function create(gl: WebGL2RenderingContext, numParticles: number): Stage {
     const shaders = loadShaders(gl);
     const { width, height } = getTextureSize(numParticles);
@@ -255,4 +266,4 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, frame: number, drawSize?
     stage.targets = output[writeIndex].textures;
 }
 
-export { create, draw, resize };
+export { create, draw, resize, reset };

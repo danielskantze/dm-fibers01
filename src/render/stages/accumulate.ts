@@ -112,6 +112,19 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
     };
 }
 
+function reset(gl: WebGL2RenderingContext, stage: Stage) {
+    const { output } = stage.resources as { output: BufferedStageOutput };
+    const clearColor = new Float32Array([0.0, 0.0, 0.0, 0.0]);
+    const clearInt = new Int32Array([0, 0, 0, 0]);
+
+    for (const out of output) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, out.framebuffer!.framebuffer);
+        gl.clearBufferfv(gl.COLOR, 0, clearColor);
+        gl.clearBufferiv(gl.COLOR, 1, clearInt);
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
 function draw(gl: WebGL2RenderingContext, stage: Stage, frame: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: BufferedStageOutput };
     const { shader } = shaders;
@@ -156,4 +169,4 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, frame: number) {
     stage.resources.currentOutput = output[writeIndex];
 }
 
-export { create, draw };
+export { create, draw, reset };

@@ -84,7 +84,7 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
     onToggleVisibility: () => void,
   }
 
-  export type UIEvents = "screenshot" | "pause" | "seed";
+  export type UIEvents = "screenshot" | "pause" | "seed" | "reset";
 
   export function createUi({ element, params, loadPresets, savePresets, onToggleVisibility }: UIProps): Dispatcher<UIEvents> {
     const presetControls = createPresetControls(loadPresets, savePresets, params);
@@ -95,7 +95,12 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
       {
         title: "Screenshot", 
         onClick: () => (dispatcher.notify("screenshot")),
-        color: 2
+        color: 1
+      },
+      {
+        title: "Reset",
+        onClick: () => (dispatcher.notify("reset")),
+        color: 3,
       },
       { 
         title: "Pause", 

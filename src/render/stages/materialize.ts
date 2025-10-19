@@ -53,6 +53,17 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
     };
 }
 
+function reset(gl: WebGL2RenderingContext, stage: Stage) {
+  const { output } = stage.resources as Resources & { output: StageOutput };
+  const { framebuffer } = output.framebuffer!;
+  const clearFloat = new Float32Array([0.0, 0.0, 0.0, 0.0]);
+  const clearInt = new Int32Array([0, 0, 0, 0]);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  gl.clearBufferfv(gl.COLOR_BUFFER_BIT, 0, clearFloat);
+  gl.clearBufferiv(gl.COLOR, 1, clearInt);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
 function create(gl: WebGL2RenderingContext, input: Stage, width: number, height: number, numParticles: number): Stage {
     const shaders = loadShaders(gl);
     const output = createOutput(gl, width, height, "materialize_output") as StageOutput;
@@ -138,4 +149,4 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, frame: number, numPartic
     gl.useProgram(null);
 }
 
-export { create, draw };
+export { create, draw, reset };
