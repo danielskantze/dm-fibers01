@@ -18,7 +18,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const stampColorLocation = gl.getUniformLocation(program, "stamp_color_tex");
             const stampUpdatedLocation = gl.getUniformLocation(program, "stamp_updated_tex");
             const frameLocation = gl.getUniformLocation(program, "u_frame");
-            const timeLocation = gl.getUniformLocation(program, "u_time");
             const fadeTimeLocation = gl.getUniformLocation(program, "u_fade_time");
             const accumulateLocation = gl.getUniformLocation(program, "u_accumulate");
             const attributes = {
@@ -48,17 +47,14 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             frame: {
               location: frameLocation,
             },
-            time: {
-              location: timeLocation,
-            },
             fadeTime: {
               location: fadeTimeLocation,
               ui: {
                 name: "Fade time",
                 min: 0.1,
-                max: 10.0,
+                max: 30.0,
               },
-              value: 2.0,
+              value: 5.0,
               type: "float"
             },
             accumulate: {
@@ -83,7 +79,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
 function createTargetTextures(gl: WebGL2RenderingContext, width: number, height: number): Texture[] {
     return [
         createTexture(gl, width, height, "RGBA16F"),
-        createTexture(gl, width, height, "R32F", "updated_time", true),
+        createTexture(gl, width, height, "R32I", "updated_frame", true),
     ];
 }
 
@@ -116,7 +112,7 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
     };
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, frame: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: BufferedStageOutput };
     const { shader } = shaders;
     const { quad } = buffers;
@@ -139,7 +135,6 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform1i(u.stampColorTexture.location, (u.stampColorTexture as TextureUniform).slot);
     gl.uniform1i(u.stampUpdatedTexture.location, (u.stampUpdatedTexture as TextureUniform).slot);
     gl.uniform1i(shader.uniforms.frame.location, frame);
-    gl.uniform1f(shader.uniforms.time.location, time);
     gl.uniform1f(u.fadeTime.location, u.fadeTime.value as number);
     gl.uniform1i(u.accumulate.location, u.accumulate.value as number);
     gl.activeTexture(gl.TEXTURE0);

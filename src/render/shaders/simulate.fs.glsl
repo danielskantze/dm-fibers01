@@ -3,11 +3,12 @@ precision highp int;
 precision highp float;
 #define PI 3.1415926535897932384626433832795
 #define PI2 6.283185307179586476925286766559
+#define FPS 60.0
+#define TIME (float(u_frame) / FPS)
 //in your particle update fragment shader
 
 uniform ivec2 u_particles_texture_size;
 uniform vec2 u_screen_size;
-uniform float u_time;
 uniform float u_max_radius;
 uniform int u_frame;
 
@@ -206,13 +207,14 @@ float sinBounce(float x) {
 
 float angleAt(vec2 coord) {
   //vec2 scale = vec2(1.25, .33);
-  float bt = sinBounce(u_time * 0.1);
+  float time = TIME;
+  float bt = sinBounce(time * 0.1);
   float scaleFactor = u_stroke_noise_p.x + u_stroke_noise_p.y * bt; //0.2;
   float driftFactor = u_stroke_drift_p.x + u_stroke_drift_p.y * bt; //0.1;
   vec2 scale = vec2(u_stroke_noise_p.z, u_stroke_noise_p.w) * scaleFactor;
-  vec2 drift = driftFactor * vec2(snoise(vec2(u_time * u_stroke_drift_p.z)), snoise(vec2(u_time * u_stroke_drift_p.w + 1.3)));
+  vec2 drift = driftFactor * vec2(snoise(vec2(time * u_stroke_drift_p.z)), snoise(vec2(time * u_stroke_drift_p.w + 1.3)));
   vec2 p = vec2(coord + drift) * scale;
-  return gnoise(vec3(p.x + 0.5 * fbm(p), p.y + 0.5 * fbm(p + vec2(.1) * bt), u_time * .05));
+  return gnoise(vec3(p.x + 0.5 * fbm(p), p.y + 0.5 * fbm(p + vec2(.1) * bt), time * .05));
 }
 
 vec3 palette1(float t) {
@@ -220,14 +222,15 @@ vec3 palette1(float t) {
 }
 
 vec4 colorAt(vec2 coord) {
-  float cscale = u_color_noise_p.x + u_color_noise_p.y * sinBounce(u_time);
-  float drift = u_time * u_color_noise_p.z;
+  float time = TIME;
+  float cscale = u_color_noise_p.x + u_color_noise_p.y * sinBounce(time);
+  float drift = time * u_color_noise_p.z;
   float px = drift + cscale * coord.x;
   float py = drift + cscale * coord.y;
   float alpha = 0.5;
   float darken = 0.25 + hash12(coord);
 
-  vec3 color = palette1(0.5 * (sin(u_time * 0.1) + 1.0)) * darken;
+  vec3 color = palette1(0.5 * (sin(time * 0.1) + 1.0)) * darken;
 
   return vec4(color, alpha);
 }
@@ -237,6 +240,7 @@ bool boundsCheck(vec2 position) {
 }
 
 void main() {
+  float time = TIME;
   vec2 textureSize = vec2(u_particles_texture_size);
   vec2 coord = gl_FragCoord.xy / textureSize;
   vec4 position;
@@ -254,7 +258,7 @@ void main() {
       // new particle
     vec2 rndCoord = coord + u_rnd_seed.xy * u_rnd_seed.z;
     float lifetime = (hash12(rndCoord) * 256.0 + 512.0) * 1.0;
-    float age = -hash12(rndCoord * u_time) * lifetime;
+    float age = -hash12(rndCoord * time) * lifetime;
     position = vec4(hash22(100.0 * rndCoord) * 2.0 - 1.0, 0, 1.0);
     properties = vec4(hash12(rndCoord) * u_max_radius, 0.0, age, lifetime);
     color = colorAt(rndCoord);

@@ -96,7 +96,6 @@ export default main;
 
 // TODO:
 
-// Remove support for time and rely only on frame
 // Reset function
 // - Add reset button
 // - Random seed should reset simulation

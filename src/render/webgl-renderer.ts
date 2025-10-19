@@ -47,8 +47,6 @@ type RenderingStagesState = {
 export class WebGLRenderer {
 
   private _isRunning: boolean = false;
-  private _elapsedTime: number = 0;
-  private _startTime: number = 0;
   private _frame: number = 0;
   private _renderWidth: number;
   private _renderHeight: number;
@@ -60,7 +58,6 @@ export class WebGLRenderer {
   private readonly _renderConfig: RenderingConfig;
 
   constructor(settings: Settings, canvas: HTMLCanvasElement, params: ParameterRegistry) {
-    this._startTime = performance.now();
     this._canvas = canvas;
     this._params = params;
     this._renderWidth = settings.width * settings.dpr;
@@ -76,13 +73,8 @@ export class WebGLRenderer {
     return this._isRunning;
   }
 
-  public get renderTime(): number {
-    return this._elapsedTime + (performance.now() - this._startTime) / 1000;
-  }
-
   public start(): void {
     if (this._isRunning) return;
-    this._startTime = performance.now();
     this._isRunning = true;
     this._draw();
   }
@@ -90,14 +82,9 @@ export class WebGLRenderer {
   public pause(): void {
     if (!this._isRunning) return;
     this._isRunning = false;
-    this._elapsedTime += (performance.now() - this._startTime) / 1000;
   }
   
   public screenshot(): string {
-    if (!this._isRunning) {
-      this._startTime = performance.now();
-    }
-
     this._render(true);
     
     const imageData = screenshot.getTexturePng(
@@ -105,9 +92,6 @@ export class WebGLRenderer {
       this._stages.screenshot.resources.output as StageOutput
     );
 
-    if (!this._isRunning) {
-      this._elapsedTime = this.renderTime;
-    }
     return imageData;
   }
 
@@ -148,11 +132,10 @@ export class WebGLRenderer {
   private _updateSimulationStages(numParticles: number): void {
     const { maxNumParticles } = this._renderConfig;
     let frame = this._frame;
-    let time = this.renderTime;
     const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
-    stage_simulate.draw(this._gl, this._stages.simulate, time, frame, drawSize);
-    stage_materialize.draw(this._gl, this._stages.materialize, time, frame, numParticles);
-    stage_accumulate.draw(this._gl, this._stages.accumulate, time, frame);
+    stage_simulate.draw(this._gl, this._stages.simulate, frame, drawSize);
+    stage_materialize.draw(this._gl, this._stages.materialize, frame, numParticles);
+    stage_accumulate.draw(this._gl, this._stages.accumulate, frame);
   }
   
   private _drawOutputStages(state: RenderingStagesState, isScreenshot: boolean = false): void {

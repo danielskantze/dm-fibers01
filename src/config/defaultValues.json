@@ -50,7 +50,7 @@
       "maxRadius": 2
     },
     "accumulate": {
-      "fadeTime": 2,
+      "fadeTime": 5,
       "accumulate": 1
     }
   }

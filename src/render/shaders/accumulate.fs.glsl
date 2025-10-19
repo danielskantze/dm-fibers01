@@ -1,33 +1,33 @@
 #version 300 es
 precision mediump float;
 precision highp int;
-
+precision highp isampler2D;
+#define FPS 60.0
 in highp vec2 v_texcoord;
 uniform sampler2D previous_color_tex;
-uniform sampler2D previous_updated_tex;
+uniform isampler2D previous_updated_tex;
 uniform sampler2D stamp_color_tex;
-uniform sampler2D stamp_updated_tex;
+uniform isampler2D stamp_updated_tex;
 uniform int u_frame;
-uniform float u_time;
 uniform float u_fade_time;
 
 uniform int u_accumulate;
 
 layout(location = 0) out vec4 out_color;
-layout(location = 1) out float out_updated;
+layout(location = 1) out int out_updated;
 
 void main() {
   vec3 p_color = texelFetch(previous_color_tex, ivec2(gl_FragCoord.xy), 0).rgb;
-  float p_updated = texelFetch(previous_updated_tex, ivec2(gl_FragCoord.xy), 0).x;
+  int p_updated = texelFetch(previous_updated_tex, ivec2(gl_FragCoord.xy), 0).r;
   vec4 color = texelFetch(stamp_color_tex, ivec2(gl_FragCoord.xy), 0);
-  float updated = texelFetch(stamp_updated_tex, ivec2(gl_FragCoord.xy), 0).x;
+  int updated = texelFetch(stamp_updated_tex, ivec2(gl_FragCoord.xy), 0).r;
 
   if (u_accumulate == 1) {
-    float p_i = clamp(1.0 - (u_time - p_updated) / u_fade_time, 0.0, 1.0);
+    float p_i = clamp(1.0 - float(u_frame - p_updated) / (FPS * u_fade_time), 0.0, 1.0);
 
     // Fade new partciles aggressively at first. Creates a more dynamic look where we get more contrasts. 
     p_i = p_i * p_i * p_i;
-    bool isNew = u_time - updated < 0.1;
+    bool isNew = (u_frame - updated) == 0;
 
     // State Strategy:
     // RGB = pure accumulated color.
