@@ -19,7 +19,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const screenSizeLocation = gl.getUniformLocation(program, "u_screen_size");
             const particlesTextureSizeLocation = gl.getUniformLocation(program, "u_particles_texture_size");
             const frameLocation = gl.getUniformLocation(program, "u_frame");
-            const timeLocation = gl.getUniformLocation(program, "u_time");
             const attributes = {
                 index: gl.getAttribLocation(program, "a_index"),
             };
@@ -48,9 +47,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                 frame: {
                   location: frameLocation,
                 },
-                time: {
-                  location: timeLocation,
-                }
             };
             return { program, attributes, uniforms } as ShaderProgram;
         }),
@@ -64,8 +60,8 @@ function create(gl: WebGL2RenderingContext, input: Stage, width: number, height:
     // Clear the new framebuffer to a known state (0,0,0,0)
     gl.bindFramebuffer(gl.FRAMEBUFFER, output.framebuffer!.framebuffer);
     gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+    gl.clearBufferiv(gl.COLOR, 1, [0, 0, 0, 0]);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     
     // Create flipflop age buffer, 1-channel texture
@@ -84,7 +80,7 @@ function create(gl: WebGL2RenderingContext, input: Stage, width: number, height:
 
 function createTargetTextures(gl: WebGL2RenderingContext, width: number, height: number): Texture[] {
     const mainTexture = createTexture(gl, width, height, "RGBA16F");
-    const startTimeTexture = createTexture(gl, width, height, "R32F", "updated_time", true); 
+    const startTimeTexture = createTexture(gl, width, height, "R32I", "updated_frame", true); 
     const targetTextures = [
         mainTexture,
         startTimeTexture,
@@ -98,7 +94,7 @@ function createOutput(gl: WebGL2RenderingContext, width: number, height: number,
     return { name, textures, framebuffer} as StageOutput;
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, numParticles: number) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, frame: number, numParticles: number) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: StageOutput };
     const { shader } = shaders;
     const { particles } = buffers;
@@ -119,7 +115,6 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.uniform2f(u.screenSize.location, stage.targets[0].width, stage.targets[0].height);
     gl.uniform2i(u.particlesTextureSize.location, input.targets[0].width, input.targets[0].height);
     gl.uniform1i(u.frame.location, frame);
-    gl.uniform1f(u.time.location, time);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, input.targets[0].texture);
@@ -134,8 +129,8 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
+    gl.clearBufferiv(gl.COLOR, 1, [0, 0, 0, 0]);
     gl.drawArrays(gl.POINTS, 0, numParticles);
 
     // --- Cleanup ---

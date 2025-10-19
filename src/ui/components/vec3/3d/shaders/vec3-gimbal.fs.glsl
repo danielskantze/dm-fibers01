@@ -2,7 +2,6 @@
 precision mediump float;
 
 in highp vec2 v_texcoord;
-uniform float u_time;
 uniform mat4 u_object_mat;
 uniform mat4 u_object_mat_i;
 uniform float u_magnitude;

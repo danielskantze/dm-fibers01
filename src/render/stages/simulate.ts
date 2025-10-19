@@ -21,7 +21,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const colorLocation = gl.getUniformLocation(program, "u_color_texture");
             const propertiesLocation = gl.getUniformLocation(program, "u_properties_texture");
 
-            const timeLocation = gl.getUniformLocation(program, "u_time");
             const particlesTextureSizeLocation = gl.getUniformLocation(program, "u_particles_texture_size");
             const screenSizeLocation = gl.getUniformLocation(program, "u_screen_size");
             const frameLocation = gl.getUniformLocation(program, "u_frame");
@@ -36,7 +35,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
             };
-            let slot = 0;
             const uniforms = {
                 positionTex: {
                   type: "tex2d",
@@ -53,9 +51,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                     location: propertiesLocation,
                     slot: 2,
                 } as TextureUniform,
-                time: {
-                    location: timeLocation,
-                },
                 particlesTextureSize: {
                     location: particlesTextureSizeLocation,
                 },
@@ -208,7 +203,7 @@ function resize(gl: WebGL2RenderingContext, numParticles: number, stage: Stage) 
     stage.resources.output = output;
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: number, drawSize?: [number, number]) {
+function draw(gl: WebGL2RenderingContext, stage: Stage, frame: number, drawSize?: [number, number]) {
     const { buffers, shaders, output } = stage.resources as Resources & { output: BufferedStageOutput };
     const { shader } = shaders;
     const { quad } = buffers;
@@ -229,7 +224,6 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.disable(gl.BLEND);
     
     gl.useProgram(shader.program);
-    gl.uniform1f(u.time.location, time);
     gl.uniform2i(u.particlesTextureSize.location, targetSize[0], targetSize[1]);
     gl.uniform2f(u.screenSize.location, gl.canvas.width, gl.canvas.height);
     gl.uniform1i(u.frame.location, frame);
