@@ -4,7 +4,7 @@ import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
-import type { Uniform } from "../../types/gl/uniforms";
+import type { TextureUniform, Uniform } from "../../types/gl/uniforms";
 import type { BufferedStageOutput, Resources, Stage, StageOutput } from "../../types/stage";
 import fShaderSource from "../shaders/accumulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
@@ -26,32 +26,33 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             };
           const uniforms = {
             previousColorTexture: {
+              type: "tex2d",
               location: previousColorLocation,
               slot: 0,
-            },
+            } as TextureUniform,
             previousUpdatedTexture: {
+              type: "tex2d",
               location: previousUpdatedLocation,
               slot: 1,
-            },
+            } as TextureUniform,
             stampColorTexture: {
+              type: "tex2d",
               location: stampColorLocation,
               slot: 2,
-            },
+            } as TextureUniform,
             stampUpdatedTexture: {
+              type: "tex2d",
               location: stampUpdatedLocation,
               slot: 3,
-            },
+            } as TextureUniform,
             frame: {
               location: frameLocation,
-              slot: 4,
             },
             time: {
               location: timeLocation,
-              slot: 5,
             },
             fadeTime: {
               location: fadeTimeLocation,
-              slot: 6,
               ui: {
                 name: "Fade time",
                 min: 0.1,
@@ -62,7 +63,6 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             },
             accumulate: {
               location: accumulateLocation,
-              slot: 7,
               ui: {
                 name: "Accumulate",
                 min: 0,
@@ -134,10 +134,10 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, time: number, frame: num
     gl.viewport(0, 0, input.targets[0].width, input.targets[0].height);
     gl.useProgram(shader.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
-    gl.uniform1i(u.previousColorTexture.location, u.previousColorTexture.slot);
-    gl.uniform1i(u.previousUpdatedTexture.location, u.previousUpdatedTexture.slot);
-    gl.uniform1i(u.stampColorTexture.location, u.stampColorTexture.slot);
-    gl.uniform1i(u.stampUpdatedTexture.location, u.stampUpdatedTexture.slot);
+    gl.uniform1i(u.previousColorTexture.location, (u.previousColorTexture as TextureUniform).slot);
+    gl.uniform1i(u.previousUpdatedTexture.location, (u.previousUpdatedTexture as TextureUniform).slot);
+    gl.uniform1i(u.stampColorTexture.location, (u.stampColorTexture as TextureUniform).slot);
+    gl.uniform1i(u.stampUpdatedTexture.location, (u.stampUpdatedTexture as TextureUniform).slot);
     gl.uniform1i(shader.uniforms.frame.location, frame);
     gl.uniform1f(shader.uniforms.time.location, time);
     gl.uniform1f(u.fadeTime.location, u.fadeTime.value as number);

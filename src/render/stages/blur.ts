@@ -9,6 +9,7 @@ import fBlurShaderSource from "../shaders/blur.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 import fWeightedShaderSource from "../shaders/weighted.fs.glsl?raw";
 import fDownsampleShaderSource from "../shaders/downsample.fs.glsl?raw";
+import type { TextureUniform } from "../../types/gl/uniforms";
 
 type BlurStageInternalData = {
   layers: [StageOutput, StageOutput][];
@@ -25,16 +26,15 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             };
             const uniforms = {
                 texture: {
+                  type: "tex2d",
                   location: gl.getUniformLocation(program, "tex"),
                   slot: 0,
-                },
+                } as TextureUniform,
                 textureSize: {
                   location: gl.getUniformLocation(program, "texture_size"),
-                  slot: 1
                 },
                 direction: {
                   location: gl.getUniformLocation(program, "direction"),
-                  slot: 2
                 }
             };
             return { program, attributes, uniforms } as ShaderProgram;
@@ -47,16 +47,15 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             };
             const uniforms = {
                 texture: {
+                  type: "tex2d",
                   location: gl.getUniformLocation(program, "tex"),
                   slot: 0,
-                },
+                } as TextureUniform,
                 weight: {
                   location: gl.getUniformLocation(program, "u_weight"),
-                  slot: 1
                 },
                 sourceResolution: {
                   location: gl.getUniformLocation(program, "u_source_resolution"),
-                  slot: 2
                 }
             };
             return { program, attributes, uniforms } as ShaderProgram;
@@ -67,12 +66,12 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
           };
           const uniforms = {
               texture: {
+                type: "tex2d",
                 location: gl.getUniformLocation(program, "tex"),
                 slot: 0,
-              },
+              } as TextureUniform,
               sourceResolution: {
                 location: gl.getUniformLocation(program, "u_source_resolution"),
-                slot: 1
               }
           };
           return { program, attributes, uniforms } as ShaderProgram;
@@ -109,7 +108,7 @@ function createDownsamplePass(program: ShaderProgram, quad: WebGLBuffer) {
       gl.vertexAttribPointer(program.attributes.position, 2, gl.FLOAT, false, 0, 0);
       gl.disable(gl.BLEND);
       gl.activeTexture(gl.TEXTURE0);
-      gl.uniform1i(u.texture.location, u.texture.slot);
+      gl.uniform1i(u.texture.location, (u.texture as TextureUniform).slot);
     },
     render: (gl: WebGL2RenderingContext, src: StageOutput, dest: StageOutput) => {
       const { framebuffer } = dest;
@@ -138,7 +137,7 @@ function createAddPass(program: ShaderProgram, quad: WebGLBuffer) {
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.ONE, gl.ONE);
       gl.activeTexture(gl.TEXTURE0);
-      gl.uniform1i(u.texture.location, u.texture.slot);
+      gl.uniform1i(u.texture.location, (u.texture as TextureUniform).slot);
     },
     render: (gl: WebGL2RenderingContext, src: StageOutput, dest: StageOutput, weight: number) => {
       const { framebuffer } = dest;
@@ -168,7 +167,7 @@ let u = program.uniforms;
       gl.enableVertexAttribArray(program.attributes.position);
       gl.vertexAttribPointer(program.attributes.position, 2, gl.FLOAT, false, 0, 0);
       gl.activeTexture(gl.TEXTURE0);
-      gl.uniform1i(u.texture.location, u.texture.slot);
+      gl.uniform1i(u.texture.location, (u.texture as TextureUniform).slot);
     },
     render: (gl: WebGL2RenderingContext, src: StageOutput, dest: StageOutput, direction: [number, number]) => {
       const { framebuffer } = dest;

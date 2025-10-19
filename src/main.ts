@@ -96,9 +96,11 @@ export default main;
 
 // TODO:
 
-// Random seed
-// - One or multiple? Vector possibly?
-// - Should affect all random generators as early as possible
+// Remove support for time and rely only on frame
+// Reset function
+// - Add reset button
+// - Random seed should reset simulation
+// String for random seed (minecraft style - compute hash and translate to vector)
 
 // Simple add music (hook up to audio features)
 // - Sync beats with stroke noise x/y (each kick will pulse these)
