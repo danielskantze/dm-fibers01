@@ -39,9 +39,8 @@ function createOutput(gl: WebGL2RenderingContext, width: number, height: number,
 function reset(gl: WebGL2RenderingContext, stage: Stage) {
   const { output } = stage.resources as Resources & { output: StageOutput };
   const { framebuffer } = output.framebuffer!;
-  const clearFloat = new Float32Array([0.0, 0.0, 0.0, 1.0]);
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-  gl.clearBufferfv(gl.COLOR_BUFFER_BIT, 0, clearFloat);
+  gl.clearColor(0, 0, 0, 0);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 

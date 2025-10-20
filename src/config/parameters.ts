@@ -38,6 +38,14 @@ export const defaultParameters = {
               max: 10,
               step: 1
             }
+          },
+          "seed": {
+            type: "custom",
+            value: "fibers01",
+            ui: {
+              name: "Seed",
+              component: "seed"
+            }
           }
         }
       },

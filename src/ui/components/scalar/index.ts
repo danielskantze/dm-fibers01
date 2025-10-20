@@ -1,5 +1,5 @@
-import type { ScalarUIType, UniformValue } from "../../../types/gl/uniforms";
-import type { UIComponent } from "../types";
+import type { ScalarUIType } from "../../../types/gl/uniforms";
+import type { UIComponent, UIComponentValue } from "../types";
 import "./scalar.css";
 
 let idSeq = 1;
@@ -104,7 +104,7 @@ export function createScalarInner(
 
   return {
     element: wrapper,
-    update: (value: UniformValue) => {
+    update: (value: UIComponentValue) => {
       input.value = value.toString();
       text.value = getValue(value as number, valueConfig);
     },
@@ -114,6 +114,7 @@ export function createScalarInner(
 export function createScalar(props: ScalarProps): UIComponent {
   const container: HTMLDivElement = document.createElement("div");
   container.classList.add("scalar");
+  container.classList.add("ui-control");
 
   const wrapper: HTMLDivElement = document.createElement("div");
   const { update } = createScalarInner(wrapper, props);

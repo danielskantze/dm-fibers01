@@ -1,0 +1,53 @@
+.ui-control.seed {
+  width: var(--total-width);
+  padding: 0;
+  margin-bottom: 0;
+  background-color: transparent;
+
+  background-color: var(--component-color-background);
+  color: var(--component-color-accent-1);
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin: var(--component-margin);
+  width: var(--ui-width);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;  
+}
+
+.ui-control.seed button {
+  cursor: default;
+  margin-left: 0.5rem;
+  background-color: transparent;
+  color: var(--component-color-accent-1);
+  border: none;
+}
+
+.ui-control.seed button:hover {
+  text-decoration: underline;
+}
+
+.ui-control.seed > label {
+  display: block;
+  white-space: nowrap;
+  margin-top: 2px;
+  width: 4.5rem;
+  margin-right: 8px;
+}
+
+.ui-control.seed .parameter > label {
+  width: auto;
+}
+
+.ui-control.seed > input {
+  display: block;
+  height: var(--component-input-height);
+  padding: 0 5px;
+  flex: 1;
+  outline: none;
+  background-color: var(--component-color-background-1);
+  color: var(--component-color-accent-1);
+  border: none;
+
+}

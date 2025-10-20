@@ -1,7 +1,7 @@
 type UniformType = 
   "vec4" | "vec3" | "vec2" | "float" |
   "ivec4" | "ivec3" | "ivec2" | "int" | 
-  "mat4" | "mat3" | "mat43" | "tex2d";
+  "mat4" | "mat3" | "mat43" | "tex2d" | "custom";
 
 export const UniformFloatVectorTypes: UniformType[] = [
   "vec2", "vec3", "vec4", "mat3", "mat43", "mat4"
@@ -31,12 +31,13 @@ export const UniformComponents: Record<UniformType, number> = {
   ivec3: 3,
   ivec2: 2,
   int: 1,
-  tex2d: 1
+  tex2d: 1,
+  custom: -1,
 };
 
-export type ScalarUIType = "int" | "float" | "enum";
+export type ScalarUIType = "int" | "float" | "enum" | "custom" | "hidden";
 
-export type UniformValue = number | number[] | Float32Array;
+export type UniformValue = number | number[] | Float32Array | string;
 
 export type UniformUI = {
   name: string;

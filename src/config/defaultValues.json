@@ -6,7 +6,8 @@
   "data": {
     "main": {
       "particles": 1000,
-      "updatesPerDraw": 4
+      "updatesPerDraw": 4,
+      "seed": "fibers01"
     },
     "bloom": {
       "quality": 0,

@@ -4,6 +4,10 @@ export function create(a: [number, number, number] | Float32Array): Vec3 {
   return new Float32Array(a);
 }
 
+export function createZero(): Vec3 {
+  return new Float32Array([0, 0, 0]);
+}
+
 export function createRandom(min: Vec3, max: Vec3): Vec3 {
   const dist = sub(max, min);
   dist[0] = Math.random() * dist[0];
