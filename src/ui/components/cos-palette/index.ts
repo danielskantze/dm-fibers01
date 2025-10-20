@@ -1,7 +1,7 @@
 import { getRow } from "../../../math/mat43";
 import type { Matrix4x3 } from "../../../math/types";
 import type { UniformValue } from "../../../types/gl/uniforms";
-import type { UIComponent } from "../types";
+import type { UIComponent, UIComponentValue } from "../types";
 import { createVec3, type Vec3Params } from "../vec3";
 import * as mat43 from "../../../math/mat43";
 import "./cos-palette.css";
@@ -92,7 +92,7 @@ export function createCosPalette(
     drawPalette();
     return {
       element: container,
-      update: (value: UniformValue) => {
+      update: (value: UIComponentValue) => {
         const m = value as Matrix4x3;
         matrix.set(m);
         componentUpdateFns[0](getRow(0, m));

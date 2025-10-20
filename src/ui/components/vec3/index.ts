@@ -2,9 +2,8 @@ import * as mat4 from "../../../math/mat4";
 import type { Matrix4x4, Vec3 } from "../../../math/types";
 import * as vec3 from "../../../math/vec3";
 import * as vec4 from "../../../math/vec4";
-import type { UniformValue } from "../../../types/gl/uniforms";
 import { createVec3GimbalView } from "./3d/vec3-gimbal";
-import type { UIComponent } from "../types";
+import type { UIComponent, UIComponentValue } from "../types";
 import './vec3.css';
 import template from './vec3.html?raw';
 class Vec3State {
@@ -295,7 +294,7 @@ export function createVec3(name: string, value: Vec3, onChange: (value: Vec3) =>
 
     return {
       element: control,
-      update: (value: UniformValue) => {
+      update: (value: UIComponentValue) => {
         setComponentValues(value as Vec3);
         updateGimbal(state.matrix, state.matrixI, state.length);
         initializeControls();

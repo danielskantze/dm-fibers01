@@ -59,7 +59,7 @@ function reset(gl: WebGL2RenderingContext, stage: Stage) {
   const clearFloat = new Float32Array([0.0, 0.0, 0.0, 0.0]);
   const clearInt = new Int32Array([0, 0, 0, 0]);
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-  gl.clearBufferfv(gl.COLOR_BUFFER_BIT, 0, clearFloat);
+  gl.clearBufferfv(gl.COLOR, 0, clearFloat);
   gl.clearBufferiv(gl.COLOR, 1, clearInt);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }

@@ -1,6 +1,6 @@
 import type { UniformValue } from "../../../types/gl/uniforms";
 import { createScalar } from "../scalar";
-import type { UIComponent } from "../types";
+import type { UIComponent, UIComponentValue } from "../types";
 import "./vector.css";
 import template from "./vector.html?raw";
 
@@ -72,7 +72,7 @@ export function createVector({name, values, onChange, min, max, step, accessoryB
   }
   return {
     element: wrapper,
-    update: (values: UniformValue) =>
+    update: (values: UIComponentValue) =>
       updateFunctions.forEach((fn, i) => fn((values as number[])[i])),
   };
 }

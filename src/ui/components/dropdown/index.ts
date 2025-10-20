@@ -17,7 +17,6 @@ export function createDropdown<T>(
 ): UIComponent {
   const { id, optionId, optionTitle, onSelect, onAdd, onRemove, onUpdate } = args;
   const items = [...args.items];
-  console.log(items);
   const container = document.createElement("div");
   container.classList.add("dropdown");
   const addButton = document.createElement("button");
@@ -36,9 +35,7 @@ export function createDropdown<T>(
 
   // Select handler
 
-  select.addEventListener("change", (e: Event) => {
-    const elmt = (e.target as HTMLSelectElement);
-    console.log(elmt.value, select.value);
+  select.addEventListener("change", () => {
     const index = items.findIndex((i) => (optionId(i) === select.value));
     if (index >= 0) {
       onSelect(items[index], index);

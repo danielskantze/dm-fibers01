@@ -10,6 +10,7 @@ import ControlFactory from "./ui/components/controls";
 import { timestamp } from "./ui/util/date";
 import { createUi } from "./ui/views/parameter-panel";
 import * as vec3 from "./math/vec3";
+import { strToVec3 } from "./ui/util/seed";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -44,7 +45,12 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const renderer = new WebGLRenderer(settings, canvas, params);
 
   params.load(defaultValues as ParameterPreset);
+  init();
 
+  function init() {
+    const seed = (params.getParameter("main", "seed").value ?? "") as string;
+    onRandomSeed("", seed);
+  }
 
   function resize() {
     configureCanvas(canvas);
@@ -60,13 +66,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     return renderer.isRunning;
   }
 
-  function onRandomSeed() {
-    const data = params.getParameter("simulate", "randomSeed");
-    const { min, max } = data.ui!;
-    params.setValue("simulate", "randomSeed", 
-      vec3.createRandom(vec3.create([min!, min!, min!]), 
-      vec3.create([max!, max!, max!]))
-    );
+  function onRandomSeed(_event: string, seed: string) {
+    const v = strToVec3(seed);
+    params.setValue("simulate", "randomSeed", v);
+    params.setValue("main", "seed", seed);
     renderer.reset();
   }
 
@@ -81,6 +84,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const dispatcher = createUi({
     element: controls,
     params,
+    selectPreset: (item: ParameterPreset) => {
+      params.load(item);
+      init();
+    },
     loadPresets: presetStore.load,
     savePresets: presetStore.save,
     onToggleVisibility,
@@ -103,8 +110,6 @@ export default main;
 // TODO:
 
 // Reset function
-// - Add reset button
-// - Random seed should reset simulation
 // String for random seed (minecraft style - compute hash and translate to vector)
 
 // Simple add music (hook up to audio features)
