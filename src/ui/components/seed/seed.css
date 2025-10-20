@@ -18,14 +18,24 @@
 
 .ui-control.seed button {
   cursor: default;
-  margin-left: 0.5rem;
+  margin-left: 0.0rem;
   background-color: transparent;
+  padding-left: 0.125rem;
+  padding-right: 0.125rem;
   color: var(--component-color-accent-1);
   border: none;
 }
 
+.ui-control.seed button[disabled] {
+  opacity: 0.5;
+}
+
 .ui-control.seed button:hover {
   text-decoration: underline;
+}
+
+.ui-control.seed button[disabled]:hover {
+  text-decoration: none;
 }
 
 .ui-control.seed > label {
@@ -36,8 +46,14 @@
   margin-right: 8px;
 }
 
-.ui-control.seed .parameter > label {
-  width: auto;
+.ui-control.seed .rnd-button {
+  padding: 0 0.5rem;
+  font-size: 18px;
+  position: relative;
+  top: -2px;
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
 }
 
 .ui-control.seed > input {
@@ -49,5 +65,5 @@
   background-color: var(--component-color-background-1);
   color: var(--component-color-accent-1);
   border: none;
-
+  min-width: 0;
 }

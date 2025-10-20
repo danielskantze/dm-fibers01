@@ -8,9 +8,8 @@ import { presetStore } from "./service/stores";
 import { type Settings } from "./types/settings";
 import ControlFactory from "./ui/components/controls";
 import { timestamp } from "./ui/util/date";
-import { createUi } from "./ui/views/parameter-panel";
-import * as vec3 from "./math/vec3";
 import { strToVec3 } from "./ui/util/seed";
+import { createUi } from "./ui/views/parameter-panel";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -109,8 +108,7 @@ export default main;
 
 // TODO:
 
-// Reset function
-// String for random seed (minecraft style - compute hash and translate to vector)
+// Validate that cos palette actually matches the displayed colors
 
 // Simple add music (hook up to audio features)
 // - Sync beats with stroke noise x/y (each kick will pulse these)
