@@ -111,7 +111,7 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
         onClick: () => {
           const isPaused = [undefined];
           dispatcher.notify("pause", isPaused); // hack - we let the event modify the arg. The real solution would be to put the pause state in an observable property instead
-          buttons.setTitle(1, isPaused[0] ? "Pause" : "Resume");
+          buttons.setTitle(2, isPaused[0] ? "Pause" : "Resume");
         },
         color: 2 
       }
