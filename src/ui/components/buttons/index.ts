@@ -1,13 +1,13 @@
 import './buttons.css';
 
-export function createButtons(buttons: {title: string, onClick: () => void, color?: number}[]): { element: HTMLElement, setTitle:(i: number, title: string) => void} {
+export function createButtons(buttons: {id: string, title: string, onClick: () => void, color?: number}[]): { element: HTMLElement, setTitle:(id: string, title: string) => void} {
     const container = document.createElement("div");
     const buttonWidth = (100 / buttons.length).toPrecision(4);
     container.classList.add("buttons");
-    const buttonElements: HTMLButtonElement[] = [];
-    for (const {title, onClick, color} of buttons) {
+    const buttonElements: {id: string, button: HTMLButtonElement}[] = [];
+    for (const {id, title, onClick, color} of buttons) {
       const buttonWrapper = document.createElement("div");
-      const button = document.createElement("button");
+      const button = document.createElement("button") as HTMLButtonElement;
       buttonWrapper.className = 'button-wrapper';
       buttonWrapper.appendChild(button);
       buttonWrapper.style.width = `${buttonWidth}%`;
@@ -20,12 +20,12 @@ export function createButtons(buttons: {title: string, onClick: () => void, colo
         e.stopPropagation();
         onClick();
       };
-      buttonElements.push(button);
+      buttonElements.push({id, button});
       container.appendChild(buttonWrapper);
     }
     return { 
       element: container, 
-      setTitle: (i, title) => {
-        buttonElements[i].innerText = title;
+      setTitle: (id, title) => {
+        buttonElements.find((b) => (b.id === id))!.button.innerText = title;
     }};
 }
