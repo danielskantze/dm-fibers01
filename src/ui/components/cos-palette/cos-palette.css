@@ -1,5 +1,5 @@
 .cos-palette .palette {
-  transform: scaleY(30);
+  transform: scaleY(30) scale(1.02); /* Scale it so it is slightly longer */
 }
 
 .cos-palette .palette-wrapper {

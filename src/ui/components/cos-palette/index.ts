@@ -81,7 +81,7 @@ export function createCosPalette(
       ctx.lineWidth = 1.0;
       for (let x = 0; x < width; x++) {
         const t = x / width;
-        const c = cosPalette(t, matrix);
+        const c = cosPalette(1.0 - t, matrix);
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.strokeStyle = `rgb(${c[0]}, ${c[1]}, ${c[2]}`;

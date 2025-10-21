@@ -6,12 +6,15 @@ import * as stage_luma from "./stages/luma";
 import * as stage_materialize from "./stages/materialize";
 import * as stage_output from "./stages/output";
 import * as stage_simulate from "./stages/simulate";
+import * as stage_debug from "./stages/debug";
 import type { RenderingConfig } from "../types/config";
 import type { ParameterRegistry } from "../service/parameters";
 import type { Settings } from "../types/settings";
 import { WebGLTextureError } from "../types/error";
 import { defaultRenderConfig } from "../config/parameters";
 import * as screenshot from "./util/screenshot";
+
+import fdebugShaderSource from "./shaders/debug.fs.glsl?raw";
 
 // This is a pure utility function and can remain outside the class.
 function textureSizeFromNumParticles(numParticles: number, maxNumParticles: number): [number, number] {
@@ -32,7 +35,8 @@ type RenderingStages = {
   blur: Stage,
   combine: Stage,
   display: Stage,
-  screenshot: Stage
+  screenshot: Stage,
+  debug?: Stage,
 };
 
 type BloomStageParams = {
@@ -93,6 +97,9 @@ export class WebGLRenderer {
     stage_materialize.reset(this._gl, this._stages.materialize);
     stage_simulate.reset(this._gl, this._stages.simulate);
     stage_output.reset(this._gl, this._stages.display);
+    if (this._stages.debug) {
+      stage_debug.reset(this._gl, this._stages.debug);
+    }
   }
   
   public screenshot(): string {
@@ -162,6 +169,9 @@ export class WebGLRenderer {
     } else {
       stage_output.draw(this._gl, this._stages.display, this._renderWidth, this._renderHeight);
     }
+    if (this._stages.debug) {
+      stage_debug.draw(this._gl, this._stages.debug, this._renderWidth, this._renderHeight);
+    }
   }
 
   private _createGl(): WebGL2RenderingContext {
@@ -186,6 +196,7 @@ export class WebGLRenderer {
     const combine = stage_combine.create(this._gl, accumulate);
     const display = stage_output.create(this._gl, combine, false);
     const screenshot = stage_output.create(this._gl, combine, true);
+    let debug: Stage | undefined = undefined;//stage_debug.create(this._gl, combine, false, fdebugShaderSource);
     
     Object.keys(simulate.parameters).forEach((k) => (
       this._params.register(simulate.name, k, simulate.parameters[k]))
@@ -194,9 +205,14 @@ export class WebGLRenderer {
     Object.keys(accumulate.parameters).forEach((k) => (
       this._params.register(accumulate.name, k, accumulate.parameters[k]))
     );
+    if (debug) {
+      Object.keys((debug as Stage).parameters).forEach((k) => (
+        this._params.register((debug as Stage).name, k, (debug as Stage).parameters[k]))
+      );
+    }
   
     return {
-      simulate, materialize, accumulate, luma, blur, combine, display, screenshot
+      simulate, materialize, accumulate, luma, blur, combine, display, screenshot, debug
     }
   }
 

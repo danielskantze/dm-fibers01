@@ -37,7 +37,7 @@ function create(gl: WebGL2RenderingContext, width: number, height: number): Stag
         },
         input: null,
         targets: [targetTexture],
-        parameters: [],
+        parameters: {},
     };
 }
 

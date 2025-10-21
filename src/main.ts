@@ -42,7 +42,6 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   configureCanvas(canvas);
   const controlFactory = new ControlFactory(controls);
   const renderer = new WebGLRenderer(settings, canvas, params);
-
   params.load(defaultValues as ParameterPreset);
   init();
 
@@ -108,7 +107,10 @@ export default main;
 
 // TODO:
 
-// Validate that cos palette actually matches the displayed colors
+// - [ ] Support video encoding
+// - [ ] Better play pause resume buttons
+// - [ ] Rename presets
+
 
 // Simple add music (hook up to audio features)
 // - Sync beats with stroke noise x/y (each kick will pulse these)
