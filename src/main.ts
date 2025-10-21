@@ -2,6 +2,7 @@
 //import * as stage_display from "./render/stages/display";
 import defaultValues from "./config/defaultValues.json";
 import { defaultParameters } from "./config/parameters";
+import { VideoRecorder } from "./render/util/recorder";
 import { WebGLRenderer } from "./render/webgl-renderer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
 import { presetStore } from "./service/stores";
@@ -36,6 +37,15 @@ function downloadScreenshot(dataURL: string) {
   aElmt.click();
 }
 
+function downloadRecording(buffer: ArrayBuffer) {
+  const aElmt = document.createElement("a");
+  const blob = new Blob([buffer], { type: "video/mp4" });
+  const objectUrl = window.URL.createObjectURL(blob);
+  aElmt.download = `fibers-${timestamp()}`;
+  aElmt.href = objectUrl;
+  aElmt.click();
+  window.URL.revokeObjectURL(objectUrl);
+}
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const params = createRegistryFromConfig(defaultParameters);
@@ -57,6 +67,19 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   function onScreenshot() {
     const imageData = renderer.screenshot();
     downloadScreenshot(imageData);
+  }
+
+  async function onRecord(): Promise<void> {
+    if (renderer.recorder) {
+      const buffer = await renderer.recorder.stop();
+      if (buffer) {
+        renderer.recorder = null;
+        downloadRecording(buffer);
+      }
+    } else {
+      renderer.recorder = new VideoRecorder(canvas);
+      renderer.recorder.start();
+    }
   }
 
   function onPause() {
@@ -96,6 +119,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   });
 
   dispatcher.subscribe("screenshot", onScreenshot);
+  dispatcher.subscribe("rec", (_, isRecording: boolean[]) => {
+    isRecording[0] = !renderer.recorder;
+    onRecord();
+  });
   dispatcher.subscribe("seed", onRandomSeed);
   dispatcher.subscribe("reset", onReset);
 

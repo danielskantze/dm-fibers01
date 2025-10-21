@@ -13,8 +13,9 @@ import type { Settings } from "../types/settings";
 import { WebGLTextureError } from "../types/error";
 import { defaultRenderConfig } from "../config/parameters";
 import * as screenshot from "./util/screenshot";
+import type { IVideoRecorder } from "./util/recorder";
 
-import fdebugShaderSource from "./shaders/debug.fs.glsl?raw";
+// import fdebugShaderSource from "./shaders/debug.fs.glsl?raw";
 
 // This is a pure utility function and can remain outside the class.
 function textureSizeFromNumParticles(numParticles: number, maxNumParticles: number): [number, number] {
@@ -54,6 +55,7 @@ export class WebGLRenderer {
   private _frame: number = 0;
   private _renderWidth: number;
   private _renderHeight: number;
+  private _recorder?: IVideoRecorder | null;
   
   private readonly _canvas: HTMLCanvasElement;
   private readonly _gl: WebGL2RenderingContext;
@@ -111,6 +113,14 @@ export class WebGLRenderer {
     );
 
     return imageData;
+  }
+
+  public set recorder(recorder: IVideoRecorder | undefined | null) {
+    this._recorder = recorder;
+  }
+
+  public get recorder(): IVideoRecorder | undefined | null {
+    return this._recorder;
   }
 
   private _draw(): void {
@@ -171,6 +181,9 @@ export class WebGLRenderer {
     }
     if (this._stages.debug) {
       stage_debug.draw(this._gl, this._stages.debug, this._renderWidth, this._renderHeight);
+    }
+    if (this._recorder) {
+      
     }
   }
 
