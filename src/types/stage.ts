@@ -36,7 +36,7 @@ export interface TypedResources<T> extends Resources {
   internal: T
 }
 
-export type StageName = "accumulate" | "simulate" | "blur" | "materialize" | "output" | "luma" | "combine";
+export type StageName = "accumulate" | "simulate" | "blur" | "materialize" | "output" | "luma" | "combine" | "debug" | "test";
 
 type Stage<T = {}> = {
     name: StageName;
