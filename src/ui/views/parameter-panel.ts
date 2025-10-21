@@ -12,6 +12,8 @@ import { Dispatcher } from "../util/events";
 import { generateId } from "../util/id";
 import { rndSeed } from "../util/seed";
 
+export type UIEvents = "screenshot" | "rec" | "pause" | "seed" | "reset";
+
 export function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry, dispatcher: Dispatcher<UIEvents>) {
     for (const u of uniforms) {
       const { ui } = u;
@@ -88,8 +90,6 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
     onToggleVisibility: () => void,
   }
 
-  export type UIEvents = "screenshot" | "capture" | "pause" | "seed" | "reset";
-
   export function createUi({ element, params, selectPreset, loadPresets, savePresets, onToggleVisibility }: UIProps): Dispatcher<UIEvents> {
     const presetControls = createPresetControls(selectPreset, loadPresets, savePresets, params);
     const dispatcher = new Dispatcher<UIEvents>();
@@ -105,7 +105,11 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
       {
         id: "rec",
         title: "Rec", 
-        onClick: () => (dispatcher.notify("capture")),
+        onClick: () => {
+          const isRecording = [undefined];
+          dispatcher.notify("rec", isRecording);
+          buttons.setTitle("rec", isRecording[0] ? "Stop" : "Rec");
+        },
         color: 1
       },      
       {
