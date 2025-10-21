@@ -88,7 +88,7 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
     onToggleVisibility: () => void,
   }
 
-  export type UIEvents = "screenshot" | "pause" | "seed" | "reset";
+  export type UIEvents = "screenshot" | "capture" | "pause" | "seed" | "reset";
 
   export function createUi({ element, params, selectPreset, loadPresets, savePresets, onToggleVisibility }: UIProps): Dispatcher<UIEvents> {
     const presetControls = createPresetControls(selectPreset, loadPresets, savePresets, params);
@@ -97,21 +97,30 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
     createUniformControls(element, params.list().map(([,,u]) => (u)), params, dispatcher);
     const buttons = createButtons([
       {
-        title: "Screenshot", 
+        id: "capture",
+        title: "Capture", 
         onClick: () => (dispatcher.notify("screenshot")),
         color: 1
       },
       {
+        id: "rec",
+        title: "Rec", 
+        onClick: () => (dispatcher.notify("capture")),
+        color: 1
+      },      
+      {
+        id: "reset",
         title: "Reset",
         onClick: () => (dispatcher.notify("reset")),
         color: 3,
       },
       { 
+        id: "playpause",
         title: "Pause", 
         onClick: () => {
           const isPaused = [undefined];
           dispatcher.notify("pause", isPaused); // hack - we let the event modify the arg. The real solution would be to put the pause state in an observable property instead
-          buttons.setTitle(2, isPaused[0] ? "Pause" : "Resume");
+          buttons.setTitle("playpause", isPaused[0] ? "Pause" : "Resume");
         },
         color: 2 
       }
