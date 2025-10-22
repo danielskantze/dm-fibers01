@@ -1,8 +1,8 @@
-type ListenerFn<E extends string> = (event: E, args: any) => void;
+type ListenerFn = (args: any) => void;
 
 type Subscriber<E extends string> = {
   event: E,
-  listenerFn: ListenerFn<E>
+  listenerFn: ListenerFn
 }
 
 export class Dispatcher<E extends string> {
@@ -11,11 +11,11 @@ export class Dispatcher<E extends string> {
   constructor() {    
   }
 
-  subscribe(event: E, listenerFn: ListenerFn<E>) {
+  subscribe(event: E, listenerFn: ListenerFn) {
     this.subscribers.push({ event, listenerFn });
   }
 
-  unsubscribe(listenerFn: ListenerFn<E>) {
+  unsubscribe(listenerFn: ListenerFn) {
     const idx = this.subscribers.findIndex((l) => (l.listenerFn === listenerFn));
     if (idx >= 0) {
       this.subscribers.splice(idx, 1);
@@ -23,6 +23,6 @@ export class Dispatcher<E extends string> {
   }
 
   notify(event: E, args?: any) {
-    this.subscribers.filter((s) => (s.event === event)).forEach((s) => (s.listenerFn(event, args ?? {})))
+    this.subscribers.filter((s) => (s.event === event)).forEach((s) => (s.listenerFn(args ?? {})))
   }
 }

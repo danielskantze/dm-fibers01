@@ -2,15 +2,17 @@
 //import * as stage_display from "./render/stages/display";
 import defaultValues from "./config/defaultValues.json";
 import { defaultParameters } from "./config/parameters";
-import { VideoRecorder, type RecorderEvent, type RecorderStatus } from "./render/util/recorder";
+import { VideoRecorder, type RecorderStatus } from "./render/util/recorder";
 import { WebGLRenderer } from "./render/webgl-renderer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
 import { presetStore } from "./service/stores";
+import type { ApplicationDispatcher, ApplicationEvents, ApplicationRecordEvents, ApplicationTransportEvents } from "./types/application-events";
 import { type Settings } from "./types/settings";
 import ControlFactory from "./ui/components/controls";
 import { timestamp } from "./ui/util/date";
 import { strToVec3 } from "./ui/util/seed";
 import { createUi } from "./ui/views/parameter-panel";
+import { Dispatcher } from "./util/events";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -48,6 +50,7 @@ function downloadRecording(buffer: ArrayBuffer) {
 }
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
+  const appDispatcher: ApplicationDispatcher = new Dispatcher<ApplicationEvents>();
   const params = createRegistryFromConfig(defaultParameters);
   configureCanvas(canvas);
   const controlFactory = new ControlFactory(controls);
@@ -57,7 +60,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   function init() {
     const seed = (params.getParameter("main", "seed").value ?? "") as string;
-    onRandomSeed("", seed);
+    onRandomSeed(seed);
   }
 
   function resize() {
@@ -71,22 +74,26 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   async function onRecord(): Promise<void> {
     if (renderer.recorder) {
+      appDispatcher.notify("record", "waiting" as ApplicationRecordEvents);
       const buffer = await renderer.recorder.stop();
       if (buffer) {
         renderer.recorder = null;
         downloadRecording(buffer);
       }
+      appDispatcher.notify("record", "idle" as ApplicationRecordEvents);
     } else {
       const recorder = new VideoRecorder(canvas, {
           title: "DM Fibers 01"
         }
       );
+      appDispatcher.notify("record", "waiting" as ApplicationRecordEvents);
       recorder.start();
-      const onRecorderStatusChange = (_:RecorderEvent, status: RecorderStatus) => {
+      const onRecorderStatusChange = (status: RecorderStatus) => {
         if (status === "ready") {
           renderer.recorder = recorder;
           recorder.dispatcher.unsubscribe(onRecorderStatusChange);
         }
+        appDispatcher.notify("record", "recording" as ApplicationRecordEvents);
       }
       recorder.dispatcher.subscribe("status", onRecorderStatusChange);
     }
@@ -97,7 +104,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     return renderer.isRunning;
   }
 
-  function onRandomSeed(_event: string, seed: string) {
+  function onRandomSeed(seed: string) {
     const v = strToVec3(seed);
     params.setValue("simulate", "randomSeed", v);
     params.setValue("main", "seed", seed);
@@ -113,6 +120,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   }
 
   const dispatcher = createUi({
+    appDispatcher,
     element: controls,
     params,
     selectPreset: (item: ParameterPreset) => {
@@ -124,15 +132,13 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     onToggleVisibility,
   });
 
-  dispatcher.subscribe("pause", (_, isPaused: boolean[]) => {
-    isPaused[0] = onPause();
+  dispatcher.subscribe("pause", () => {
+    const status: ApplicationTransportEvents = onPause() ? "paused" : "playing";
+    appDispatcher.notify("transport", status);
   });
 
   dispatcher.subscribe("screenshot", onScreenshot);
-  dispatcher.subscribe("rec", (_, isRecording: boolean[]) => {
-    isRecording[0] = !renderer.recorder;
-    onRecord();
-  });
+  dispatcher.subscribe("rec", () => { onRecord(); });
   dispatcher.subscribe("seed", onRandomSeed);
   dispatcher.subscribe("reset", onReset);
 
@@ -144,7 +150,6 @@ export default main;
 
 // TODO:
 
-// - [ ] Better play pause resume buttons
 // - [ ] Rename presets
 
 // Simple add music (hook up to audio features)

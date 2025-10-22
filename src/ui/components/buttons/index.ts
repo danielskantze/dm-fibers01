@@ -1,6 +1,12 @@
+import type { UIComponent } from '../types';
 import './buttons.css';
 
-export function createButtons(buttons: {id: string, title: string, onClick: () => void, color?: number}[]): { element: HTMLElement, setTitle:(id: string, title: string) => void} {
+interface ButtonsComponent extends UIComponent {
+  setTitle: (id: string, title: string) => void;
+  setDisabled: (id: string, isDisabled: boolean) => void;
+};
+
+export function createButtons(buttons: {id: string, title: string, onClick: () => void, color?: number}[]): ButtonsComponent {
     const container = document.createElement("div");
     const buttonWidth = (100 / buttons.length).toPrecision(4);
     container.classList.add("buttons");
@@ -24,8 +30,13 @@ export function createButtons(buttons: {id: string, title: string, onClick: () =
       container.appendChild(buttonWrapper);
     }
     return { 
-      element: container, 
-      setTitle: (id, title) => {
-        buttonElements.find((b) => (b.id === id))!.button.innerText = title;
-    }};
+        element: container, 
+        setTitle: (id, title) => {
+          buttonElements.find((b) => (b.id === id))!.button.innerText = title;
+        },
+        update: () => { },
+        setDisabled: (id, isDisabled) => {
+          buttonElements.find((b) => (b.id === id))!.button.disabled = isDisabled;
+        }
+    };
 }
