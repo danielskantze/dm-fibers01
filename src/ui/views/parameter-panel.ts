@@ -23,6 +23,7 @@ export type UIEvents = {
   reset: {}
 };
 
+
 export function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry, eventSource: Emitter<UIEvents>) {
     for (const u of uniforms) {
       const { ui } = u;
@@ -67,27 +68,23 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
     }
   }
 
-  function createPresetControls(select: (item: ParameterPreset) => void, load: () => ParameterPreset[], save: (items: ParameterPreset[]) => void, params: ParameterRegistry): UIComponent {
-    return createDropdown<ParameterPreset>({
-        id: "presets",
-        items: load(),
-        optionId: (o) => (o.id),
-        optionTitle: (o) => (o.name),
-        onSelect: select,
-        onAdd: () => {
-          const newItem = params.toPreset(generateId(), (new Date()).toLocaleString());
-          return newItem;
-        },
-        onRemove: () => {
-          if (load().length < 2) {
-            return false;
-          }
-          return true;
-        },
-        onUpdate: (items) => {
-          save(items);
+  function createPresetControls(select: (item: ParameterPreset) => void, 
+    load: () => ParameterPreset[], 
+    save: (items: ParameterPreset[]) => void, 
+    params: ParameterRegistry): UIComponent {
+      const dropdown = createDropdown<ParameterPreset>("presets", load(), () => (
+        params.toPreset(
+          generateId(), 
+          (new Date()).toLocaleString()
+        )
+      ));
+      dropdown.events.subscribe("select", ({item}) => {
+        if (item) {
+          select(item);
         }
       });
+      dropdown.events.subscribe("change", ({items}) => { save(items); });
+      return dropdown;
   }
 
   export type UIProps = {

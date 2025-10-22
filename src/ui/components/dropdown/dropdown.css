@@ -45,6 +45,28 @@
   height: 100%;
 }
 
+.dropdown .edit-input,
+.dropdown .trigger {
+  z-index: 10;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 30px;
+  bottom: 0;
+}
+
+.dropdown .edit-input {
+  display: none;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  background-color: var(--component-color-background-1);
+  border: 1px solid var(--component-color-accent-2);
+  border-radius: 0.25rem;
+  outline: 0;
+  color: var(--component-color-accent-1);
+}
+
 .dropdown .select-wrapper::after {
   content: "▼"; /* Or use an SVG/image for a cleaner look */
   position: absolute;

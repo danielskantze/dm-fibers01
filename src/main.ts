@@ -142,14 +142,16 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   uiEvents.subscribe("reset", onReset);
 
   window.addEventListener("resize", resize);
-  renderer.start();
+  //renderer.start();
 }
 
 export default main;
 
 // TODO:
 
-// - [ ] Rename presets
+// Load audio
+// Play audio on start
+// Save last audio file in IndexedDB
 
 // Simple add music (hook up to audio features)
 // - Sync beats with stroke noise x/y (each kick will pulse these)
