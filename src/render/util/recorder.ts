@@ -1,16 +1,18 @@
 import { Output, Mp4OutputFormat, BufferTarget, CanvasSource, QUALITY_HIGH } from 'mediabunny';
-import { Dispatcher } from "../../util/events";
+import { Emitter, type Subscribable } from "../../util/events";
 
 export interface IVideoRecorder {
   start: () => Promise<void>;
   stop: () => Promise<ArrayBuffer | null>;
   captureFrame: () => Promise<void>;
-  dispatcher: Dispatcher<RecorderEvent>;
+  events: Subscribable<RecorderEvent>;
 };
 
 export type RecorderStatus = "created" | "starting" | "ready" | "finalizing" | "completed";
-export type RecorderEvent = "status";
-export type RecorderDispatcher = Dispatcher<RecorderEvent>;
+
+export type RecorderEvent = {
+  status: RecorderStatus
+}
 
 type VideoRecorderOptions = {
   title: string;
@@ -22,7 +24,7 @@ export class VideoRecorder implements IVideoRecorder {
   private _framesAdded: number = 0;
   private _fps: number;
   private _status: RecorderStatus = "created";
-  private _dispatcher: RecorderDispatcher = new Dispatcher<RecorderEvent>();
+  private _emitter: Emitter<RecorderEvent> = new Emitter<RecorderEvent>();
 
   constructor(canvas: HTMLCanvasElement, {fps = 60, title} : VideoRecorderOptions) {
     this._fps = fps;
@@ -45,12 +47,12 @@ export class VideoRecorder implements IVideoRecorder {
   get status() {
     return this._status;
   }
-  get dispatcher() {
-    return this._dispatcher;
+  get events() {
+    return this._emitter;
   }
   _setStatus(newStatus: RecorderStatus) {
     this._status = newStatus;
-    this._dispatcher.notify("status", this._status);
+    this._emitter.emit("status", this._status);
   }
   async start() {
     this._setStatus("starting");

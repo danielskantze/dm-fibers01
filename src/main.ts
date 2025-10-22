@@ -6,13 +6,13 @@ import { VideoRecorder, type RecorderStatus } from "./render/util/recorder";
 import { WebGLRenderer } from "./render/webgl-renderer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
 import { presetStore } from "./service/stores";
-import type { ApplicationDispatcher, ApplicationEvents, ApplicationRecordEvents, ApplicationTransportEvents } from "./types/application-events";
+import type { ApplicationEvents } from "./types/application-events";
 import { type Settings } from "./types/settings";
 import ControlFactory from "./ui/components/controls";
 import { timestamp } from "./ui/util/date";
 import { strToVec3 } from "./ui/util/seed";
 import { createUi } from "./ui/views/parameter-panel";
-import { Dispatcher } from "./util/events";
+import { Emitter } from "./util/events";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -50,7 +50,7 @@ function downloadRecording(buffer: ArrayBuffer) {
 }
 
 function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
-  const appDispatcher: ApplicationDispatcher = new Dispatcher<ApplicationEvents>();
+  const emitter: Emitter<ApplicationEvents> = new Emitter<ApplicationEvents>();
   const params = createRegistryFromConfig(defaultParameters);
   configureCanvas(canvas);
   const controlFactory = new ControlFactory(controls);
@@ -74,28 +74,28 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   async function onRecord(): Promise<void> {
     if (renderer.recorder) {
-      appDispatcher.notify("record", "waiting" as ApplicationRecordEvents);
+      emitter.emit("record", "waiting");
       const buffer = await renderer.recorder.stop();
       if (buffer) {
         renderer.recorder = null;
         downloadRecording(buffer);
       }
-      appDispatcher.notify("record", "idle" as ApplicationRecordEvents);
+      emitter.emit("record", "idle");
     } else {
       const recorder = new VideoRecorder(canvas, {
-          title: "DM Fibers 01"
-        }
+        title: "DM Fibers 01"
+      }
       );
-      appDispatcher.notify("record", "waiting" as ApplicationRecordEvents);
+      emitter.emit("record", "waiting");
       recorder.start();
       const onRecorderStatusChange = (status: RecorderStatus) => {
         if (status === "ready") {
           renderer.recorder = recorder;
-          recorder.dispatcher.unsubscribe(onRecorderStatusChange);
+          recorder.events.unsubscribe("status", onRecorderStatusChange);
         }
-        appDispatcher.notify("record", "recording" as ApplicationRecordEvents);
+        emitter.emit("record", "recording");
       }
-      recorder.dispatcher.subscribe("status", onRecorderStatusChange);
+      recorder.events.subscribe("status", onRecorderStatusChange);
     }
   }
 
@@ -119,8 +119,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     controlFactory.visible = !controlFactory.visible;
   }
 
-  const dispatcher = createUi({
-    appDispatcher,
+  const uiEvents = createUi({
+    appEvents: emitter,
     element: controls,
     params,
     selectPreset: (item: ParameterPreset) => {
@@ -132,15 +132,14 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     onToggleVisibility,
   });
 
-  dispatcher.subscribe("pause", () => {
-    const status: ApplicationTransportEvents = onPause() ? "paused" : "playing";
-    appDispatcher.notify("transport", status);
+  uiEvents.subscribe("pause", () => {
+    emitter.emit("transport", onPause() ? "playing" : "paused");
   });
 
-  dispatcher.subscribe("screenshot", onScreenshot);
-  dispatcher.subscribe("rec", () => { onRecord(); });
-  dispatcher.subscribe("seed", onRandomSeed);
-  dispatcher.subscribe("reset", onReset);
+  uiEvents.subscribe("screenshot", onScreenshot);
+  uiEvents.subscribe("rec", () => { onRecord(); });
+  uiEvents.subscribe("seed", ({seed}) => { onRandomSeed(seed); });
+  uiEvents.subscribe("reset", onReset);
 
   window.addEventListener("resize", resize);
   renderer.start();

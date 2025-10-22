@@ -1,8 +1,8 @@
 import type { Matrix4x3 } from "../../math/types";
 import type { ParameterData, ParameterPreset, ParameterRegistry } from "../../service/parameters";
-import type { ApplicationDispatcher, ApplicationRecordEvents, ApplicationTransportEvents } from "../../types/application-events";
+import type { ApplicationEvents, ApplicationRecordStatus } from "../../types/application-events";
 import { UniformComponents } from "../../types/gl/uniforms";
-import { Dispatcher } from "../../util/events";
+import { Emitter, type Subscribable } from "../../util/events";
 import { createButtons } from "../components/buttons";
 import { createCosPalette } from "../components/cos-palette";
 import { createDropdown } from "../components/dropdown";
@@ -13,9 +13,17 @@ import { createVector } from "../components/vector";
 import { generateId } from "../util/id";
 import { rndSeed } from "../util/seed";
 
-export type UIEvents = "screenshot" | "rec" | "pause" | "seed" | "reset";
+export type UIEvents = {
+  screenshot: {},
+  rec: {},
+  pause: {},
+  seed: {
+    seed: string
+  },
+  reset: {}
+};
 
-export function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry, dispatcher: Dispatcher<UIEvents>) {
+export function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry, eventSource: Emitter<UIEvents>) {
     for (const u of uniforms) {
       const { ui } = u;
       if (ui) {
@@ -34,7 +42,7 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
             title: "Seed",
             buttonTitle: "Update",
             onSeed: (seed: string) => {
-              dispatcher.notify("seed", seed);
+              eventSource.emit("seed", { seed });
             },
             value: rndSeed()
           });
@@ -85,50 +93,50 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
   export type UIProps = {
     element: HTMLElement,
     params: ParameterRegistry,
-    appDispatcher: ApplicationDispatcher,
+    appEvents: Subscribable<ApplicationEvents>,
     selectPreset: (item: ParameterPreset) => void,
     loadPresets: () => ParameterPreset[],
     savePresets: (items: ParameterPreset[]) => void,
     onToggleVisibility: () => void,
   }
 
-  export function createUi({ appDispatcher, element, params, selectPreset, loadPresets, savePresets, onToggleVisibility }: UIProps): Dispatcher<UIEvents> {
+  export function createUi({ appEvents, element, params, selectPreset, loadPresets, savePresets, onToggleVisibility }: UIProps): Subscribable<UIEvents> {
     const presetControls = createPresetControls(selectPreset, loadPresets, savePresets, params);
-    const dispatcher = new Dispatcher<UIEvents>();
+    const emitter = new Emitter<UIEvents>();
     element.appendChild(presetControls.element);
-    createUniformControls(element, params.list().map(([,,u]) => (u)), params, dispatcher);
+    createUniformControls(element, params.list().map(([,,u]) => (u)), params, emitter);
     const buttons = createButtons([
       {
         id: "capture",
         title: "Capture", 
-        onClick: () => (dispatcher.notify("screenshot")),
+        onClick: () => (emitter.emit("screenshot", "")),
         color: 1
       },
       {
         id: "rec",
         title: "Rec", 
-        onClick: () => { dispatcher.notify("rec"); },
+        onClick: () => { emitter.emit("rec", ""); },
         color: 1
       },      
       {
         id: "reset",
         title: "Reset",
-        onClick: () => (dispatcher.notify("reset")),
+        onClick: () => (emitter.emit("reset", "")),
         color: 3,
       },
       { 
         id: "playpause",
         title: "Pause", 
         onClick: () => {
-          dispatcher.notify("pause");
+          emitter.emit("pause", "");
         },
         color: 2 
       }
     ]);
     element.appendChild(buttons.element);
 
-    appDispatcher.subscribe("record", (status: ApplicationRecordEvents) => {
-      const statusTitles: Record<ApplicationRecordEvents, string> = {
+    appEvents.subscribe("record", (status) => {
+      const statusTitles: Record<ApplicationRecordStatus, string> = {
         "idle": "Rec",
         "recording": "Rec...",
         "waiting": "..."
@@ -137,7 +145,7 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
       buttons.setTitle("rec", title);
       buttons.setDisabled("rec", status === "waiting");
     });
-    appDispatcher.subscribe("transport", (status: ApplicationTransportEvents) => {
+    appEvents.subscribe("transport", (status) => {
       buttons.setTitle("playpause", status === "playing" ? "Pause" : "Resume");
     });
   
@@ -146,5 +154,5 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
         onToggleVisibility();
       }
     });
-    return dispatcher;
+    return emitter;
   }

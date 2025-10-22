@@ -1,28 +1,38 @@
-type ListenerFn = (args: any) => void;
+export type EventMap = Record<string, unknown>;
 
-type Subscriber<E extends string> = {
-  event: E,
-  listenerFn: ListenerFn
+export type Handler<E extends EventMap, K extends keyof E> = (payload: E[K]) => void;
+
+type Subscriber<E extends EventMap, K extends keyof E> = {
+  event: K,
+  listener: Handler<E, K>
+};
+
+export interface Subscribable<E extends EventMap> {
+  subscribe<K extends keyof E>(event: K, listener: Handler<E, K>): void;
+  unsubscribe<K extends keyof E>(event: K, handler: Handler<E, K>): void;
 }
 
-export class Dispatcher<E extends string> {
-  private subscribers: Subscriber<E>[] = [];
+export class Emitter<E extends EventMap> implements Subscribable<E> {
+  private subscribers: Subscriber<E, any>[] = [];
 
   constructor() {    
   }
 
-  subscribe(event: E, listenerFn: ListenerFn) {
-    this.subscribers.push({ event, listenerFn });
+  subscribe<K extends keyof E>(event: K, listener: Handler<E, K>) {
+    this.subscribers.push({ event, listener });
   }
 
-  unsubscribe(listenerFn: ListenerFn) {
-    const idx = this.subscribers.findIndex((l) => (l.listenerFn === listenerFn));
+  unsubscribe<K extends keyof E>(event: K, listener: Handler<E, K>) {
+    const idx = this.subscribers.findIndex((l) => (l.event === event && l.listener === listener));
     if (idx >= 0) {
       this.subscribers.splice(idx, 1);
     }
   }
 
-  notify(event: E, args?: any) {
-    this.subscribers.filter((s) => (s.event === event)).forEach((s) => (s.listenerFn(args ?? {})))
+  emit<K extends keyof E>(event: K, payload: E[K]) {
+    const subscribers = this.subscribers.concat();  
+    subscribers
+      .filter((s) => (s.event === event))
+      .forEach((s) => (s.listener as Handler<E, K>)(payload));
   }
 }

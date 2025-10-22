@@ -1,8 +1,7 @@
-import type { Dispatcher } from "../util/events";
+export type ApplicationRecordStatus = "idle" | "recording" | "waiting";
+export type ApplicationTransportStatus = "paused" | "playing";
 
-export type ApplicationEvents = "record" | "transport";
-
-export type ApplicationRecordEvents = "idle" | "recording" | "waiting";
-export type ApplicationTransportEvents = "paused" | "playing";
-
-export type ApplicationDispatcher = Dispatcher<ApplicationEvents>;
+export type ApplicationEvents = {
+  record: ApplicationRecordStatus,
+  transport: ApplicationTransportStatus
+}
