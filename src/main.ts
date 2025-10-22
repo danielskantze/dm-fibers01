@@ -2,7 +2,7 @@
 //import * as stage_display from "./render/stages/display";
 import defaultValues from "./config/defaultValues.json";
 import { defaultParameters } from "./config/parameters";
-import { VideoRecorder } from "./render/util/recorder";
+import { VideoRecorder, type RecorderEvent, type RecorderStatus } from "./render/util/recorder";
 import { WebGLRenderer } from "./render/webgl-renderer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
 import { presetStore } from "./service/stores";
@@ -77,8 +77,18 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         downloadRecording(buffer);
       }
     } else {
-      renderer.recorder = new VideoRecorder(canvas);
-      renderer.recorder.start();
+      const recorder = new VideoRecorder(canvas, {
+          title: "DM Fibers 01"
+        }
+      );
+      recorder.start();
+      const onRecorderStatusChange = (_:RecorderEvent, status: RecorderStatus) => {
+        if (status === "ready") {
+          renderer.recorder = recorder;
+          recorder.dispatcher.unsubscribe(onRecorderStatusChange);
+        }
+      }
+      recorder.dispatcher.subscribe("status", onRecorderStatusChange);
     }
   }
 
@@ -134,10 +144,8 @@ export default main;
 
 // TODO:
 
-// - [ ] Support video encoding
 // - [ ] Better play pause resume buttons
 // - [ ] Rename presets
-
 
 // Simple add music (hook up to audio features)
 // - Sync beats with stroke noise x/y (each kick will pulse these)
@@ -157,12 +165,9 @@ export default main;
 // Maybe: Support parameter groups in UI
 // Handle outdated parameters (wrong version)
 
-
 // 3D support (each particle has Z component)
 
 // Group parameters of different types (e.g. bloom)
 
 // Consider adding LFOs
 // Support brightness, contrast and color temperature post controls
-// Consider removing support for bloom 
-// Make post chain pluggable and easier to rearrange (array of steps)

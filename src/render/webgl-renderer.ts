@@ -128,7 +128,14 @@ export class WebGLRenderer {
       return;
     }
     this._render(false);
-    requestAnimationFrame(() => this._draw());
+    if (this._recorder) {
+      this._recorder.captureFrame()
+        .then(() => {
+          requestAnimationFrame(() => this._draw());
+        });
+    } else {
+      requestAnimationFrame(() => this._draw());
+    }
   }
 
   private _render(isScreenshot: boolean = false): void {
@@ -181,9 +188,6 @@ export class WebGLRenderer {
     }
     if (this._stages.debug) {
       stage_debug.draw(this._gl, this._stages.debug, this._renderWidth, this._renderHeight);
-    }
-    if (this._recorder) {
-      
     }
   }
 

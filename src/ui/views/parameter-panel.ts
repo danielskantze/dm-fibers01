@@ -8,7 +8,7 @@ import { createScalar } from "../components/scalar";
 import { createSeed } from "../components/seed";
 import type { UIComponent } from "../components/types";
 import { createVector } from "../components/vector";
-import { Dispatcher } from "../util/events";
+import { Dispatcher } from "../../util/events";
 import { generateId } from "../util/id";
 import { rndSeed } from "../util/seed";
 
