@@ -45,3 +45,7 @@
   margin: 0;
   width: 100%;
 }
+
+.buttons button[disabled] {
+  opacity: 0.5;
+}

@@ -1,6 +1,8 @@
 import type { Matrix4x3 } from "../../math/types";
 import type { ParameterData, ParameterPreset, ParameterRegistry } from "../../service/parameters";
+import type { ApplicationDispatcher, ApplicationRecordEvents, ApplicationTransportEvents } from "../../types/application-events";
 import { UniformComponents } from "../../types/gl/uniforms";
+import { Dispatcher } from "../../util/events";
 import { createButtons } from "../components/buttons";
 import { createCosPalette } from "../components/cos-palette";
 import { createDropdown } from "../components/dropdown";
@@ -8,7 +10,6 @@ import { createScalar } from "../components/scalar";
 import { createSeed } from "../components/seed";
 import type { UIComponent } from "../components/types";
 import { createVector } from "../components/vector";
-import { Dispatcher } from "../../util/events";
 import { generateId } from "../util/id";
 import { rndSeed } from "../util/seed";
 
@@ -84,13 +85,14 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
   export type UIProps = {
     element: HTMLElement,
     params: ParameterRegistry,
+    appDispatcher: ApplicationDispatcher,
     selectPreset: (item: ParameterPreset) => void,
     loadPresets: () => ParameterPreset[],
     savePresets: (items: ParameterPreset[]) => void,
     onToggleVisibility: () => void,
   }
 
-  export function createUi({ element, params, selectPreset, loadPresets, savePresets, onToggleVisibility }: UIProps): Dispatcher<UIEvents> {
+  export function createUi({ appDispatcher, element, params, selectPreset, loadPresets, savePresets, onToggleVisibility }: UIProps): Dispatcher<UIEvents> {
     const presetControls = createPresetControls(selectPreset, loadPresets, savePresets, params);
     const dispatcher = new Dispatcher<UIEvents>();
     element.appendChild(presetControls.element);
@@ -105,11 +107,7 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
       {
         id: "rec",
         title: "Rec", 
-        onClick: () => {
-          const isRecording = [undefined];
-          dispatcher.notify("rec", isRecording);
-          buttons.setTitle("rec", isRecording[0] ? "Stop" : "Rec");
-        },
+        onClick: () => { dispatcher.notify("rec"); },
         color: 1
       },      
       {
@@ -122,14 +120,26 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
         id: "playpause",
         title: "Pause", 
         onClick: () => {
-          const isPaused = [undefined];
-          dispatcher.notify("pause", isPaused); // hack - we let the event modify the arg. The real solution would be to put the pause state in an observable property instead
-          buttons.setTitle("playpause", isPaused[0] ? "Pause" : "Resume");
+          dispatcher.notify("pause");
         },
         color: 2 
       }
     ]);
     element.appendChild(buttons.element);
+
+    appDispatcher.subscribe("record", (status: ApplicationRecordEvents) => {
+      const statusTitles: Record<ApplicationRecordEvents, string> = {
+        "idle": "Rec",
+        "recording": "Rec...",
+        "waiting": "..."
+      }
+      const title = statusTitles[status];
+      buttons.setTitle("rec", title);
+      buttons.setDisabled("rec", status === "waiting");
+    });
+    appDispatcher.subscribe("transport", (status: ApplicationTransportEvents) => {
+      buttons.setTitle("playpause", status === "playing" ? "Pause" : "Resume");
+    });
   
     document.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) { // 112 = p
