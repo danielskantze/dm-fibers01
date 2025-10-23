@@ -5,11 +5,14 @@ import { defaultParameters } from "./config/parameters";
 import { VideoRecorder, type RecorderStatus } from "./render/util/recorder";
 import { WebGLRenderer } from "./render/webgl-renderer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
+import type { BlobStore } from "./service/storage";
+import { IndexedDBBlobStore } from "./service/storage/localblob";
 import { presetStore } from "./service/stores";
 import type { ApplicationEvents } from "./types/application-events";
 import { type Settings } from "./types/settings";
 import ControlFactory from "./ui/components/controls";
 import { timestamp } from "./ui/util/date";
+import { generateId } from "./ui/util/id";
 import { strToVec3 } from "./ui/util/seed";
 import { createUi } from "./ui/views/parameter-panel";
 import { Emitter } from "./util/events";
@@ -56,6 +59,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const controlFactory = new ControlFactory(controls);
   const renderer = new WebGLRenderer(settings, canvas, params);
   params.load(defaultValues as ParameterPreset);
+  const audioStore = new IndexedDBBlobStore("data", "audio");
+  
   init();
 
   function init() {
@@ -119,30 +124,36 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     controlFactory.visible = !controlFactory.visible;
   }
 
-  const uiEvents = createUi({
-    appEvents: emitter,
-    element: controls,
-    params,
-    selectPreset: (item: ParameterPreset) => {
-      params.load(item);
-      init();
-    },
-    loadPresets: presetStore.load,
-    savePresets: presetStore.save,
-    onToggleVisibility,
-  });
+  function start(audioStore: BlobStore) {
+    const uiEvents = createUi({
+      appEvents: emitter,
+      element: controls,
+      audioStore: audioStore,
+      params,
+      selectPreset: (item: ParameterPreset) => {
+        params.load(item);
+        init();
+      },
+      loadPresets: presetStore.load,
+      savePresets: presetStore.save,
+      onToggleVisibility,
+    });
 
-  uiEvents.subscribe("pause", () => {
-    emitter.emit("transport", onPause() ? "playing" : "paused");
-  });
+    uiEvents.subscribe("pause", () => {
+      emitter.emit("transport", onPause() ? "playing" : "paused");
+    });
 
-  uiEvents.subscribe("screenshot", onScreenshot);
-  uiEvents.subscribe("rec", () => { onRecord(); });
-  uiEvents.subscribe("seed", ({seed}) => { onRandomSeed(seed); });
-  uiEvents.subscribe("reset", onReset);
+    uiEvents.subscribe("screenshot", onScreenshot);
+    uiEvents.subscribe("rec", () => { onRecord(); });
+    uiEvents.subscribe("seed", ({seed}) => { onRandomSeed(seed); });
+    uiEvents.subscribe("reset", onReset);
 
-  window.addEventListener("resize", resize);
-  //renderer.start();
+    window.addEventListener("resize", resize);
+    //renderer.start();
+  }
+
+  audioStore.initialize().then(() => { start(audioStore);});
+
 }
 
 export default main;

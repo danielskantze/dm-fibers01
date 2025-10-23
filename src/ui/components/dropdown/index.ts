@@ -16,6 +16,9 @@ export class ItemManager<T extends DropdownItem> {
   get items(): T[] {
     return this._items;
   }
+  clear()  {
+    this._items = [];
+  }
   item(id: string): T | undefined {
     return this._items.find((i) => (i.id === id));
   }
@@ -28,6 +31,9 @@ export class ItemManager<T extends DropdownItem> {
   }
   add(item: T) {
     this._items.push(item);
+  }
+  addAll(items: T[]) {
+    this._items.push(...items);
   }
   remove(id: string): number {
     if (this._items.length <= 1) {
@@ -48,15 +54,21 @@ export type DropdownEvents<T extends DropdownItem> = {
     index: number,
     item: T | undefined
   },
+  remove: string,
   change: {
     items: T[]
   } 
 };
 export interface DropdownUIComponent<T extends DropdownItem> extends UIComponent {
-  events: Subscribable<DropdownEvents<T>>
+  events: Subscribable<DropdownEvents<T>>;
+  setItems: (items: T[]) => void;
 }
 
-export function createDropdown<T extends DropdownItem>(id: string, items: T[], createItemFn: () => T): DropdownUIComponent<T> {
+export function createDropdown<T extends DropdownItem>(
+    id: string, 
+    items: T[], 
+    createItemFn: (() => T | undefined) | undefined
+  ): DropdownUIComponent<T> {
   const mgr: ItemManager<T> = new ItemManager<T>(items);
   const emitter = new Emitter<DropdownEvents<T>>();
 
@@ -80,6 +92,18 @@ export function createDropdown<T extends DropdownItem>(id: string, items: T[], c
     const node = select.querySelector(`option[value="${id}"]`);
     return node ? node as HTMLOptionElement : undefined;
   }
+
+  function setItems(items: T[]) {
+    const selectedValue = select.value;
+    select.innerHTML = "";
+    mgr.clear();
+    mgr.addAll(items);
+    for (const item of mgr.items) {
+     select.appendChild(createOption(item));
+    }
+    select.value = selectedValue;
+  }
+
   // Select handler
 
   select.addEventListener("change", () => {
@@ -114,18 +138,25 @@ export function createDropdown<T extends DropdownItem>(id: string, items: T[], c
 
   // Add handler
 
-  addButton.addEventListener('click', () => {
-    const newItem = createItemFn();
-    select.appendChild(createOption(newItem));
-    mgr.add(newItem);
-    select.value = newItem.id;
-    emitter.emit("change", { items: mgr.items.concat() })
-  });
+  if (createItemFn) {
+    addButton.addEventListener('click', () => {
+      const newItem = createItemFn();
+      if (newItem) {
+        select.appendChild(createOption(newItem));
+        mgr.add(newItem);
+        select.value = newItem.id;
+        emitter.emit("change", { items: mgr.items.concat() })
+      }
+    });
+  } else {
+    addButton.style.display = "none";
+  }
   
   // Remove handler
 
   removeButton.addEventListener('click', () => {
-    const nextIdx = mgr.remove(select.value);
+    const removeId = select.value;
+    const nextIdx = mgr.remove(removeId);
     if (nextIdx < 0) {
       return;
     }
@@ -135,17 +166,19 @@ export function createDropdown<T extends DropdownItem>(id: string, items: T[], c
       select.removeChild(opt);
       select.value = nextValue.id;
     }
+    emitter.emit("remove", removeId);
     emitter.emit("select", { index: nextIdx, item: mgr.itemAt(nextIdx)});
   });
 
   // Add options
-
   for (const item of mgr.items) {
-    select.appendChild(createOption(item));
+     select.appendChild(createOption(item));
   }
+  
   return {
     element: wrapper,
     update: () => {},
+    setItems,
     events: emitter
   }
 }
