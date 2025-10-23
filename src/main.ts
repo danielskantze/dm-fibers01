@@ -4,6 +4,7 @@ import defaultValues from "./config/defaultValues.json";
 import { defaultParameters } from "./config/parameters";
 import { VideoRecorder, type RecorderStatus } from "./render/util/recorder";
 import { WebGLRenderer } from "./render/webgl-renderer";
+import { AudioPlayer } from "./service/audioplayer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
 import type { BlobStore } from "./service/storage";
 import { IndexedDBBlobStore } from "./service/storage/localblob";
@@ -12,7 +13,6 @@ import type { ApplicationEvents } from "./types/application-events";
 import { type Settings } from "./types/settings";
 import ControlFactory from "./ui/components/controls";
 import { timestamp } from "./ui/util/date";
-import { generateId } from "./ui/util/id";
 import { strToVec3 } from "./ui/util/seed";
 import { createUi } from "./ui/views/parameter-panel";
 import { Emitter } from "./util/events";
@@ -60,6 +60,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const renderer = new WebGLRenderer(settings, canvas, params);
   params.load(defaultValues as ParameterPreset);
   const audioStore = new IndexedDBBlobStore("data", "audio");
+  const audioPlayer = new AudioPlayer();
   
   init();
 
@@ -104,8 +105,18 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     }
   }
 
-  function onPause() {
-    renderer.isRunning ? renderer.pause() : renderer.start();
+  function onPlayPause() {
+    if (renderer.isRunning) {
+      if (audioPlayer.ready) {
+        audioPlayer.stop();
+      }
+      renderer.pause();
+    } else {
+      if (audioPlayer.ready) {
+        audioPlayer.play();
+      }
+      renderer.start()
+    }
     return renderer.isRunning;
   }
 
@@ -137,10 +148,19 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       loadPresets: presetStore.load,
       savePresets: presetStore.save,
       onToggleVisibility,
+      onSelectAudio: (item) => {
+        if (item) {
+          emitter.emit("audio", "loading");
+          audioPlayer.load(item.data)
+          .then(() => {
+            emitter.emit("audio", "loaded");
+          });
+        }
+      }
     });
 
-    uiEvents.subscribe("pause", () => {
-      emitter.emit("transport", onPause() ? "playing" : "paused");
+    uiEvents.subscribe("play", () => {
+      emitter.emit("transport", onPlayPause() ? "playing" : "paused");
     });
 
     uiEvents.subscribe("screenshot", onScreenshot);
@@ -149,7 +169,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     uiEvents.subscribe("reset", onReset);
 
     window.addEventListener("resize", resize);
-    //renderer.start();
+    emitter.emit("transport", renderer.isRunning ? "playing" : "paused");
   }
 
   audioStore.initialize().then(() => { start(audioStore);});

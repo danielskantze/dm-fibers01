@@ -1,4 +1,4 @@
-import type { BlobItemMetadata, BlobStore } from "../../service/storage";
+import type { BlobItemData, BlobItemMetadata, BlobStore } from "../../service/storage";
 import { createDropdown } from "../components/dropdown";
 import type { UIComponent } from "../components/types";
 import { generateId } from "../util/id";
@@ -16,20 +16,18 @@ function asyncReadFile(file: File): Promise<ArrayBuffer> {
   });
 }
 
-export function createFileSelector(store: BlobStore, id: string, type: string): UIComponent {
+export function createFileSelector(store: BlobStore, id: string, type: string, onSelect: (item: BlobItemData | undefined) => void = () => {}): UIComponent {
   const hiddenInput = document.createElement("input");
   hiddenInput.type = "file";
   hiddenInput.style.display = "none";
 
   document.body.appendChild(hiddenInput);
 
-  const onSelect = (id: string) => {
+  const selectHandler = (id: string) => {
     store.get(id)
-      .then((item) => {
-        console.log(item);
-      });
+      .then(onSelect);
   }
-  const onAdd = () => {
+  const addHandler = () => {
     hiddenInput.click();
     return undefined;
   };
@@ -39,10 +37,10 @@ export function createFileSelector(store: BlobStore, id: string, type: string): 
         dropdown.setItems(items);
       });
   }
-  const onRemove = (id: string) => {
+  const removeHandler = (id: string) => {
     store.remove(id).then(updateItems);
   };
-  const onUpdate = (item: BlobItemMetadata) => {
+  const updateHandler = (item: BlobItemMetadata) => {
     store.update(item).then(updateItems);
   };
   const onFileSelected = () => {
@@ -66,18 +64,18 @@ export function createFileSelector(store: BlobStore, id: string, type: string): 
   }
   hiddenInput.addEventListener("change", onFileSelected);
 
-  const dropdown = createDropdown<BlobItemMetadata>(id, [], onAdd);
+  const dropdown = createDropdown<BlobItemMetadata>(id, [], addHandler);
   store.list(type)
     .then((items: BlobItemMetadata[]) => {
       dropdown.setItems(items);
     });
   dropdown.events.subscribe("select", ({ item }) => {
     if (item) {
-      onSelect(item.id);
+      selectHandler(item.id);
     }
   });
-  dropdown.events.subscribe("remove", onRemove);
-  dropdown.events.subscribe("update", onUpdate);  
+  dropdown.events.subscribe("remove", removeHandler);
+  dropdown.events.subscribe("update", updateHandler);  
   updateItems();
   return dropdown;
 }
