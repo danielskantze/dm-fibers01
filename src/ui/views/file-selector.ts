@@ -34,13 +34,16 @@ export function createFileSelector(store: BlobStore, id: string, type: string): 
     return undefined;
   };
   const updateItems = () => {
-    return store.list("audio")
+    return store.list(type)
       .then((items) => {
         dropdown.setItems(items);
       });
   }
   const onRemove = (id: string) => {
     store.remove(id).then(updateItems);
+  };
+  const onUpdate = (item: BlobItemMetadata) => {
+    store.update(item).then(updateItems);
   };
   const onFileSelected = () => {
     let promises: Promise<void>[] = [];
@@ -49,11 +52,9 @@ export function createFileSelector(store: BlobStore, id: string, type: string): 
         asyncReadFile(file)
         .then((buffer: ArrayBuffer) => (
           store.add({
-            blob: buffer,
+            data: buffer,
             id: generateId(),
-            type: "audio",
-            addedAt: new Date(),
-            size: file.size,
+            type,
             name: file.name
           })
         ))
@@ -75,9 +76,8 @@ export function createFileSelector(store: BlobStore, id: string, type: string): 
       onSelect(item.id);
     }
   });
-  dropdown.events.subscribe("remove", (id) => {
-    onRemove(id);
-  });
+  dropdown.events.subscribe("remove", onRemove);
+  dropdown.events.subscribe("update", onUpdate);  
   updateItems();
   return dropdown;
 }

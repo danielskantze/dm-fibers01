@@ -19,21 +19,23 @@ export interface MutableBlomItemMetadata {
 }
 export interface BlobItemMetadata extends KeyedBlobItem, MutableBlomItemMetadata {
   type: string,
+  originalName: string;
   addedAt: Date,
   size: number,
 }
 
 export interface BlobItemData extends KeyedBlobItem {
-  blob: any
+  data: ArrayBuffer
 }
-
 export interface BlobItem extends BlobItemData, BlobItemMetadata {
 
 };
 
+export type BlobAddItem = Omit<BlobItem, "originalName" | "addedAt" | "size">;
+
 export type BlobStore = {
   list(type?: string): Promise<BlobItemMetadata[]>;
-  add(item: BlobItem): Promise<void>;
+  add(item: BlobAddItem): Promise<void>;
   remove(id: string): Promise<void>;
   update(item: KeyedBlobItem & Partial<MutableBlomItemMetadata>): Promise<void>;
   get(id: string): Promise<BlobItem | undefined>;
