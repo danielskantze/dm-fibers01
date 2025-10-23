@@ -2,7 +2,7 @@ import type { BlobItem, BlobItemData, BlobItemMetadata, BlobStore, KeyedBlobItem
 
 const indexedDB = window.indexedDB;
 
-class IndexedDBKVStoreError extends Error {
+class IndexedDBBlobStoreError extends Error {
   private _sourceError;
   constructor(message: string, error?: Error | null) {
     super(message);
@@ -20,13 +20,13 @@ function waitForReq<T extends IDBRequest, K>(request: T): Promise<K> {
   const promise = new Promise<K>((resolve, reject) => {
     request.onsuccess = (e: Event) => {
       if (!e.target) {
-        reject(new IndexedDBKVStoreError("No target in success event"));
+        reject(new IndexedDBBlobStoreError("No target in success event"));
       } else {
         resolve((e.target as T).result as K);
       }
     };
     request.onerror = () => {
-      reject(new IndexedDBKVStoreError("Request failed", request.error));
+      reject(new IndexedDBBlobStoreError("Request failed", request.error));
     };
   });
   return promise;
@@ -36,13 +36,13 @@ function waitForTransaction(transaction: IDBTransaction): Promise<void> {
   const promise = new Promise<void>((resolve, reject) => {
     transaction.oncomplete = (e: Event) => {
       if (!e.target) {
-        reject(new IndexedDBKVStoreError("No target in success event"));
+        reject(new IndexedDBBlobStoreError("No target in success event"));
       } else {
         resolve();
       }
     };
     transaction.onerror = () => {
-      reject(new IndexedDBKVStoreError("Request failed", transaction.error));
+      reject(new IndexedDBBlobStoreError("Request failed", transaction.error));
     };
   });
   return promise;
@@ -69,7 +69,7 @@ export class IndexedDBBlobStore implements BlobStore {
       };
       req.onerror = () => {
         const error = req.error;
-        reject(new IndexedDBKVStoreError("DB open failed", error))
+        reject(new IndexedDBBlobStoreError("DB open failed", error))
       };
       req.onupgradeneeded = () => {
         this._db = req.result;
