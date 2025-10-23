@@ -55,6 +55,7 @@ export type DropdownEvents<T extends DropdownItem> = {
     item: T | undefined
   },
   remove: string,
+  update: T,
   change: {
     items: T[]
   } 
@@ -113,6 +114,8 @@ export function createDropdown<T extends DropdownItem>(
     }
   });
 
+  // Rename
+
   selectTrigger.addEventListener("click", () => {
     selectTrigger.style.display = "none";
     editInput.style.display = "block";
@@ -129,6 +132,7 @@ export function createDropdown<T extends DropdownItem>(
         }
         selectTrigger.style.display = "block";
         editInput.style.display = "none";
+        emitter.emit("update", newValue);
         emitter.emit("change", { items: mgr.items.concat() });
         document.removeEventListener("mousedown", blurListener);
       }

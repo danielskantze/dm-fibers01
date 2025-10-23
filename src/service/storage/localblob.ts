@@ -1,4 +1,4 @@
-import type { BlobItem, BlobItemData, BlobItemMetadata, BlobStore, KeyedBlobItem, MutableBlomItemMetadata } from "../storage";
+import type { BlobAddItem, BlobItem, BlobItemData, BlobItemMetadata, BlobStore, KeyedBlobItem, MutableBlomItemMetadata } from "../storage";
 
 const indexedDB = window.indexedDB;
 
@@ -101,18 +101,19 @@ export class IndexedDBBlobStore implements BlobStore {
   // E.g. add an updateMetada method, or we are more clever about the put method and we support optional fields
   // At that point we may want to introduce an add function instead (then we can demand all fields for that call)
   // Many thoughts... Possibly a YAGNI situation so I will not implement anything more just now
-  async add(item: BlobItem): Promise<void> {
+  async add(item:BlobAddItem): Promise<void> {
     const transaction = this._db!.transaction([this._metadata, this._blobdata], "readwrite");
     const mItem: BlobItemMetadata = {
       name: item.name,
       type: item.type,
-      addedAt: item.addedAt,
-      size: item.size,
+      originalName: item.name,
+      addedAt: new Date(),
+      size: item.data.byteLength,
       id: item.id
     };
     const bItem: BlobItemData = {
       id: item.id,
-      blob: item.blob
+      data: item.data
     }
     const mStore = transaction.objectStore(this._metadata);
     const mReq = mStore.add(mItem);
@@ -141,6 +142,7 @@ export class IndexedDBBlobStore implements BlobStore {
     const newItem: BlobItemMetadata = {
       id: existingItem.id,
       name: item.name ?? existingItem.name,
+      originalName: existingItem.originalName,
       type: existingItem.type,
       addedAt: existingItem.addedAt,
       size: existingItem.size
