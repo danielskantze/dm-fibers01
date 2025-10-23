@@ -1,5 +1,6 @@
 .ui-control.dropdown {
   width: 100%;
+  max-width: var(--ui-width);
   display: flex;
   flex-direction: row;
   height: var(--component-collapsed-height);
@@ -9,14 +10,17 @@
 .ui-control.dropdown select {
   flex: 1;
   height: 100%;
+  width: 100%;
 
   outline: none;
   appearance: none;
   background-color: transparent;
   border: none;
   padding: 0 .5em;
+  padding-right: 24px;
   margin: 0;
-  width: 100%;
+  max-width: 100%;
+  text-overflow: ellipsis;
   font-family: inherit;
   font-size: inherit;
   cursor: inherit;
