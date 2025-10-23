@@ -1,6 +1,7 @@
 import { Emitter, type Subscribable } from '../../../util/events';
 import type { UIComponent } from '../types';
 import './dropdown.css';
+import template from "./dropdown.html?raw";
 
 export type DropdownItem = {
   id: string;
@@ -56,20 +57,17 @@ export interface DropdownUIComponent<T extends DropdownItem> extends UIComponent
 }
 
 export function createDropdown<T extends DropdownItem>(id: string, items: T[], createItemFn: () => T): DropdownUIComponent<T> {
-  const container = document.createElement("div");
   const mgr: ItemManager<T> = new ItemManager<T>(items);
   const emitter = new Emitter<DropdownEvents<T>>();
-  container.classList.add("dropdown");
-  const addButton = document.createElement("button");
-  const removeButton = document.createElement("button");
-  const selectWrapper = document.createElement("div");
-  const select = document.createElement("select");
-  const selectTrigger = document.createElement("div");
-  const editInput = document.createElement("input");
-  selectTrigger.classList.add("trigger");
+
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = template;
+  const addButton = wrapper.querySelector('.add-button')! as HTMLElement;
+  const removeButton = wrapper.querySelector('.remove-button')! as HTMLElement;
+  const select = wrapper.querySelector('select')! as HTMLSelectElement;
+  const selectTrigger = wrapper.querySelector('.trigger')! as HTMLElement;
+  const editInput = wrapper.querySelector('.edit-input')! as HTMLInputElement;
   select.id = `id-${id}`;
-  selectWrapper.classList.add("select-wrapper");
-  editInput.classList.add("edit-input");
 
   function createOption(t: DropdownItem) {
     const option = document.createElement("option");
@@ -78,9 +76,9 @@ export function createDropdown<T extends DropdownItem>(id: string, items: T[], c
     return option;
   }
 
-  function getOption(id: string): HTMLOptionElement | undefined {
-    const opts = Array.from(select.childNodes) as HTMLOptionElement[];
-    return opts.find((o) => (o.value === id));
+  function getOption(id: string) {
+    const node = select.querySelector(`option[value="${id}"]`);
+    return node ? node as HTMLOptionElement : undefined;
   }
   // Select handler
 
@@ -116,7 +114,6 @@ export function createDropdown<T extends DropdownItem>(id: string, items: T[], c
 
   // Add handler
 
-  addButton.textContent = "＋";
   addButton.addEventListener('click', () => {
     const newItem = createItemFn();
     select.appendChild(createOption(newItem));
@@ -124,11 +121,9 @@ export function createDropdown<T extends DropdownItem>(id: string, items: T[], c
     select.value = newItem.id;
     emitter.emit("change", { items: mgr.items.concat() })
   });
-  container.appendChild(addButton);
-
+  
   // Remove handler
 
-  removeButton.textContent = "－";
   removeButton.addEventListener('click', () => {
     const nextIdx = mgr.remove(select.value);
     if (nextIdx < 0) {
@@ -142,19 +137,14 @@ export function createDropdown<T extends DropdownItem>(id: string, items: T[], c
     }
     emitter.emit("select", { index: nextIdx, item: mgr.itemAt(nextIdx)});
   });
-  container.appendChild(removeButton);
 
   // Add options
 
   for (const item of mgr.items) {
     select.appendChild(createOption(item));
   }
-  container.appendChild(selectWrapper);
-  selectWrapper.appendChild(select);
-  selectWrapper.appendChild(selectTrigger);
-  selectWrapper.appendChild(editInput);
   return {
-    element: container,
+    element: wrapper,
     update: () => {},
     events: emitter
   }

@@ -20,6 +20,14 @@ export const defaultParameters = {
       {
         group: "main",
         parameters: {
+          "seed": {
+            type: "custom",
+            value: "fibers01",
+            ui: {
+              name: "Seed",
+              component: "seed"
+            }
+          },
           "particles": {
             type: "int",
             value: 1000,
@@ -37,14 +45,6 @@ export const defaultParameters = {
               min: 1,
               max: 10,
               step: 1
-            }
-          },
-          "seed": {
-            type: "custom",
-            value: "fibers01",
-            ui: {
-              name: "Seed",
-              component: "seed"
             }
           }
         }

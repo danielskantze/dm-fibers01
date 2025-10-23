@@ -1,4 +1,4 @@
-.dropdown {
+.ui-control.dropdown {
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -6,7 +6,7 @@
   gap: 1px;
 }
 
-.dropdown select {
+.ui-control.dropdown select {
   flex: 1;
   height: 100%;
 
@@ -31,7 +31,7 @@
   border: 1px solid transparent;
 }
 
-.dropdown .select-wrapper {
+.ui-control.dropdown .select-wrapper {
   flex: 1;
   height: 100%;
   position: relative;
@@ -41,12 +41,12 @@
   border: 1px solid transparent;
 }
 
-.dropdown .select-wrapper {
+.ui-control.dropdown .select-wrapper {
   height: 100%;
 }
 
-.dropdown .edit-input,
-.dropdown .trigger {
+.ui-control.dropdown .edit-input,
+.ui-control.dropdown .trigger {
   z-index: 10;
   position: absolute;
   left: 0;
@@ -55,7 +55,7 @@
   bottom: 0;
 }
 
-.dropdown .edit-input {
+.ui-control.dropdown .edit-input {
   display: none;
   top: 2px;
   bottom: 2px;
@@ -67,7 +67,7 @@
   color: var(--component-color-accent-1);
 }
 
-.dropdown .select-wrapper::after {
+.ui-control.dropdown .select-wrapper::after {
   content: "▼"; /* Or use an SVG/image for a cleaner look */
   position: absolute;
   top: 50%; /* Center vertically */
@@ -81,7 +81,7 @@
   pointer-events: none; /* Crucial: ensures clicks go through to the select element */
 }
 
-.dropdown button {
+.ui-control.dropdown button {
   background: var(--component-color-background);
   color: var(--component-color-accent-1);
   border-radius: 0.5rem;
