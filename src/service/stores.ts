@@ -1,5 +1,5 @@
 import type { ParameterPreset } from "./parameters";
-import { createStore } from "./storage";
+import { createStore } from "./storage/local";
 
 export type StoreKeys = "presets";
 
