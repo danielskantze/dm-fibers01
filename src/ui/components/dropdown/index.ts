@@ -64,6 +64,7 @@ export interface DropdownUIComponent<T extends DropdownItem> extends UIComponent
   events: Subscribable<DropdownEvents<T>>;
   setItems: (items: T[]) => void;
   setDisabled: (isDisabled: boolean) => void;
+  select: (id: string | undefined) => void;
 }
 
 export function createDropdown<T extends DropdownItem>(
@@ -121,6 +122,8 @@ export function createDropdown<T extends DropdownItem>(
     const index = mgr.items.findIndex((i) => (i.id === select.value));
     if (index >= 0) {
       emitter.emit("select", {index, item: mgr.itemAt(index)});
+    } else {
+      console.log("clear");
     }
   });
 
@@ -195,6 +198,9 @@ export function createDropdown<T extends DropdownItem>(
   return {
     element: wrapper,
     update: () => {},
+    select: (id: string | undefined) => {
+      select.value = id ?? "";
+    },
     setItems,
     events: emitter,
     setDisabled

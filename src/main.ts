@@ -6,7 +6,7 @@ import { VideoRecorder, type RecorderStatus } from "./render/util/recorder";
 import { WebGLRenderer } from "./render/webgl-renderer";
 import { AudioPlayer } from "./service/audioplayer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
-import type { BlobStore } from "./service/storage";
+import type { BlobItemData, BlobStore } from "./service/storage";
 import { IndexedDBBlobStore } from "./service/storage/localblob";
 import { presetStore } from "./service/stores";
 import type { ApplicationEvents } from "./types/application-events";
@@ -61,7 +61,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   params.load(defaultValues as ParameterPreset);
   const audioStore = new IndexedDBBlobStore("data", "audio");
   const audioPlayer = new AudioPlayer();
-  
+
   init();
 
   function init() {
@@ -129,13 +129,35 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   function onReset() {
     renderer.reset();
+    audioPlayer.clear();
+    emitter.emit("audio", {status: "clear"});
   }
 
   function onToggleVisibility() {
     controlFactory.visible = !controlFactory.visible;
   }
 
-  function start(audioStore: BlobStore) {
+  async function start(audioStore: BlobStore) {
+    const onSelectAudio = (item: BlobItemData | undefined) => {
+      if (item) {
+        params.setValue("main", "audio", item.id);
+        emitter.emit("audio", {status: "loading", id: item.id});
+        audioPlayer.load(item.data)
+          .then(() => {
+            emitter.emit("audio", {status: "loaded", id: item.id});
+          });
+      } 
+    }
+
+    const initAudio = async () => {
+      const audioId = params.getParameter("main", "audio")?.value;
+      if (audioId && await audioStore.has(audioId as string)) {
+        onSelectAudio(await audioStore.get(audioId as string));
+      } else {
+        audioPlayer.stop();
+        emitter.emit("audio", {status: "clear"});
+      }
+    }
     const uiEvents = createUi({
       appEvents: emitter,
       element: controls,
@@ -143,20 +165,14 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       params,
       selectPreset: (item: ParameterPreset) => {
         params.load(item);
+        audioPlayer.clear();
         init();
+        initAudio();
       },
       loadPresets: presetStore.load,
       savePresets: presetStore.save,
       onToggleVisibility,
-      onSelectAudio: (item) => {
-        if (item) {
-          emitter.emit("audio", "loading");
-          audioPlayer.load(item.data)
-          .then(() => {
-            emitter.emit("audio", "loaded");
-          });
-        }
-      }
+      onSelectAudio
     });
 
     uiEvents.subscribe("play", () => {
@@ -165,23 +181,20 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
     uiEvents.subscribe("screenshot", onScreenshot);
     uiEvents.subscribe("rec", () => { onRecord(); });
-    uiEvents.subscribe("seed", ({seed}) => { onRandomSeed(seed); });
+    uiEvents.subscribe("seed", ({ seed }) => { onRandomSeed(seed); });
     uiEvents.subscribe("reset", onReset);
 
     window.addEventListener("resize", resize);
     emitter.emit("transport", renderer.isRunning ? "playing" : "paused");
+    await initAudio();
   }
-
-  audioStore.initialize().then(() => { start(audioStore);});
-
+  audioStore.initialize().then(() => (start(audioStore)));
 }
 
 export default main;
 
 // TODO:
 
-// Load audio
-// Play audio on start
 // Save last audio file in IndexedDB
 
 // Simple add music (hook up to audio features)

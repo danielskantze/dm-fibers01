@@ -4,6 +4,11 @@ export class AudioPlayerError extends Error {
   }
 }
 
+type AnalyzerSettings = {
+  bins: "256" | "512" | "1024" | "2048" | "4096" | "8192";
+  enabled?: boolean
+}
+
 export class AudioPlayer {
   private _audioContext: AudioContext;
   private _buffer?: AudioBuffer;
@@ -13,9 +18,20 @@ export class AudioPlayer {
   private _position: DOMHighResTimeStamp = 0;
   private _isPlaying: boolean = false;
   private _playMonitor: number | null = null;
+  private _isAnalyzing: boolean = false;
 
-  constructor() { 
+  private _analyzer: AnalyserNode | null = null;
+  private _fftData: Uint8Array<ArrayBuffer> | null = null;
+
+  constructor(analyzerSettings?: AnalyzerSettings) { 
     this._audioContext = new AudioContext();
+    if (analyzerSettings) {
+      this._analyzer = this._audioContext.createAnalyser();
+      this._analyzer.fftSize = parseInt(analyzerSettings.bins);
+      this._fftData = new Uint8Array(this._analyzer.frequencyBinCount);
+      this._analyzer.connect(this._audioContext.destination);
+      this._isAnalyzing = analyzerSettings.enabled ?? true;
+    }
   }
 
   checkReady() {
@@ -27,8 +43,25 @@ export class AudioPlayer {
     }
   }
 
+  private get destinationNode() {
+    return this._analyzer ?? this._audioContext.destination;
+  }
+
+  get isAnalyzing() {
+    return !!this._analyzer && this._isAnalyzing;
+  }
+
+  set isAnalyzing(value: boolean) {
+    this._isAnalyzing = value;
+  }
+
   get ready(): boolean {
     return !!this._buffer;
+  }
+
+  clear() {
+    this.stop(true);
+    this._buffer = undefined;
   }
 
   async load(data: ArrayBuffer) {
@@ -44,9 +77,12 @@ export class AudioPlayer {
     }
   }
 
-  private schedulePositionMonitor() {
+  private startPlayMonitor() {
     const fn = () => {
       this._position = this._playTime + performance.now() - this._startTime;
+      if (this.isAnalyzing) {
+        this._analyzer!.getByteTimeDomainData(this._fftData!);
+      }
       if (this._isPlaying) {
         this._playMonitor = requestAnimationFrame(fn);
       }
@@ -60,7 +96,7 @@ export class AudioPlayer {
     }
     this._source = this._audioContext.createBufferSource();
     this._source.buffer = this._buffer!;
-    this._source.connect(this._audioContext.destination);
+    this._source.connect(this.destinationNode);
     this._source.onended = () => {
       this._source?.disconnect();
       this._source = null;
@@ -69,7 +105,7 @@ export class AudioPlayer {
     this._source.start(0, startPosition);
     this._startTime = performance.now();
     this._isPlaying = true;
-    this.schedulePositionMonitor();
+    this.startPlayMonitor();
   }
 
   stop(rewind: boolean = false) {

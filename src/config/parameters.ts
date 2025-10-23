@@ -28,6 +28,10 @@ export const defaultParameters = {
               component: "seed"
             }
           },
+          "audio": {
+            type: "custom",
+            value: "",
+          },
           "particles": {
             type: "int",
             value: 1000,

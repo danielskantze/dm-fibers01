@@ -69,8 +69,6 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
   }
 }
 
-
-
 export type UIProps = {
   element: HTMLElement,
   audioStore: BlobStore,
@@ -133,13 +131,16 @@ export function createUi({ appEvents, element, audioStore, params, selectPreset,
   appEvents.subscribe("transport", (status) => {
     buttons.setTitle("playpause", status === "playing" ? "Pause" : "Resume");
   });
-  appEvents.subscribe("audio", (status) => {
+  appEvents.subscribe("audio", ({status, id}) => {
     if (status === "loading") {
       audioControl.setDisabled(true);
       buttons.setDisabled("playpause", true);
-    } else {
+    } else if (status === "loaded") {
       audioControl.setDisabled(false);
+      audioControl.select(id);
       buttons.setDisabled("playpause", false);
+    } else if (status === "clear") {
+      audioControl.select(undefined);
     }
   });
 
