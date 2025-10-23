@@ -1,5 +1,6 @@
 import type { Matrix4x3 } from "../../math/types";
 import type { ParameterData, ParameterPreset, ParameterRegistry } from "../../service/parameters";
+import type { BlobItemMetadata, BlobStore } from "../../service/storage";
 import type { ApplicationEvents, ApplicationRecordStatus } from "../../types/application-events";
 import { UniformComponents } from "../../types/gl/uniforms";
 import { Emitter, type Subscribable } from "../../util/events";
@@ -12,6 +13,8 @@ import type { UIComponent } from "../components/types";
 import { createVector } from "../components/vector";
 import { generateId } from "../util/id";
 import { rndSeed } from "../util/seed";
+import { createFileSelector } from "./file-selector";
+import { createPresetControls } from "./presets";
 
 export type UIEvents = {
   screenshot: {},
@@ -68,27 +71,11 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
     }
   }
 
-  function createPresetControls(select: (item: ParameterPreset) => void, 
-    load: () => ParameterPreset[], 
-    save: (items: ParameterPreset[]) => void, 
-    params: ParameterRegistry): UIComponent {
-      const dropdown = createDropdown<ParameterPreset>("presets", load(), () => (
-        params.toPreset(
-          generateId(), 
-          (new Date()).toLocaleString()
-        )
-      ));
-      dropdown.events.subscribe("select", ({item}) => {
-        if (item) {
-          select(item);
-        }
-      });
-      dropdown.events.subscribe("change", ({items}) => { save(items); });
-      return dropdown;
-  }
+  
 
   export type UIProps = {
     element: HTMLElement,
+    audioStore: BlobStore,
     params: ParameterRegistry,
     appEvents: Subscribable<ApplicationEvents>,
     selectPreset: (item: ParameterPreset) => void,
@@ -97,10 +84,12 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
     onToggleVisibility: () => void,
   }
 
-  export function createUi({ appEvents, element, params, selectPreset, loadPresets, savePresets, onToggleVisibility }: UIProps): Subscribable<UIEvents> {
+  export function createUi({ appEvents, element, audioStore, params, selectPreset, loadPresets, savePresets, onToggleVisibility }: UIProps): Subscribable<UIEvents> {
     const presetControls = createPresetControls(selectPreset, loadPresets, savePresets, params);
+    const audioControl = createFileSelector(audioStore, "audio", "audio");
     const emitter = new Emitter<UIEvents>();
     element.appendChild(presetControls.element);
+    element.appendChild(audioControl.element);
     createUniformControls(element, params.list().map(([,,u]) => (u)), params, emitter);
     const buttons = createButtons([
       {
