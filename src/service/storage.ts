@@ -19,7 +19,7 @@ export interface MutableBlomItemMetadata {
 }
 export interface BlobItemMetadata extends KeyedBlobItem, MutableBlomItemMetadata {
   type: string,
-  addedAt: string,
+  addedAt: Date,
   size: number,
 }
 
