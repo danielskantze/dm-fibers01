@@ -63,6 +63,7 @@ export type DropdownEvents<T extends DropdownItem> = {
 export interface DropdownUIComponent<T extends DropdownItem> extends UIComponent {
   events: Subscribable<DropdownEvents<T>>;
   setItems: (items: T[]) => void;
+  setDisabled: (isDisabled: boolean) => void;
 }
 
 export function createDropdown<T extends DropdownItem>(
@@ -72,15 +73,24 @@ export function createDropdown<T extends DropdownItem>(
   ): DropdownUIComponent<T> {
   const mgr: ItemManager<T> = new ItemManager<T>(items);
   const emitter = new Emitter<DropdownEvents<T>>();
+  let isDisabled = false;
 
   const wrapper = document.createElement("div");
   wrapper.innerHTML = template;
-  const addButton = wrapper.querySelector('.add-button')! as HTMLElement;
-  const removeButton = wrapper.querySelector('.remove-button')! as HTMLElement;
+  const addButton = wrapper.querySelector('.add-button')! as HTMLButtonElement;
+  const removeButton = wrapper.querySelector('.remove-button')! as HTMLButtonElement;
   const select = wrapper.querySelector('select')! as HTMLSelectElement;
   const selectTrigger = wrapper.querySelector('.trigger')! as HTMLElement;
   const editInput = wrapper.querySelector('.edit-input')! as HTMLInputElement;
   select.id = `id-${id}`;
+
+  function setDisabled(value: boolean) {
+    select.disabled = value;
+    editInput.disabled = value;
+    addButton.disabled = value;
+    removeButton.disabled = value;
+    isDisabled = value;
+  }
 
   function createOption(t: DropdownItem) {
     const option = document.createElement("option");
@@ -117,6 +127,9 @@ export function createDropdown<T extends DropdownItem>(
   // Rename
 
   selectTrigger.addEventListener("click", () => {
+    if (isDisabled) {
+      return;
+    }
     selectTrigger.style.display = "none";
     editInput.style.display = "block";
     const selectedItem = mgr.item(select.value);
@@ -183,6 +196,7 @@ export function createDropdown<T extends DropdownItem>(
     element: wrapper,
     update: () => {},
     setItems,
-    events: emitter
+    events: emitter,
+    setDisabled
   }
 }

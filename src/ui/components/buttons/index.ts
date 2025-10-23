@@ -24,7 +24,9 @@ export function createButtons(buttons: {id: string, title: string, onClick: () =
       button.onclick = (e: Event) => {
         e.preventDefault();
         e.stopPropagation();
-        onClick();
+        if (!button.disabled) {
+          onClick();
+        }
       };
       buttonElements.push({id, button});
       container.appendChild(buttonWrapper);
