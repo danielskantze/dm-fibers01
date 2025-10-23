@@ -1,4 +1,4 @@
-import type { BlobItem, BlobItemData, BlobItemMetadata, BlobStore } from "../storage";
+import type { BlobItem, BlobItemData, BlobItemMetadata, BlobStore, KeyedBlobItem, MutableBlomItemMetadata } from "../storage";
 
 const indexedDB = window.indexedDB;
 
@@ -83,14 +83,14 @@ export class IndexedDBBlobStore implements BlobStore {
 
   async list(type?: string): Promise<BlobItemMetadata[]> {
     const transaction = this._db!.transaction([this._metadata], "readonly");
-    const store = transaction.objectStore(this._metadata);
-    let req: IDBRequest<BlobItemMetadata[]>;
+    const mStore = transaction.objectStore(this._metadata);
+    let mReq: IDBRequest<BlobItemMetadata[]>;
     if (type) {
-      req = store.index("type").getAll(type);
+      mReq = mStore.index("type").getAll(type);
     } else {
-      req = store.getAll();
+      mReq = mStore.getAll();
     }
-    const items: BlobItemMetadata[] = await waitForReq(req);
+    const items: BlobItemMetadata[] = await waitForReq(mReq);
     await waitForTransaction(transaction);
     return items;
   }
@@ -101,7 +101,7 @@ export class IndexedDBBlobStore implements BlobStore {
   // E.g. add an updateMetada method, or we are more clever about the put method and we support optional fields
   // At that point we may want to introduce an add function instead (then we can demand all fields for that call)
   // Many thoughts... Possibly a YAGNI situation so I will not implement anything more just now
-  async put(item: BlobItem): Promise<void> {
+  async add(item: BlobItem): Promise<void> {
     const transaction = this._db!.transaction([this._metadata, this._blobdata], "readwrite");
     const mItem: BlobItemMetadata = {
       name: item.name,
@@ -115,17 +115,46 @@ export class IndexedDBBlobStore implements BlobStore {
       blob: item.blob
     }
     const mStore = transaction.objectStore(this._metadata);
-    const mReq = mStore.put(mItem);
+    const mReq = mStore.add(mItem);
     const bStore = transaction.objectStore(this._blobdata);
-    const bReq = bStore.put(bItem);
+    const bReq = bStore.add(bItem);
     await Promise.all([waitForReq(mReq), waitForReq(bReq)]);
     await waitForTransaction(transaction);
   }
+
+  async remove(id: string): Promise<void> {
+    const transaction = this._db!.transaction([this._metadata, this._blobdata], "readwrite");
+    const mStore = transaction.objectStore(this._metadata);
+    const mReq = mStore.delete(id);
+    const bStore = transaction.objectStore(this._blobdata);
+    const bReq = bStore.delete(id);
+    await Promise.all([await waitForReq(mReq), await waitForReq(bReq)]);
+    await waitForTransaction(transaction);
+  }
+
+  async update(item: KeyedBlobItem & Partial<MutableBlomItemMetadata>): Promise<void> {
+    const transaction = this._db!.transaction([this._metadata], "readwrite");
+    const mStore = transaction.objectStore(this._metadata);
+    let existingItem: BlobItemMetadata = await waitForReq(mStore.get(item.id));
+    // A lot of code just to change the name. 
+    // But this is a good boilerplate in case we add more props later like description etc
+    const newItem: BlobItemMetadata = {
+      id: existingItem.id,
+      name: item.name ?? existingItem.name,
+      type: existingItem.type,
+      addedAt: existingItem.addedAt,
+      size: existingItem.size
+    };
+    const mReq = mStore.put(newItem);
+    await waitForReq(mReq);
+    await waitForTransaction(transaction);
+  }
+
   async has(id: string): Promise<boolean> {
     const transaction = this._db!.transaction([this._metadata], "readonly");
-    const store = transaction.objectStore(this._metadata);
-    const req = store.count(id);
-    const count: number = await waitForReq(req);
+    const mStore = transaction.objectStore(this._metadata);
+    const mReq = mStore.count(id);
+    const count: number = await waitForReq(mReq);
     await waitForTransaction(transaction);
     return count > 0;
   }

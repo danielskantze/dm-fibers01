@@ -14,8 +14,10 @@ export interface KeyedBlobItem {
   id: string;
 }
 
-export interface BlobItemMetadata extends KeyedBlobItem {
+export interface MutableBlomItemMetadata {
   name: string,
+}
+export interface BlobItemMetadata extends KeyedBlobItem, MutableBlomItemMetadata {
   type: string,
   addedAt: string,
   size: number,
@@ -31,7 +33,9 @@ export interface BlobItem extends BlobItemData, BlobItemMetadata {
 
 export type BlobStore = {
   list(type?: string): Promise<BlobItemMetadata[]>;
-  put(item: BlobItem): Promise<void>;
+  add(item: BlobItem): Promise<void>;
+  remove(id: string): Promise<void>;
+  update(item: KeyedBlobItem & Partial<MutableBlomItemMetadata>): Promise<void>;
   get(id: string): Promise<BlobItem | undefined>;
   has(id: string): Promise<boolean>;
 }
