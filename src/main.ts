@@ -195,8 +195,6 @@ export default main;
 
 // TODO:
 
-// Save last audio file in IndexedDB
-
 // Simple add music (hook up to audio features)
 // - Sync beats with stroke noise x/y (each kick will pulse these)
 // - Also pulsate stroke radius (maybe for a new section?)
