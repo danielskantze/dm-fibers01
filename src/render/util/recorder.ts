@@ -14,6 +14,8 @@ export type RecorderEvent = {
   status: RecorderStatus
 }
 
+const isWindows = window.navigator.platform === "Win32";
+
 type VideoRecorderOptions = {
   title: string;
   fps?: number;
@@ -33,7 +35,7 @@ export class VideoRecorder implements IVideoRecorder {
       target: new BufferTarget(),
     });
     this._source = new CanvasSource(canvas, {
-      codec: 'avc',
+      codec: isWindows ? 'vp9' : 'avc',
       bitrate: QUALITY_HIGH,
     });
     this._output.addVideoTrack(this._source, {
