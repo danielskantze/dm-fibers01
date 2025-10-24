@@ -13,6 +13,7 @@ declare var AudioWorkletProcessor: {
   new (options?: AudioWorkletNodeOptions): AudioWorkletProcessor;
 };
 
+
 declare function registerProcessor(
   name: string,
   processorCtor: (new (

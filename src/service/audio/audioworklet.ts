@@ -1,11 +1,18 @@
 class StatsProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-    this.counter = 0;
   }
 
-  process(inputs, outputs, parameters) {
+  process(
+    inputs: Float32Array<ArrayBufferLike>[][], 
+    outputs: Float32Array<ArrayBufferLike>[][], 
+    _parameters: Record<string, Float32Array<ArrayBufferLike>>) {
     const input = inputs[0];
+    for (let i = 0; i < inputs.length; i++) {
+      for (let c = 0; c < inputs[i].length; c++) {
+        outputs[i][c].set(inputs[i][c]);
+      }
+    }
     if (input && input[0]) {
       const channelData = input[0];
       let sumSquares = 0;
@@ -16,14 +23,9 @@ class StatsProcessor extends AudioWorkletProcessor {
         sumSquares += sample * sample;
         if (Math.abs(sample) > peak) peak = Math.abs(sample);
       }
-
       const rms = Math.sqrt(sumSquares / channelData.length);
-
-      // Send stats to main thread
       this.port.postMessage({ rms, peak });
     }
-
-    // Continue processing
     return true;
   }
 }
