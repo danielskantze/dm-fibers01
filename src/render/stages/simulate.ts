@@ -32,6 +32,8 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             const colorNoisePLocation = gl.getUniformLocation(program, "u_color_noise_p");
             const cosPaletteLocation = gl.getUniformLocation(program, "u_cos_palette");
 
+            const audioLevelStatsLocation = gl.getUniformLocation(program, "u_audio_level_stats");
+
             const attributes = {
                 position: gl.getAttribLocation(program, "position"),
             };
@@ -124,7 +126,16 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
                   },
                   value: 2.0,
                   type: "float"
-                }
+                },
+                audioLevelStats: {
+                  location: audioLevelStatsLocation,
+                  value: vec3.createZero(),
+                  ui: {
+                    name: "Audio level stats",
+                    type: "hidden"
+                  },
+                  type: "vec3"
+                } as Uniform
             };
             return { program, attributes, uniforms } as ShaderProgram;
         }),
@@ -242,6 +253,7 @@ function draw(gl: WebGL2RenderingContext, stage: Stage, frame: number, drawSize?
     gl.uniform4fv(u.strokeNoise.location, u.strokeNoise.value as Vec4);
     gl.uniform4fv(u.strokeDrift.location, u.strokeDrift.value as Vec4);
     gl.uniform4fv(u.colorNoise.location, u.colorNoise.value as Vec4);
+    gl.uniform3fv(u.audioLevelStats.location, u.audioLevelStats.value as Vec3);
 
     gl.uniformMatrix4x3fv(u.cosPalette.location, false, u.cosPalette.value as Float32Array);
     gl.activeTexture(gl.TEXTURE0);
