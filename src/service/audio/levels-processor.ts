@@ -1,18 +1,13 @@
-class StatsProcessor extends AudioWorkletProcessor {
+class LevelsProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
   }
 
   process(
     inputs: Float32Array<ArrayBufferLike>[][], 
-    outputs: Float32Array<ArrayBufferLike>[][], 
+    _outputs: Float32Array<ArrayBufferLike>[][], 
     _parameters: Record<string, Float32Array<ArrayBufferLike>>) {
     const input = inputs[0];
-    for (let i = 0; i < inputs.length; i++) {
-      for (let c = 0; c < inputs[i].length; c++) {
-        outputs[i][c].set(inputs[i][c]);
-      }
-    }
     if (input && input[0]) {
       const channelData = input[0];
       let sumSquares = 0;
@@ -30,4 +25,4 @@ class StatsProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('stats-processor', StatsProcessor);
+registerProcessor('levels-processor', LevelsProcessor);

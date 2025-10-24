@@ -1,5 +1,6 @@
 import { Emitter, type Subscribable } from "../util/events";
-import statsProcessorUrl from "./audio/audioworklet?url";
+import levelsProcessorUrl from "./audio/levels-processor?url";
+import beatDetectorUrl from "./audio/beat-detector?url";
 
 export class AudioPlayerError extends Error {
   constructor(message: string) {
@@ -14,12 +15,14 @@ type AnalyzerSettings = {
 
 type AudioStats = {
   rms: number,
-  peak: number
+  peak: number,
+  beatTime: number
 };
 
 const emptyStats: AudioStats = {
   rms: 0,
   peak: 0,
+  beatTime: 0,
 }
 
 type AudioAnalysis = {
@@ -43,7 +46,7 @@ export class AudioPlayer {
   private _isAnalyzing: boolean = false;
 
   private _analyzer: AnalyserNode | null = null;
-  private _statsProcessor: AudioWorkletNode | null = null;
+  private _analysisNodes: AudioNode[] = [];
   private _fftData: Float32Array<ArrayBuffer> | null = null;
   private _statsData: AudioStats = {...emptyStats};
 
@@ -55,21 +58,33 @@ export class AudioPlayer {
 
   async initialize(analyzerSettings?: AnalyzerSettings) {
     if (analyzerSettings) {
-      console.log("Adding module");
-      await this._audioContext.audioWorklet.addModule(statsProcessorUrl);
-      console.log("Added module");
-      this._statsProcessor = new AudioWorkletNode(
+      await this._audioContext.audioWorklet.addModule(levelsProcessorUrl);
+      const levelsNode = new AudioWorkletNode(
         this._audioContext,
-        "stats-processor",
+        "levels-processor",
       );
+      levelsNode.port.onmessage = (e) => {
+        this._statsData = {...this._statsData, ...e.data};
+      }
+      this._analysisNodes.push(levelsNode);
+
+      const lowpassFilter = this._audioContext.createBiquadFilter();
+      lowpassFilter.type = 'lowpass';
+      lowpassFilter.frequency.setValueAtTime(150, this._audioContext.currentTime);
+      await this._audioContext.audioWorklet.addModule(beatDetectorUrl);
+      const beatDetectorNode = new AudioWorkletNode(
+        this._audioContext, 
+        'beat-detector'
+      );
+      lowpassFilter.connect(beatDetectorNode);
+      beatDetectorNode.port.onmessage = (e) => {
+        this._statsData.beatTime = e.data.time;
+      }
+      this._analysisNodes.push(lowpassFilter);
+      
       this._analyzer = this._audioContext.createAnalyser();
       this._analyzer.fftSize = parseInt(analyzerSettings.fftBins);
       this._fftData = new Float32Array(this._analyzer.frequencyBinCount);
-      this._analyzer.connect(this._statsProcessor);
-      this._statsProcessor.connect(this._audioContext.destination);
-      this._statsProcessor.port.onmessage = (e) => {
-        this._statsData = e.data as AudioStats;
-      }
       this._isAnalyzing = analyzerSettings.enabled ?? true;
     }
   }
@@ -85,10 +100,6 @@ export class AudioPlayer {
 
   get events(): Subscribable<AudioEvents> {
     return this._emitter;
-  }
-
-  private get destinationNode() {
-    return this._analyzer ?? this._audioContext.destination;
   }
 
   get isAnalyzing() {
@@ -147,7 +158,11 @@ export class AudioPlayer {
     }
     this._source = this._audioContext.createBufferSource();
     this._source.buffer = this._buffer!;
-    this._source.connect(this.destinationNode);
+    this._source.connect(this._audioContext.destination);
+    if (this._analyzer) {
+      this._source.connect(this._analyzer);
+    }
+    this._analysisNodes.forEach((n) => (this._source!.connect(n)));
     this._source.onended = () => {
       this._source?.disconnect();
       this._source = null;
