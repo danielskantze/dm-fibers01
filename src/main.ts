@@ -190,10 +190,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     let frameCnt = 0;
     audioPlayer.events.subscribe("analysis", ({fft, stats}) => {
       //params.setValue("simulate", "fft", fft);
-      params.setValue("simulate", "audioLevelStats", vec3.create([stats.rms, stats.peak, 0]));
+      params.setValue("simulate", "audioLevelStats", vec3.create([stats.rms, stats.peak, stats.beatTime]));
       if ((++frameCnt % 20) === 0) {
         const val = params.getValue("simulate", "audioLevelStats") as Vec3;
-        console.log("rms", val[0], "peak", val[1]);
+        console.log("rms", val[0], "peak", val[1], "beatTime", val[2]);
       }
     });
 
