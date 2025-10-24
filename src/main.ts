@@ -16,13 +16,14 @@ import { timestamp } from "./ui/util/date";
 import { strToVec3 } from "./ui/util/seed";
 import { createUi } from "./ui/views/parameter-panel";
 import { Emitter } from "./util/events";
+import * as vec3 from "./math/vec3";
+import type { Vec3 } from "./math/types";
 
 const settings: Settings = {
   width: window.screen.width,
   height: window.screen.height,
   dpr: window.devicePixelRatio,
 }
-
 
 function configureCanvas(canvas: HTMLCanvasElement) {
   const width = window.innerWidth;
@@ -138,6 +139,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   }
 
   async function start(audioStore: BlobStore) {
+    await audioPlayer.initialize({fftBins: "1024", enabled: true});
+
     const onSelectAudio = (item: BlobItemData | undefined) => {
       if (item) {
         params.setValue("main", "audio", item.id);
@@ -183,6 +186,16 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     uiEvents.subscribe("rec", () => { onRecord(); });
     uiEvents.subscribe("seed", ({ seed }) => { onRandomSeed(seed); });
     uiEvents.subscribe("reset", onReset);
+
+    let frameCnt = 0;
+    audioPlayer.events.subscribe("analysis", ({fft, stats}) => {
+      //params.setValue("simulate", "fft", fft);
+      params.setValue("simulate", "audioLevelStats", vec3.create([stats.rms, stats.peak, 0]));
+      if ((++frameCnt % 20) === 0) {
+        const val = params.getValue("simulate", "audioLevelStats") as Vec3;
+        console.log("rms", val[0], "peak", val[1]);
+      }
+    });
 
     window.addEventListener("resize", resize);
     emitter.emit("transport", renderer.isRunning ? "playing" : "paused");

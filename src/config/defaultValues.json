@@ -41,7 +41,8 @@
         1.0, 0.5, 1.0,
         0.0, 0.9, 0.9
       ],
-      "maxRadius": 2
+      "maxRadius": 2,
+      "audioLevelStats": [0, 0, 0]
     },
     "accumulate": {
       "fadeTime": 5,

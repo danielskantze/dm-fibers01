@@ -1,3 +1,6 @@
+import { Emitter, type Subscribable } from "../util/events";
+import statsProcessorUrl from "./audio/audioworklet?url";
+
 export class AudioPlayerError extends Error {
   constructor(message: string) {
     super(message);
@@ -5,10 +8,29 @@ export class AudioPlayerError extends Error {
 }
 
 type AnalyzerSettings = {
-  bins: "256" | "512" | "1024" | "2048" | "4096" | "8192";
+  fftBins: "256" | "512" | "1024" | "2048" | "4096" | "8192";
   enabled?: boolean
+};
+
+type AudioStats = {
+  rms: number,
+  peak: number
+};
+
+const emptyStats: AudioStats = {
+  rms: 0,
+  peak: 0,
 }
 
+type AudioAnalysis = {
+  stats: AudioStats,
+  fft: Float32Array<ArrayBuffer>
+}
+
+export type AudioEvents = {
+  status: "loading" | "loaded" | "playing" | "paused" | "stopped" | "cleared";
+  analysis: AudioAnalysis
+}
 export class AudioPlayer {
   private _audioContext: AudioContext;
   private _buffer?: AudioBuffer;
@@ -21,15 +43,33 @@ export class AudioPlayer {
   private _isAnalyzing: boolean = false;
 
   private _analyzer: AnalyserNode | null = null;
-  private _fftData: Uint8Array<ArrayBuffer> | null = null;
+  private _statsProcessor: AudioWorkletNode | null = null;
+  private _fftData: Float32Array<ArrayBuffer> | null = null;
+  private _statsData: AudioStats = {...emptyStats};
 
-  constructor(analyzerSettings?: AnalyzerSettings) { 
+  private _emitter = new Emitter<AudioEvents>();
+
+  constructor() { 
     this._audioContext = new AudioContext();
+  }
+
+  async initialize(analyzerSettings?: AnalyzerSettings) {
     if (analyzerSettings) {
+      console.log("Adding module");
+      await this._audioContext.audioWorklet.addModule(statsProcessorUrl);
+      console.log("Added module");
+      this._statsProcessor = new AudioWorkletNode(
+        this._audioContext,
+        "stats-processor",
+      );
       this._analyzer = this._audioContext.createAnalyser();
-      this._analyzer.fftSize = parseInt(analyzerSettings.bins);
-      this._fftData = new Uint8Array(this._analyzer.frequencyBinCount);
-      this._analyzer.connect(this._audioContext.destination);
+      this._analyzer.fftSize = parseInt(analyzerSettings.fftBins);
+      this._fftData = new Float32Array(this._analyzer.frequencyBinCount);
+      this._analyzer.connect(this._statsProcessor);
+      this._statsProcessor.connect(this._audioContext.destination);
+      this._statsProcessor.port.onmessage = (e) => {
+        this._statsData = e.data as AudioStats;
+      }
       this._isAnalyzing = analyzerSettings.enabled ?? true;
     }
   }
@@ -41,6 +81,10 @@ export class AudioPlayer {
     if (!this._buffer) {
       throw new AudioPlayerError("No audio data loaded");
     }
+  }
+
+  get events(): Subscribable<AudioEvents> {
+    return this._emitter;
   }
 
   private get destinationNode() {
@@ -62,16 +106,19 @@ export class AudioPlayer {
   clear() {
     this.stop(true);
     this._buffer = undefined;
+    this._emitter.emit("status", "cleared");
   }
 
   async load(data: ArrayBuffer) {
     const shouldPlay = this._isPlaying;
+    this._emitter.emit("status", "loading");
     if (this._isPlaying) {
       this.stop(true);
     }
     this._playTime = 0;
     this._position = 0;
     this._buffer = await this._audioContext.decodeAudioData(data);
+    this._emitter.emit("status", "loaded");
     if (shouldPlay) {
       this.play();
     }
@@ -81,7 +128,11 @@ export class AudioPlayer {
     const fn = () => {
       this._position = this._playTime + performance.now() - this._startTime;
       if (this.isAnalyzing) {
-        this._analyzer!.getByteTimeDomainData(this._fftData!);
+        this._analyzer!.getFloatFrequencyData(this._fftData!);
+        this._emitter.emit("analysis", {
+          stats: this._statsData,
+          fft: this._fftData!
+        });
       }
       if (this._isPlaying) {
         this._playMonitor = requestAnimationFrame(fn);
@@ -106,6 +157,7 @@ export class AudioPlayer {
     this._startTime = performance.now();
     this._isPlaying = true;
     this.startPlayMonitor();
+    this._emitter.emit("status", "playing");
   }
 
   stop(rewind: boolean = false) {
@@ -120,8 +172,10 @@ export class AudioPlayer {
     if (rewind) {
       this._playTime = 0;
       this._position = 0;
+      this._emitter.emit("status", "stopped");
     } else {
       this._playTime = this._position;
+      this._emitter.emit("status", "paused");
     }
   }
 }

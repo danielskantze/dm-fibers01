@@ -15,6 +15,7 @@ uniform int u_frame;
 uniform vec4 u_stroke_noise_p;
 uniform vec4 u_stroke_drift_p;
 uniform vec4 u_color_noise_p;
+uniform vec3 u_audio_level_stats;
 
 uniform mat4x3 u_cos_palette;
 
@@ -208,13 +209,13 @@ float sinBounce(float x) {
 float angleAt(vec2 coord) {
   //vec2 scale = vec2(1.25, .33);
   float time = TIME;
-  float bt = sinBounce(time * 0.1);
+  float bt = sinBounce(time * 0.1);  
   float scaleFactor = u_stroke_noise_p.x + u_stroke_noise_p.y * bt; //0.2;
   float driftFactor = u_stroke_drift_p.x + u_stroke_drift_p.y * bt; //0.1;
   vec2 scale = vec2(u_stroke_noise_p.z, u_stroke_noise_p.w) * scaleFactor;
   vec2 drift = driftFactor * vec2(snoise(vec2(time * u_stroke_drift_p.z)), snoise(vec2(time * u_stroke_drift_p.w + 1.3)));
   vec2 p = vec2(coord + drift) * scale;
-  return gnoise(vec3(p.x + 0.5 * fbm(p), p.y + 0.5 * fbm(p + vec2(.1) * bt), time * .05));
+  return gnoise(vec3(p.x + 0.5 * fbm(p), p.y + 0.5 * fbm(p + vec2(0.1) * bt), time * .05));
 }
 
 vec3 palette1(float t) {
@@ -247,6 +248,8 @@ void main() {
   vec4 color;
   vec4 properties;
 
+  vec2 rmsFactor = smoothstep(0.0, PI, u_audio_level_stats.xy); // rms, peak, 0
+
   if (u_frame > 0) {
     properties = texelFetch(u_properties_texture, ivec2(gl_FragCoord.xy), 0);
     position = texelFetch(u_position_texture, ivec2(gl_FragCoord.xy), 0);
@@ -265,17 +268,20 @@ void main() {
     color.a = 0.0;
   } else {
       // existing particle
-    float angle = angleAt(position.xy);
+    float angle = angleAt(position.xy + properties.xx);
+    //angle += rmsFactor.x * PI;
+    properties.x += (rmsFactor.x * 4.0 - 0.1);
+    properties.x = clamp(properties.x, 0.1, 50.0);
     vec2 step = 0.75 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
     float p = clamp(properties.z / properties.w, 0.0, 1.0);
     float t = sinBounce(p);
 
-    position.xy = position.xy + step; //* max(1.0, properties.y * .25);
+    position.xy = position.xy + step * (0.5 + rmsFactor.x * 10.0); //* max(1.0, properties.y * .25);
     properties.y = max(properties.x * t, 2.0); // radius
     properties.z = properties.z + 1.0; //max(1.0, properties.y * .25); // age
 
     float tA = pow(t, 0.33);
-    color = mix(color, colorAt(coord), 0.002);
+    color = mix(color, colorAt(coord), rmsFactor.y);
     color.a = mix(0.0, 1.1, tA);
   }
 
