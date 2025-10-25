@@ -5,7 +5,10 @@ precision highp float;
 #define PI2 6.283185307179586476925286766559
 #define FPS 60.0
 #define TIME (float(u_frame) / FPS)
-//in your particle update fragment shader
+
+// ------------------------------------------------------------
+// UNIFORMS
+// ------------------------------------------------------------
 
 uniform ivec2 u_particles_texture_size;
 uniform vec2 u_screen_size;
@@ -29,6 +32,10 @@ layout (location = 0) out vec4 out_position;
 layout (location = 1) out vec4 out_color;
 layout (location = 2) out vec4 out_properties;
 
+// ------------------------------------------------------------
+// PARTICLE DATA MODEL
+// ------------------------------------------------------------
+
 // geometry texture 
 // - vec4 position (x, y)
 
@@ -40,6 +47,10 @@ layout (location = 2) out vec4 out_properties;
 // - float radius
 // - float age
 // - float lifetime
+
+// ------------------------------------------------------------
+// LIBRARY FUNCTIONS
+// ------------------------------------------------------------
 
 vec3 mod289(vec3 x) {
   return x - floor(x * (1.0 / 289.0)) * 289.0;
@@ -86,6 +97,11 @@ vec3 hash33(vec3 p)      // this hash is not production ready, please
 vec3 permute(vec3 x) {
   return mod289(((x * 34.0) + 10.0) * x);
 }
+
+// ---------------
+// NOISE FUNCTIONS
+// ---------------
+
 
 float snoise(vec2 v) {
   //v = v + u_rnd_seed.xy * u_rnd_seed.z;
@@ -134,10 +150,6 @@ float snoise(vec2 v) {
   g.yz = a0.yz * x12.xz + h.yz * x12.yw;
   return 130.0 * dot(m, g);
 }
-
-// ------------------------------------------------------------
-// Noise
-// ------------------------------------------------------------
 
 float gnoise(in vec3 x) {
   x = x + u_rnd_seed;
@@ -248,7 +260,7 @@ void main() {
   vec4 color;
   vec4 properties;
 
-  vec3 rmsFactor = smoothstep(0.0, PI, u_audio_level_stats.xyz); // rms, peak, 0
+  //vec3 rmsFactor = smoothstep(0.0, PI, u_audio_level_stats.xyz); // rms, peak, 0
 
   if (u_frame > 0) {
     properties = texelFetch(u_properties_texture, ivec2(gl_FragCoord.xy), 0);
@@ -269,21 +281,18 @@ void main() {
   } else {
       // existing particle
     float angle = angleAt(position.xy + properties.xx);
-    //angle += rmsFactor.x * PI;
-    //properties.x += (rmsFactor.x * 4.0 - 0.1);
     properties.x = clamp(properties.x, 0.1, 50.0);
     vec2 step = 0.75 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
     float p = clamp(properties.z / properties.w, 0.0, 1.0);
     float t = sinBounce(p);
 
-    position.xy = position.xy + step * (0.5 + rmsFactor.x * 10.0); //* max(1.0, properties.y * .25);
+    position.xy = position.xy + step * max(1.0, properties.y * .25);
     properties.y = max(properties.x * t, 2.0); // radius
     properties.z = properties.z + 1.0; //max(1.0, properties.y * .25); // age
 
     float tA = pow(t, 0.33);
-    color = mix(color, colorAt(coord), rmsFactor.y);
     color.a = mix(0.0, 1.1, tA);
-    color *= max(0.0, 1.0 - u_audio_level_stats.z);
+    // color *= max(0.0, 1.0 - u_audio_level_stats.z);
   }
 
     // - x - float angle (0-1)
