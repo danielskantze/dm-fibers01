@@ -222,13 +222,10 @@ export default main;
 // Refactoring cont'd (is this needed?):
 // - Improve UI code quality (use interfaces, improve method to put the UI together)
 
+// Ensure preset is recalled properly and that audio file is loaded too
 // Migrate all vectors and math classes to use Float32Arrays instead of number[]
-// Maybe: Support parameter groups in UI
 // Handle outdated parameters (wrong version)
-
 // 3D support (each particle has Z component)
-
 // Group parameters of different types (e.g. bloom)
-
 // Consider adding LFOs
 // Support brightness, contrast and color temperature post controls
