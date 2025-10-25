@@ -248,7 +248,7 @@ void main() {
   vec4 color;
   vec4 properties;
 
-  vec2 rmsFactor = smoothstep(0.0, PI, u_audio_level_stats.xy); // rms, peak, 0
+  vec3 rmsFactor = smoothstep(0.0, PI, u_audio_level_stats.xyz); // rms, peak, 0
 
   if (u_frame > 0) {
     properties = texelFetch(u_properties_texture, ivec2(gl_FragCoord.xy), 0);
@@ -270,7 +270,7 @@ void main() {
       // existing particle
     float angle = angleAt(position.xy + properties.xx);
     //angle += rmsFactor.x * PI;
-    properties.x += (rmsFactor.x * 4.0 - 0.1);
+    //properties.x += (rmsFactor.x * 4.0 - 0.1);
     properties.x = clamp(properties.x, 0.1, 50.0);
     vec2 step = 0.75 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
     float p = clamp(properties.z / properties.w, 0.0, 1.0);
@@ -283,6 +283,7 @@ void main() {
     float tA = pow(t, 0.33);
     color = mix(color, colorAt(coord), rmsFactor.y);
     color.a = mix(0.0, 1.1, tA);
+    color *= max(0.0, 1.0 - u_audio_level_stats.z);
   }
 
     // - x - float angle (0-1)

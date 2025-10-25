@@ -16,13 +16,17 @@ type AnalyzerSettings = {
 type AudioStats = {
   rms: number,
   peak: number,
-  beatTime: number
+  beatTime: number,
+  lastBeatTime: number,
+  lastBeatTimestamp: number
 };
 
 const emptyStats: AudioStats = {
   rms: 0,
   peak: 0,
   beatTime: 0,
+  lastBeatTime: 0,
+  lastBeatTimestamp: 0,
 }
 
 type AudioAnalysis = {
@@ -65,6 +69,7 @@ export class AudioPlayer {
       );
       levelsNode.port.onmessage = (e) => {
         this._statsData = {...this._statsData, ...e.data};
+        this._statsData.beatTime = Math.max(0, (performance.now() - this._statsData.lastBeatTimestamp) / 1000.0);
       }
       this._analysisNodes.push(levelsNode);
 
@@ -78,7 +83,8 @@ export class AudioPlayer {
       );
       lowpassFilter.connect(beatDetectorNode);
       beatDetectorNode.port.onmessage = (e) => {
-        this._statsData.beatTime = e.data.time;
+        this._statsData.lastBeatTimestamp = performance.now();
+        this._statsData.lastBeatTime = e.data.time;
       }
       this._analysisNodes.push(lowpassFilter);
       
