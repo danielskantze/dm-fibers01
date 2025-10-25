@@ -68,9 +68,11 @@ export class VideoRecorder implements IVideoRecorder {
     return (this._output.target as BufferTarget).buffer;
   }
   async captureFrame() {
-    const timestamp = this._framesAdded / this._fps;
-	  const duration = 1 / this._fps;
-    this._source.add(timestamp, duration);
-    this._framesAdded += 1;
+    if (this._status === "ready") {
+      const timestamp = this._framesAdded / this._fps;
+      const duration = 1 / this._fps;
+      this._source.add(timestamp, duration);
+      this._framesAdded += 1;
+    }
   }
 }
