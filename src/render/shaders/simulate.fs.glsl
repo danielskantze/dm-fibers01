@@ -66,6 +66,7 @@ float hash12(vec2 p) {
   return fract((p3.x + p3.y) * p3.z);
 }
 
+
 vec2 hash22(vec2 p) {
   vec3 p3 = fract(p.xyx * vec3(.1031, .1030, .0973));
   p3 += dot(p3, p3.yzx + 33.33);
@@ -205,6 +206,27 @@ float fbm(vec2 x) {
   return t;
 }
 
+vec2 fbm2(vec2 p) {
+  return vec2(
+    fbm(p),
+    fbm(p + vec2(32.2, 94.2))
+  );
+}
+
+float fbmW2(vec2 p, vec2 o, float k) {
+  vec2 q = vec2(fbm(p), fbm(p + o));
+  return fbm(p + k * q);
+}
+
+float fbmW3(vec2 p, vec2 o1, vec2 o2, vec2 o3, float k) {
+  vec2 q = vec2(fbm(p), fbm(p + o1));
+  vec2 kq = k * q;
+  vec2 r = vec2(
+    fbm(p + kq + o2), 
+    fbm(p + kq + o3));
+  return fbm(p + k * r);
+}
+
 // ------------------------------------------------------------
 // Palette & Utilities
 // ------------------------------------------------------------
@@ -227,7 +249,13 @@ float angleAt(vec2 coord) {
   vec2 scale = vec2(u_stroke_noise_p.z, u_stroke_noise_p.w) * scaleFactor;
   vec2 drift = driftFactor * vec2(snoise(vec2(time * u_stroke_drift_p.z)), snoise(vec2(time * u_stroke_drift_p.w + 1.3)));
   vec2 p = vec2(coord + drift) * scale;
-  return gnoise(vec3(p.x + 0.5 * fbm(p), p.y + 0.5 * fbm(p + vec2(0.1) * bt), time * .05));
+  return gnoise(
+    vec3(
+      p.x + 0.5 * fbm(p), 
+      p.y + 0.5 * fbm(p + vec2(0.1) * bt), 
+      time * .05
+    )
+  );
 }
 
 vec3 palette1(float t) {
@@ -272,15 +300,22 @@ void main() {
   if (u_frame == 0 || properties.z > properties.w || !boundsCheck(position.xy)) {
       // new particle
     vec2 rndCoord = coord + u_rnd_seed.xy * u_rnd_seed.z;
+    rndCoord = mod289(rndCoord + vec2(time * 0.231, time * 0.332));
     float lifetime = (hash12(rndCoord) * 256.0 + 512.0) * 1.0;
-    float age = -hash12(rndCoord * time) * lifetime;
-    position = vec4(hash22(100.0 * rndCoord) * 2.0 - 1.0, 0, 1.0);
+    float age = -hash12(rndCoord) * lifetime;
+    //position = vec4(hash22(100.0 * rndCoord) * 2.0 - 1.0, 0, 1.0);
+    
+    position = vec4(
+      fbm2((rndCoord * 0.5)),
+      0.0, 1.0
+    );
+
     properties = vec4(hash12(rndCoord) * u_max_radius, 0.0, age, lifetime);
     color = colorAt(rndCoord);
     color.a = 0.0;
   } else {
       // existing particle
-    float angle = angleAt(position.xy + properties.xx);
+    float angle = angleAt(position.xy);
     properties.x = clamp(properties.x, 0.1, 50.0);
     vec2 step = 0.75 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
     float p = clamp(properties.z / properties.w, 0.0, 1.0);

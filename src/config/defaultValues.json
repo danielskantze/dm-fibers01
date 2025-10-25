@@ -5,8 +5,8 @@
   "version": 1,
   "data": {
     "main": {
-      "particles": 1000,
-      "updatesPerDraw": 4,
+      "particles": 130000,
+      "updatesPerDraw": 6,
       "seed": "fibers01",
       "audio": ""
     },
