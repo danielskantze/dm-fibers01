@@ -34,7 +34,8 @@ function createOutput(gl: WebGL2RenderingContext, width: number, height: number,
 }
 
 function reset(gl: WebGL2RenderingContext, stage: Stage, width: number, height: number) {
-  const { output } = stage.resources as Resources & { output: StageOutput };
+  const { output, shaders } = stage.resources as Resources & { output: StageOutput };
+  const { shader } = shaders;
   if (output) {
     const { framebuffer } = output.framebuffer!;
     const clearFloat = new Float32Array([0.0, 0.0, 0.0, 1.0]);
@@ -43,6 +44,7 @@ function reset(gl: WebGL2RenderingContext, stage: Stage, width: number, height: 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     return;
   }
+  gl.useProgram(shader.program);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
