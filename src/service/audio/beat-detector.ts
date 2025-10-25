@@ -9,8 +9,8 @@ class BeatDetector extends AudioWorkletProcessor {
   
   public historySeconds: number = 1.5;
   public sensitivity: number = 1.4;
-  public debounceTimeMs: number = 200.0;
-  public debounceTimeSec: number = 200.0 / 1000.0;
+  public debounceTimeMs: number = 300.0;
+  public debounceTimeSec: number = 300.0 / 1000.0;
 
   constructor() {
     super();
