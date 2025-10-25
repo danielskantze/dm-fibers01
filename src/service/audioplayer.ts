@@ -1,6 +1,5 @@
 import { Emitter, type Subscribable } from "../util/events";
-import levelsProcessorUrl from "./audio/levels-processor?url";
-import beatDetectorUrl from "./audio/beat-detector?url";
+import type { InternalAudioStatsCollector, PublicAudioStatsCollector } from "./audio/audio-stats";
 
 export class AudioPlayerError extends Error {
   constructor(message: string) {
@@ -8,35 +7,8 @@ export class AudioPlayerError extends Error {
   }
 }
 
-type AnalyzerSettings = {
-  fftBins: "256" | "512" | "1024" | "2048" | "4096" | "8192";
-  enabled?: boolean
-};
-
-type AudioStats = {
-  rms: number,
-  peak: number,
-  beatTime: number,
-  lastBeatTime: number,
-  lastBeatTimestamp: number
-};
-
-const emptyStats: AudioStats = {
-  rms: 0,
-  peak: 0,
-  beatTime: 0,
-  lastBeatTime: 0,
-  lastBeatTimestamp: 0,
-}
-
-type AudioAnalysis = {
-  stats: AudioStats,
-  fft: Float32Array<ArrayBuffer>
-}
-
 export type AudioEvents = {
   status: "loading" | "loaded" | "playing" | "paused" | "stopped" | "cleared";
-  analysis: AudioAnalysis
 }
 export class AudioPlayer {
   private _audioContext: AudioContext;
@@ -47,51 +19,18 @@ export class AudioPlayer {
   private _position: DOMHighResTimeStamp = 0;
   private _isPlaying: boolean = false;
   private _playMonitor: number | null = null;
-  private _isAnalyzing: boolean = false;
-
-  private _analyzer: AnalyserNode | null = null;
-  private _analysisNodes: AudioNode[] = [];
-  private _fftData: Float32Array<ArrayBuffer> | null = null;
-  private _statsData: AudioStats = {...emptyStats};
 
   private _emitter = new Emitter<AudioEvents>();
+  private _statsCollector: InternalAudioStatsCollector | null;
 
-  constructor() { 
+  constructor(statsCollector: PublicAudioStatsCollector | null) { 
     this._audioContext = new AudioContext();
+    this._statsCollector = statsCollector as InternalAudioStatsCollector;
   }
 
-  async initialize(analyzerSettings?: AnalyzerSettings) {
-    if (analyzerSettings) {
-      await this._audioContext.audioWorklet.addModule(levelsProcessorUrl);
-      const levelsNode = new AudioWorkletNode(
-        this._audioContext,
-        "levels-processor",
-      );
-      levelsNode.port.onmessage = (e) => {
-        this._statsData = {...this._statsData, ...e.data};
-        this._statsData.beatTime = Math.max(0, (performance.now() - this._statsData.lastBeatTimestamp) / 1000.0);
-      }
-      this._analysisNodes.push(levelsNode);
-
-      const lowpassFilter = this._audioContext.createBiquadFilter();
-      lowpassFilter.type = 'lowpass';
-      lowpassFilter.frequency.setValueAtTime(150, this._audioContext.currentTime);
-      await this._audioContext.audioWorklet.addModule(beatDetectorUrl);
-      const beatDetectorNode = new AudioWorkletNode(
-        this._audioContext, 
-        'beat-detector'
-      );
-      lowpassFilter.connect(beatDetectorNode);
-      beatDetectorNode.port.onmessage = (e) => {
-        this._statsData.lastBeatTimestamp = performance.now();
-        this._statsData.lastBeatTime = e.data.time;
-      }
-      this._analysisNodes.push(lowpassFilter);
-      
-      this._analyzer = this._audioContext.createAnalyser();
-      this._analyzer.fftSize = parseInt(analyzerSettings.fftBins);
-      this._fftData = new Float32Array(this._analyzer.frequencyBinCount);
-      this._isAnalyzing = analyzerSettings.enabled ?? true;
+  async initialize() {
+    if (this._statsCollector) {
+      await this._statsCollector.initialize(this._audioContext);
     }
   }
 
@@ -109,11 +48,7 @@ export class AudioPlayer {
   }
 
   get isAnalyzing() {
-    return !!this._analyzer && this._isAnalyzing;
-  }
-
-  set isAnalyzing(value: boolean) {
-    this._isAnalyzing = value;
+    return !!this._statsCollector;
   }
 
   get ready(): boolean {
@@ -144,12 +79,8 @@ export class AudioPlayer {
   private startPlayMonitor() {
     const fn = () => {
       this._position = this._playTime + performance.now() - this._startTime;
-      if (this.isAnalyzing) {
-        this._analyzer!.getFloatFrequencyData(this._fftData!);
-        this._emitter.emit("analysis", {
-          stats: this._statsData,
-          fft: this._fftData!
-        });
+      if (this._statsCollector) {
+        this._statsCollector.update(this._position);
       }
       if (this._isPlaying) {
         this._playMonitor = requestAnimationFrame(fn);
@@ -165,10 +96,9 @@ export class AudioPlayer {
     this._source = this._audioContext.createBufferSource();
     this._source.buffer = this._buffer!;
     this._source.connect(this._audioContext.destination);
-    if (this._analyzer) {
-      this._source.connect(this._analyzer);
+    if (this._statsCollector) {
+      this._statsCollector.connectSource(this._source);
     }
-    this._analysisNodes.forEach((n) => (this._source!.connect(n)));
     this._source.onended = () => {
       this._source?.disconnect();
       this._source = null;
