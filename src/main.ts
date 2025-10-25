@@ -17,8 +17,7 @@ import { strToVec3 } from "./ui/util/seed";
 import { createUi } from "./ui/views/parameter-panel";
 import { Emitter } from "./util/events";
 import * as vec3 from "./math/vec3";
-import type { Vec3 } from "./math/types";
-import { createAudioStatsCollector, type AudioStats } from "./service/audio/audio-stats";
+import { createAudioStatsCollector } from "./service/audio/audio-stats";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -62,7 +61,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const renderer = new WebGLRenderer(settings, canvas, params);
   params.load(defaultValues as ParameterPreset);
   const audioStore = new IndexedDBBlobStore("data", "audio");
-  const audioStats = createAudioStatsCollector({enabledTypes: ["beat", "levels", "fft"]});
+  const audioStats = createAudioStatsCollector({
+    enabledTypes: ["beat", "levels", "fft"],
+    logConfig: undefined
+  });
   const audioPlayer = new AudioPlayer(audioStats);
 
   init();
@@ -190,15 +192,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     uiEvents.subscribe("seed", ({ seed }) => { onRandomSeed(seed); });
     uiEvents.subscribe("reset", onReset);
 
-    let frameCnt = 0;
     audioStats.events.subscribe("update", ({stats}) => {
-      //params.setValue("simulate", "fft", fft);
       const {rms, peak} = stats.levels;
+      //params.setValue("main", "particles", 300000 * (0.5 + rms));
       params.setValue("simulate", "audioLevelStats", vec3.create([rms, peak, stats.beat.timeSinceLastBeat]));
-      if ((++frameCnt % 20) === 0) {
-        const val = params.getValue("simulate", "audioLevelStats") as Vec3;
-        console.log("rms", val[0], "peak", val[1], "beatTime", val[2]);
-      }
     });
 
     window.addEventListener("resize", resize);
