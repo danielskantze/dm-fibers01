@@ -25,4 +25,4 @@ class LevelsProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('levels-processor', LevelsProcessor);
+registerProcessor('levels-monitor', LevelsProcessor);
