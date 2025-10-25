@@ -15,7 +15,8 @@ export type AudioAnalysisType = keyof AudioStats;
 export const availableAnalysisTypes: AudioAnalysisType[] = ["beat", "levels", "fft"];
 
 type AudioStatsCollectorParams = {
-    enabledTypes: AudioAnalysisType[]
+    enabledTypes: AudioAnalysisType[],
+    logConfig?: LogConfig
 }
 
 type State = Record<AudioAnalysisType, AudioStatsDetectorState>;
@@ -42,15 +43,23 @@ type AudioAnalysisEvents = {
     }
 }
 
+type LogConfig = {
+    interval: number,
+    types: AudioAnalysisType[]
+}
+
 class AudioStatsCollector {
     private _detectors: [AudioAnalysisType, AudioStatsDetector][] = [];
-    private _params: AudioStatsCollectorParams;
+    private _enabledTypes: AudioAnalysisType[];
     private _stats: State = createEmptyState();
+    private _logConfig: LogConfig | undefined;
+    private _lastLogTimestamp: number = 0;
 
     private _emitter = new Emitter<AudioAnalysisEvents>();
 
     constructor(params: AudioStatsCollectorParams) {
-        this._params = params;
+        this._enabledTypes = params.enabledTypes;
+        this._logConfig = params.logConfig;
     }
 
     get events(): Subscribable<AudioAnalysisEvents> {
@@ -63,7 +72,7 @@ class AudioStatsCollector {
 
     async initialize(context: AudioContext) {
         for (const t of availableAnalysisTypes) {
-            if (this._params.enabledTypes.indexOf(t) >= 0) {
+            if (this._enabledTypes.indexOf(t) >= 0) {
                 let detector: AudioStatsDetector;
                 switch (t) {
                     case "beat":
@@ -91,7 +100,23 @@ class AudioStatsCollector {
             update(position);
             this._stats[t] = state as AudioStats[typeof t];
         });
+        if (this._logConfig) {
+            const now = performance.now();
+            const timeSinceLast = (now - this._lastLogTimestamp) / 1000.0;
+            if (timeSinceLast > this._logConfig.interval) {
+                this._detectors.forEach(([t]) => {
+                    if (!this._logConfig || this._logConfig?.types.indexOf(t) >= 0) {
+                        console.log(this._stats[t])
+                    }
+                });
+                this._lastLogTimestamp = now;
+            }
+        }
         this._emitter.emit("update", {stats: this.stats });
+    }
+    reset() {
+        this._detectors.forEach(([,d]) => (d.reset()));
+        this._lastLogTimestamp = 0;
     }
 }
 
