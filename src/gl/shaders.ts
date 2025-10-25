@@ -9,8 +9,9 @@ function loadShader(gl: WebGLRenderingContext, type: "vertex" | "fragment", sour
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        const log = gl.getShaderInfoLog(shader);
         gl.deleteShader(shader);
-        throw new WebGLShaderError(`Failed to compile shader: ${gl.getShaderInfoLog(shader)}`);
+        throw new WebGLShaderError(`Failed to compile shader: ${log}`);
     }
     return shader;
 }
