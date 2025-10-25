@@ -33,16 +33,20 @@ function createOutput(gl: WebGL2RenderingContext, width: number, height: number,
     return { name, textures, framebuffer} as StageOutput;
 }
 
-function reset(gl: WebGL2RenderingContext, stage: Stage) {
+function reset(gl: WebGL2RenderingContext, stage: Stage, width: number, height: number) {
   const { output } = stage.resources as Resources & { output: StageOutput };
-  if (!output) {
+  if (output) {
+    const { framebuffer } = output.framebuffer!;
+    const clearFloat = new Float32Array([0.0, 0.0, 0.0, 1.0]);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    gl.clearBufferfv(gl.COLOR, 0, clearFloat);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     return;
   }
-  const { framebuffer } = output.framebuffer!;
-  const clearFloat = new Float32Array([0.0, 0.0, 0.0, 1.0]);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-  gl.clearBufferfv(gl.COLOR, 0, clearFloat);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  draw(gl, stage, width, height);
 }
 
 function create(gl: WebGL2RenderingContext, input: Stage, bufferOutput: boolean): Stage {

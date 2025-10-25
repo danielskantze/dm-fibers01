@@ -98,7 +98,7 @@ export class WebGLRenderer {
     stage_luma.reset(this._gl, this._stages.luma);
     stage_materialize.reset(this._gl, this._stages.materialize);
     stage_simulate.reset(this._gl, this._stages.simulate);
-    stage_output.reset(this._gl, this._stages.display);
+    stage_output.reset(this._gl, this._stages.display, this._renderWidth, this._renderHeight);
     if (this._stages.debug) {
       stage_debug.reset(this._gl, this._stages.debug);
     }
