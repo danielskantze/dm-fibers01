@@ -201,6 +201,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     window.addEventListener("resize", resize);
     emitter.emit("transport", renderer.isRunning ? "playing" : "paused");
     await initAudio();
+    onPlayPause();
   }
   audioStore.initialize().then(() => (start(audioStore)));
 }
