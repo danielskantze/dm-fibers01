@@ -218,7 +218,23 @@ export default main;
 // TODO:
 
 // Figure out a way to connect number of particles to sound intensity
-// - windowed average
+
+// UI
+// - Support stop and pause for player
+// - Reset removes audio
+
+// Experience:
+// - Support palette rotation
+
+// Simulation:
+// - Support max number of particles being created per frame being spawned
+
+// Audio:
+// - Understand spectral flux for novelty detection
+
+// Refactoring: 
+// - Go through all random types.ts files - are they needed?
+// - Improve uniform send (base this on Uniform type, check type, pick location and so on)
 
 // Math
 // - Add smoothing and damping functions
