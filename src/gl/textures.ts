@@ -56,6 +56,9 @@ function createTexture(
   nearest = false
 ): Texture {
   const tex: WebGLTexture = gl.createTexture()!;
+  width = Math.round(width);
+  height = Math.round(height);
+
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.texImage2D(
     gl.TEXTURE_2D,

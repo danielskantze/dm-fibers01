@@ -62,8 +62,8 @@ function createFrameBuffer(
     throw new WebGLFrameBufferError(`Unable to create frame buffer: ${status}`);
   }
   return {
-    width,
-    height,
+    width: Math.round(width),
+    height: Math.round(height),
     framebuffer,
     textures,
   };
@@ -85,8 +85,8 @@ function createMultisamplerFrameBuffer(
   );
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   return {
-    width,
-    height,
+    width: Math.round(width),
+    height: Math.round(height),
     framebuffer,
     renderbuffer,
   };
