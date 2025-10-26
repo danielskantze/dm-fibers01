@@ -18,6 +18,7 @@ import { createUi } from "./ui/views/parameter-panel";
 import { Emitter } from "./util/events";
 import * as vec4 from "./math/vec4";
 import { createAudioStatsCollector } from "./service/audio/audio-stats";
+import { createModal } from "./ui/components/modal/modal";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -68,6 +69,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       types: ["levels", "beat"],
     },
   });
+  const modal = createModal();
   const audioPlayer = new AudioPlayer(audioStats);
 
   function init() {
@@ -150,11 +152,11 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   async function start(audioStore: BlobStore) {
     await audioPlayer.initialize();
 
-    const onSelectAudio = (item: BlobItemData | undefined) => {
+    const onSelectAudio = async (item: BlobItemData | undefined) => {
       if (item) {
         params.setValue("main", "audio", item.id);
         emitter.emit("audio", { status: "loading", id: item.id });
-        audioPlayer.load(item.data).then(() => {
+        return audioPlayer.load(item.data).then(() => {
           emitter.emit("audio", { status: "loaded", id: item.id });
         });
       }
@@ -163,19 +165,25 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     const initAudio = async () => {
       const audioId = params.getParameter("main", "audio")?.value;
       if (audioId && (await audioStore.has(audioId as string))) {
-        onSelectAudio(await audioStore.get(audioId as string));
+        return onSelectAudio(await audioStore.get(audioId as string));
       } else {
         audioPlayer.stop();
         emitter.emit("audio", { status: "clear" });
       }
     };
 
-    const selectPreset = (item: ParameterPreset) => {
+    const selectPreset = async (item: ParameterPreset) => {
+      const isRunning = renderer.isRunning;
+      renderer.pause();
       params.load(item);
       userSettingsStore.save({ presetId: item.id });
       audioPlayer.clear();
       init();
-      initAudio();
+      await initAudio();
+      if (isRunning) {
+        audioPlayer.play();
+        renderer.start();
+      }
     };
 
     const uiEvents = createUi({
@@ -191,7 +199,28 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       onSelectAudio,
     });
 
+    audioStats.events.subscribe("update", ({ stats }) => {
+      const { rms, avgRms, avgPeak } = stats.levels;
+      //params.setValue("main", "particles", 300000 * (0.5 + rms));
+      params.setValue(
+        "simulate",
+        "audioLevelStats",
+        vec4.create([rms, avgRms, avgPeak, stats.beat.timeSinceLastBeat])
+      );
+    });
+
+    window.addEventListener("resize", resize);
+
+    await initAudio();
+    const initialPreset = presetStore.load().find(p => p.id === userSettings.presetId);
+    if (initialPreset) {
+      await selectPreset(initialPreset);
+    }
+    emitter.emit("transport", "stop");
+    modal.update("Press space to start\nPress ctrl-. for menu");
+
     uiEvents.subscribe("play", () => {
+      modal.hide();
       emitter.emit("transport", onPlayPause() ? "playing" : "paused");
     });
 
@@ -204,26 +233,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       onRandomSeed(seed);
     });
     uiEvents.subscribe("reset", () => onReset(true));
-
-    audioStats.events.subscribe("update", ({ stats }) => {
-      const { rms, avgRms, avgPeak } = stats.levels;
-      //params.setValue("main", "particles", 300000 * (0.5 + rms));
-      params.setValue(
-        "simulate",
-        "audioLevelStats",
-        vec4.create([rms, avgRms, avgPeak, stats.beat.timeSinceLastBeat])
-      );
-    });
-
-    window.addEventListener("resize", resize);
-    await initAudio();
-    const initialPreset = presetStore.load().find(p => p.id === userSettings.presetId);
-    if (initialPreset) {
-      selectPreset(initialPreset);
-    }
-    emitter.emit("transport", "stop");
   }
-
+  modal.show("Loading");
   init();
   audioStore.initialize().then(() => start(audioStore));
 }

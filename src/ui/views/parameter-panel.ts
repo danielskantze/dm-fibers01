@@ -58,6 +58,7 @@ export function createUi({
   ) as DropdownUIComponent<BlobItemMetadata>;
   const statusBar = createStatusBar(appEvents);
   const emitter = new Emitter<UIEvents>();
+  let isEditing = false;
   element.appendChild(presetControls.element);
   element.appendChild(audioControl.element);
 
@@ -101,10 +102,21 @@ export function createUi({
     }
   });
 
+  function onEdit(type: "begin" | "end") {
+    isEditing = type === "begin";
+  }
+
+  audioControl.events.subscribe("edit", onEdit);
+  presetControls.events.subscribe("edit", onEdit);
+
   document.addEventListener("keydown", (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) {
       // 112 = p
       onToggleVisibility();
+    } else if (e.key.charCodeAt(0) === " ".charCodeAt(0)) {
+      if (!isEditing) {
+        emitter.emit("play", {});
+      }
     }
   });
 

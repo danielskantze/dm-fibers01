@@ -1,0 +1,32 @@
+.ui-control.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: none;
+  z-index: 1000;
+}
+
+.ui-control.modal .background {
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.ui-control.modal.show {
+  display: block;
+}
+
+.ui-control.modal .message {
+  font-size: 125%;
+  padding: 1rem 2rem;
+  line-height: 150%;
+  border-radius: 1000px;
+  background-color: var(--component-color-background);
+  color: var(--component-color-accent-1);
+  white-space: pre;
+}
