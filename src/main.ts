@@ -200,7 +200,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     uiEvents.subscribe("reset", () => onReset(true));
 
     audioStats.events.subscribe("update", ({ stats }) => {
-      const { rms, peak, avgRms, avgPeak } = stats.levels;
+      const { rms, avgRms, avgPeak } = stats.levels;
       //params.setValue("main", "particles", 300000 * (0.5 + rms));
       params.setValue(
         "simulate",
