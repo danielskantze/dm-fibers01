@@ -20,8 +20,12 @@ export function createPresetControls(
   dropdown.events.subscribe("remove", removeId => {
     save(load().filter(i => i.id !== removeId));
   });
-  dropdown.events.subscribe("change", ({ items }) => {
-    save(items);
+  dropdown.events.subscribe("change", ({ id, items }) => {
+    const presets = [...items];
+    let idx = presets.findIndex(p => p.id === id);
+    const updatedItem = params.toPreset(id, presets[idx].name);
+    presets[idx] = updatedItem;
+    save(presets);
   });
   return dropdown;
 }
