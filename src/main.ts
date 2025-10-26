@@ -242,10 +242,6 @@ export default main;
 
 // Figure out a way to connect number of particles to sound intensity
 
-// UI
-// - Support stop and pause for player
-// - Reset removes audio
-
 // Experience:
 // - Support palette rotation
 
