@@ -103,7 +103,7 @@ export function createStatusBar(
     }
     buttons.updateButton("playpause", title, svgIcon);
   });
-  appEvents.subscribe("audio", ({ status, id }) => {
+  appEvents.subscribe("audio", ({ status }) => {
     if (status === "loading") {
       buttons.setDisabled("playpause", true);
     } else if (status === "loaded") {
