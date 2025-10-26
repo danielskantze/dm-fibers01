@@ -8,15 +8,15 @@ import { createSeed } from "../components/seed";
 import type { Component } from "../components/types";
 import { createVector } from "../components/vector";
 import { rndSeed } from "../util/seed";
-import type { UIEvents } from "./parameter-panel";
+import type { UIRootEvents } from "../root";
 
 export function createUniformControls(
   controlsContainer: HTMLElement,
   uniforms: ParameterData[],
   registry: ParameterRegistry,
-  eventSource: Emitter<UIEvents>
-): Component[] {
-  const children: Component[] = [];
+  eventSource: Emitter<UIRootEvents>
+) {
+  const children = [];
   for (const u of uniforms) {
     const { ui } = u;
     if (ui) {

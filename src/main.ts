@@ -11,14 +11,12 @@ import { IndexedDBBlobStore } from "./service/storage/localblob";
 import { presetStore, userSettingsStore } from "./service/stores";
 import type { ApplicationEvents } from "./types/application-events";
 import { type Settings } from "./types/settings";
-import ControlFactory from "./ui/components/controls";
 import { timestamp } from "./ui/util/date";
 import { strToVec3 } from "./ui/util/seed";
-import { createUi } from "./ui/views/parameter-panel";
-import { Emitter } from "./util/events";
+import { createRoot } from "./ui/root";
+import { Emitter, type EventMap } from "./util/events";
 import * as vec4 from "./math/vec4";
 import { createAudioStatsCollector } from "./service/audio/audio-stats";
-import { createModal } from "./ui/components/modal/modal";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -53,21 +51,32 @@ function downloadRecording(buffer: ArrayBuffer) {
   window.URL.revokeObjectURL(objectUrl);
 }
 
-function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
-  const emitter: Emitter<ApplicationEvents> = new Emitter<ApplicationEvents>();
+async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
+  const emitter: Emitter<ApplicationEvents & EventMap> = new Emitter<
+    ApplicationEvents & EventMap
+  >();
   const params = createRegistryFromConfig(defaultParameters);
   configureCanvas(canvas);
-  const controlFactory = new ControlFactory(controls);
   const renderer = new WebGLRenderer(settings, canvas, params);
   const userSettings = userSettingsStore.load();
   params.load(defaultValues as ParameterPreset);
   const audioStore = new IndexedDBBlobStore("data", "audio");
+  await audioStore.initialize();
   const audioStats = createAudioStatsCollector({
     enabledTypes: ["beat", "levels", "fft"],
     logConfig: undefined,
   });
-  const modal = createModal();
   const audioPlayer = new AudioPlayer(audioStats);
+
+  const uiRoot = createRoot({
+    appEvents: emitter,
+    element: controls,
+    audioStore: audioStore,
+    params,
+    initialPresetId: userSettings.presetId,
+    loadPresets: presetStore.load,
+    savePresets: presetStore.save,
+  });
 
   function init() {
     const seed = (params.getParameter("main", "seed").value ?? "") as string;
@@ -142,10 +151,6 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     }
   }
 
-  function onToggleVisibility() {
-    controlFactory.visible = !controlFactory.visible;
-  }
-
   async function start(audioStore: BlobStore) {
     await audioPlayer.initialize();
 
@@ -183,18 +188,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       }
     };
 
-    const uiEvents = createUi({
-      appEvents: emitter,
-      element: controls,
-      audioStore: audioStore,
-      params,
-      initialPresetId: userSettings.presetId,
-      selectPreset,
-      loadPresets: presetStore.load,
-      savePresets: presetStore.save,
-      onToggleVisibility,
-      onSelectAudio,
-    });
+    uiRoot.subscribe("selectAudio", ({ item }) => onSelectAudio(item));
+    uiRoot.subscribe("selectPreset", ({ preset }) => selectPreset(preset));
 
     audioStats.events.subscribe("update", ({ stats }) => {
       const { rms, avgRms, avgPeak } = stats.levels;
@@ -214,26 +209,28 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       await selectPreset(initialPreset);
     }
     emitter.emit("transport", "stop");
-    modal.update!("Press space to start\nPress ctrl-. for menu");
+    emitter.emit("status", {
+      type: "ready",
+      message: "Press space to start\nPress ctrl-. for menu",
+    });
 
-    uiEvents.subscribe("play", () => {
-      modal.hide();
+    uiRoot.subscribe("play", () => {
       emitter.emit("transport", onPlayPause() ? "playing" : "paused");
     });
 
-    uiEvents.subscribe("screenshot", onScreenshot);
-    uiEvents.subscribe("rec", () => {
+    uiRoot.subscribe("screenshot", onScreenshot);
+    uiRoot.subscribe("rec", () => {
       onRecord();
     });
-    uiEvents.subscribe("stop", () => onReset(false));
-    uiEvents.subscribe("seed", ({ seed }) => {
+    uiRoot.subscribe("stop", () => onReset(false));
+    uiRoot.subscribe("seed", ({ seed }) => {
       onRandomSeed(seed);
     });
-    uiEvents.subscribe("reset", () => onReset(true));
+    uiRoot.subscribe("reset", () => onReset(true));
   }
-  modal.show("Loading");
+  emitter.emit("status", { type: "loading", message: "Loading" });
   init();
-  audioStore.initialize().then(() => start(audioStore));
+  await start(audioStore);
 }
 
 export default main;
