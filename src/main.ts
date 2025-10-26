@@ -82,6 +82,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   }
 
   function onScreenshot() {
+    console.log("onScreenshot");
     const imageData = renderer.screenshot();
     downloadScreenshot(imageData);
   }
