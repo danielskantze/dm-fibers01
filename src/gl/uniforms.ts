@@ -5,7 +5,10 @@ import * as mat3 from "../math/mat3";
 import * as mat4 from "../math/mat4";
 import * as mat43 from "../math/mat43";
 
-export function createFromJson(value: UniformValue, type: UniformType | undefined): UniformValue {
+export function createFromJson(
+  value: UniformValue,
+  type: UniformType | undefined
+): UniformValue {
   switch (type) {
     case "vec3":
       return vec3.create(value as any);
@@ -22,7 +25,10 @@ export function createFromJson(value: UniformValue, type: UniformType | undefine
   }
 }
 
-export function valueToJson(value: UniformValue | undefined, _type: UniformType | undefined): any {
+export function valueToJson(
+  value: UniformValue | undefined,
+  _type: UniformType | undefined
+): any {
   if (value instanceof Float32Array) {
     return Array.from(value);
   }

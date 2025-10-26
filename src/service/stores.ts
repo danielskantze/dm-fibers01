@@ -5,6 +5,5 @@ export type StoreKeys = "presets";
 
 export const presetStore = createStore<ParameterPreset>({
   type: "localStorage",
-  key: "fibers01_presets"
+  key: "fibers01_presets",
 });
-

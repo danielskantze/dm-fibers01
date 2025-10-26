@@ -1,7 +1,14 @@
 import type { Matrix4x3 } from "../../math/types";
-import type { ParameterData, ParameterPreset, ParameterRegistry } from "../../service/parameters";
+import type {
+  ParameterData,
+  ParameterPreset,
+  ParameterRegistry,
+} from "../../service/parameters";
 import type { BlobItemData, BlobItemMetadata, BlobStore } from "../../service/storage";
-import type { ApplicationEvents, ApplicationRecordStatus } from "../../types/application-events";
+import type {
+  ApplicationEvents,
+  ApplicationRecordStatus,
+} from "../../types/application-events";
 import { UniformComponents } from "../../types/gl/uniforms";
 import { Emitter, type Subscribable } from "../../util/events";
 import { createButtons } from "../components/buttons";
@@ -15,17 +22,21 @@ import { createFileSelector } from "./file-selector";
 import { createPresetControls } from "./presets";
 
 export type UIEvents = {
-  screenshot: {},
-  rec: {},
-  play: {},
+  screenshot: {};
+  rec: {};
+  play: {};
   seed: {
-    seed: string
-  },
-  reset: {}
+    seed: string;
+  };
+  reset: {};
 };
 
-
-export function createUniformControls(controlsContainer: HTMLElement, uniforms: ParameterData[], registry: ParameterRegistry, eventSource: Emitter<UIEvents>) {
+export function createUniformControls(
+  controlsContainer: HTMLElement,
+  uniforms: ParameterData[],
+  registry: ParameterRegistry,
+  eventSource: Emitter<UIEvents>
+) {
   for (const u of uniforms) {
     const { ui } = u;
     if (ui) {
@@ -34,9 +45,12 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
       if (type === "hidden") {
         continue;
       } else if (component === "cos-palette") {
-        const { element, update } = createCosPalette(u.value as Matrix4x3, (v: Matrix4x3) => {
-          u.value = v;
-        });
+        const { element, update } = createCosPalette(
+          u.value as Matrix4x3,
+          (v: Matrix4x3) => {
+            u.value = v;
+          }
+        );
         controlsContainer.appendChild(element);
         registry.subscribeParam(u, update);
       } else if (component === "seed") {
@@ -46,22 +60,42 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
           onSeed: (seed: string) => {
             eventSource.emit("seed", { seed });
           },
-          value: rndSeed()
+          value: rndSeed(),
         });
         controlsContainer.appendChild(element);
         registry.subscribeParam(u, update);
       } else if (numComponents > 1) {
         const values = u.value as number[];
-        const onChange = (i: number, v: number) => { values[i] = v; };
-        const { element, update } = createVector({ name, values, onChange, min, max, step });
+        const onChange = (i: number, v: number) => {
+          values[i] = v;
+        };
+        const { element, update } = createVector({
+          name,
+          values,
+          onChange,
+          min,
+          max,
+          step,
+        });
         controlsContainer.appendChild(element);
         registry.subscribeParam(u, update);
       } else {
         const value = u.value as number;
         const type = u.ui?.type ?? (u.type == "int" ? "int" : "float");
         const enumValues = ui.options;
-        const onChange = (v: number) => { u.value = v; };
-        const { element, update } = createScalar({ name, value, onChange, min, max, step, type, enumValues });
+        const onChange = (v: number) => {
+          u.value = v;
+        };
+        const { element, update } = createScalar({
+          name,
+          value,
+          onChange,
+          min,
+          max,
+          step,
+          type,
+          enumValues,
+        });
         controlsContainer.appendChild(element);
         registry.subscribeParam(u, update);
       }
@@ -70,41 +104,68 @@ export function createUniformControls(controlsContainer: HTMLElement, uniforms: 
 }
 
 export type UIProps = {
-  element: HTMLElement,
-  audioStore: BlobStore,
-  params: ParameterRegistry,
-  appEvents: Subscribable<ApplicationEvents>,
-  selectPreset: (item: ParameterPreset) => void,
-  loadPresets: () => ParameterPreset[],
-  savePresets: (items: ParameterPreset[]) => void,
-  onToggleVisibility: () => void,
+  element: HTMLElement;
+  audioStore: BlobStore;
+  params: ParameterRegistry;
+  appEvents: Subscribable<ApplicationEvents>;
+  selectPreset: (item: ParameterPreset) => void;
+  loadPresets: () => ParameterPreset[];
+  savePresets: (items: ParameterPreset[]) => void;
+  onToggleVisibility: () => void;
   onSelectAudio: (item: BlobItemData | undefined) => void;
-}
+};
 
-export function createUi({ appEvents, element, audioStore, params, selectPreset, loadPresets, savePresets, onToggleVisibility, onSelectAudio }: UIProps): Subscribable<UIEvents> {
-  const presetControls = createPresetControls(selectPreset, loadPresets, savePresets, params);
-  const audioControl = createFileSelector(audioStore, "audio", "audio", onSelectAudio) as DropdownUIComponent<BlobItemMetadata>;
+export function createUi({
+  appEvents,
+  element,
+  audioStore,
+  params,
+  selectPreset,
+  loadPresets,
+  savePresets,
+  onToggleVisibility,
+  onSelectAudio,
+}: UIProps): Subscribable<UIEvents> {
+  const presetControls = createPresetControls(
+    selectPreset,
+    loadPresets,
+    savePresets,
+    params
+  );
+  const audioControl = createFileSelector(
+    audioStore,
+    "audio",
+    "audio",
+    onSelectAudio
+  ) as DropdownUIComponent<BlobItemMetadata>;
   const emitter = new Emitter<UIEvents>();
   element.appendChild(presetControls.element);
   element.appendChild(audioControl.element);
-  createUniformControls(element, params.list().map(([, , u]) => (u)), params, emitter);
+  createUniformControls(
+    element,
+    params.list().map(([, , u]) => u),
+    params,
+    emitter
+  );
   const buttons = createButtons([
     {
       id: "capture",
       title: "Capture",
-      onClick: () => (emitter.emit("screenshot", "")),
-      color: 1
+      onClick: () => emitter.emit("screenshot", ""),
+      color: 1,
     },
     {
       id: "rec",
       title: "Rec",
-      onClick: () => { emitter.emit("rec", ""); },
-      color: 1
+      onClick: () => {
+        emitter.emit("rec", "");
+      },
+      color: 1,
     },
     {
       id: "reset",
       title: "Reset",
-      onClick: () => (emitter.emit("reset", "")),
+      onClick: () => emitter.emit("reset", ""),
       color: 3,
     },
     {
@@ -113,25 +174,25 @@ export function createUi({ appEvents, element, audioStore, params, selectPreset,
       onClick: () => {
         emitter.emit("play", "");
       },
-      color: 2
-    }
+      color: 2,
+    },
   ]);
   element.appendChild(buttons.element);
 
-  appEvents.subscribe("record", (status) => {
+  appEvents.subscribe("record", status => {
     const statusTitles: Record<ApplicationRecordStatus, string> = {
-      "idle": "Rec",
-      "recording": "Rec...",
-      "waiting": "..."
-    }
+      idle: "Rec",
+      recording: "Rec...",
+      waiting: "...",
+    };
     const title = statusTitles[status];
     buttons.setTitle("rec", title);
     buttons.setDisabled("rec", status === "waiting");
   });
-  appEvents.subscribe("transport", (status) => {
+  appEvents.subscribe("transport", status => {
     buttons.setTitle("playpause", status === "playing" ? "Pause" : "Resume");
   });
-  appEvents.subscribe("audio", ({status, id}) => {
+  appEvents.subscribe("audio", ({ status, id }) => {
     if (status === "loading") {
       audioControl.setDisabled(true);
       buttons.setDisabled("playpause", true);
@@ -145,7 +206,8 @@ export function createUi({ appEvents, element, audioStore, params, selectPreset,
   });
 
   document.addEventListener("keydown", (e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) { // 112 = p
+    if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) {
+      // 112 = p
       onToggleVisibility();
     }
   });

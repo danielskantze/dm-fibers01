@@ -21,5 +21,5 @@ export function createStore<T>(settings: StorageSettings): Store<T> {
       return [];
     }
   }
-  return {save, load}
+  return { save, load };
 }

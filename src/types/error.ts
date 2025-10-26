@@ -1,29 +1,34 @@
 class WebGLShaderError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'WebGLShaderError';
-    }
+  constructor(message: string) {
+    super(message);
+    this.name = "WebGLShaderError";
+  }
 }
 
 class WebGLTextureError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'WebGLTextureError';
-    }
+  constructor(message: string) {
+    super(message);
+    this.name = "WebGLTextureError";
+  }
 }
 
 class WebGLFrameBufferError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'WebGLFrameBufferError';
-    }
+  constructor(message: string) {
+    super(message);
+    this.name = "WebGLFrameBufferError";
+  }
 }
 
 class WebGLInvalidIndexError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'WebGLInvalidIndexError';
-    }
+  constructor(message: string) {
+    super(message);
+    this.name = "WebGLInvalidIndexError";
+  }
 }
 
-export { WebGLShaderError, WebGLTextureError, WebGLFrameBufferError, WebGLInvalidIndexError };
+export {
+  WebGLShaderError,
+  WebGLTextureError,
+  WebGLFrameBufferError,
+  WebGLInvalidIndexError,
+};

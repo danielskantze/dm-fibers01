@@ -18,7 +18,10 @@ import type { IVideoRecorder } from "./util/recorder";
 // import fdebugShaderSource from "./shaders/debug.fs.glsl?raw";
 
 // This is a pure utility function and can remain outside the class.
-function textureSizeFromNumParticles(numParticles: number, maxNumParticles: number): [number, number] {
+function textureSizeFromNumParticles(
+  numParticles: number,
+  maxNumParticles: number
+): [number, number] {
   let pts = numParticles;
   if (pts > maxNumParticles) {
     pts = maxNumParticles;
@@ -29,34 +32,33 @@ function textureSizeFromNumParticles(numParticles: number, maxNumParticles: numb
 
 // These types are internal to the renderer's logic.
 type RenderingStages = {
-  simulate: Stage,
-  materialize: Stage,
-  accumulate: Stage,
-  luma: Stage,
-  blur: Stage,
-  combine: Stage,
-  display: Stage,
-  screenshot: Stage,
-  debug?: Stage,
+  simulate: Stage;
+  materialize: Stage;
+  accumulate: Stage;
+  luma: Stage;
+  blur: Stage;
+  combine: Stage;
+  display: Stage;
+  screenshot: Stage;
+  debug?: Stage;
 };
 
 type BloomStageParams = {
-  lumaThreshold: number,
-  bloomIntensity: number,
-}
+  lumaThreshold: number;
+  bloomIntensity: number;
+};
 
 type RenderingStagesState = {
-  bloom: BloomStageParams,
-}
+  bloom: BloomStageParams;
+};
 
 export class WebGLRenderer {
-
   private _isRunning: boolean = false;
   private _frame: number = 0;
   private _renderWidth: number;
   private _renderHeight: number;
   private _recorder?: IVideoRecorder | null;
-  
+
   private readonly _canvas: HTMLCanvasElement;
   private readonly _gl: WebGL2RenderingContext;
   private readonly _params: ParameterRegistry;
@@ -84,7 +86,7 @@ export class WebGLRenderer {
     this._isRunning = true;
     this._draw();
   }
-  
+
   public pause(): void {
     if (!this._isRunning) return;
     this._isRunning = false;
@@ -98,17 +100,22 @@ export class WebGLRenderer {
     stage_luma.reset(this._gl, this._stages.luma);
     stage_materialize.reset(this._gl, this._stages.materialize);
     stage_simulate.reset(this._gl, this._stages.simulate);
-    stage_output.reset(this._gl, this._stages.display, this._renderWidth, this._renderHeight);
+    stage_output.reset(
+      this._gl,
+      this._stages.display,
+      this._renderWidth,
+      this._renderHeight
+    );
     if (this._stages.debug) {
       stage_debug.reset(this._gl, this._stages.debug);
     }
   }
-  
+
   public screenshot(): string {
     this._render(true);
-    
+
     const imageData = screenshot.getTexturePng(
-      this._gl, 
+      this._gl,
       this._stages.screenshot.resources.output as StageOutput
     );
 
@@ -129,10 +136,9 @@ export class WebGLRenderer {
     }
     this._render(false);
     if (this._recorder) {
-      this._recorder.captureFrame()
-        .then(() => {
-          requestAnimationFrame(() => this._draw());
-        });
+      this._recorder.captureFrame().then(() => {
+        requestAnimationFrame(() => this._draw());
+      });
     } else {
       requestAnimationFrame(() => this._draw());
     }
@@ -141,29 +147,32 @@ export class WebGLRenderer {
   private _render(isScreenshot: boolean = false): void {
     const bloomSteps = this._params.getValue<number>("bloom", "steps");
     const bloomQuality = this._params.getValue<number>("bloom", "quality");
-  
+
     if (bloomSteps !== this._renderConfig.bloomSteps) {
-        this._renderConfig.bloomSteps = bloomSteps;
-        this._configureStages();
+      this._renderConfig.bloomSteps = bloomSteps;
+      this._configureStages();
     }
     if (bloomQuality !== this._renderConfig.bloomQuality) {
-        this._renderConfig.bloomQuality = bloomQuality;
-        this._configureStages();
+      this._renderConfig.bloomQuality = bloomQuality;
+      this._configureStages();
     }
-    this._renderConfig.updatesPerDraw = this._params.getValue<number>("main", "updatesPerDraw");
+    this._renderConfig.updatesPerDraw = this._params.getValue<number>(
+      "main",
+      "updatesPerDraw"
+    );
     const numParticles = this._params.getValue<number>("main", "particles");
     const bloomState: BloomStageParams = {
       lumaThreshold: this._params.getValue<number>("bloom", "luma"),
       bloomIntensity: this._params.getValue<number>("bloom", "intensity"),
-    }
-      
+    };
+
     for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
       this._updateSimulationStages(numParticles);
       this._frame++;
     }
     this._drawOutputStages({ bloom: bloomState }, isScreenshot);
   }
-  
+
   private _updateSimulationStages(numParticles: number): void {
     const { maxNumParticles } = this._renderConfig;
     let frame = this._frame;
@@ -172,22 +181,47 @@ export class WebGLRenderer {
     stage_materialize.draw(this._gl, this._stages.materialize, frame, numParticles);
     stage_accumulate.draw(this._gl, this._stages.accumulate, frame);
   }
-  
-  private _drawOutputStages(state: RenderingStagesState, isScreenshot: boolean = false): void {
+
+  private _drawOutputStages(
+    state: RenderingStagesState,
+    isScreenshot: boolean = false
+  ): void {
     const { bloom } = state;
     const blurQuality = stage_blur.lookupBlurQuality(this._renderConfig.bloomQuality);
     if (blurQuality !== "off") {
       stage_luma.draw(this._gl, this._stages.luma, bloom.lumaThreshold);
-      stage_blur.draw(this._gl, this._stages.blur, undefined, this._renderConfig.bloomSteps, blurQuality);
-      stage_combine.draw(this._gl, this._stages.combine, this._stages.blur, 1.0, bloom.bloomIntensity);
+      stage_blur.draw(
+        this._gl,
+        this._stages.blur,
+        undefined,
+        this._renderConfig.bloomSteps,
+        blurQuality
+      );
+      stage_combine.draw(
+        this._gl,
+        this._stages.combine,
+        this._stages.blur,
+        1.0,
+        bloom.bloomIntensity
+      );
     }
     if (isScreenshot) {
       stage_output.draw(this._gl, this._stages.screenshot);
     } else {
-      stage_output.draw(this._gl, this._stages.display, this._renderWidth, this._renderHeight);
+      stage_output.draw(
+        this._gl,
+        this._stages.display,
+        this._renderWidth,
+        this._renderHeight
+      );
     }
     if (this._stages.debug) {
-      stage_debug.draw(this._gl, this._stages.debug, this._renderWidth, this._renderHeight);
+      stage_debug.draw(
+        this._gl,
+        this._stages.debug,
+        this._renderWidth,
+        this._renderHeight
+      );
     }
   }
 
@@ -195,42 +229,65 @@ export class WebGLRenderer {
     const gl = this._canvas.getContext("webgl2")!;
     let ext = gl.getExtension("EXT_color_buffer_float");
     if (!ext) {
-      throw new WebGLTextureError("This browser does not support rendering to float textures");
+      throw new WebGLTextureError(
+        "This browser does not support rendering to float textures"
+      );
     }
     ext = gl.getExtension("EXT_color_buffer_half_float");
     if (!ext) {
-      throw new WebGLTextureError("This browser does not support rendering to half float textures");
+      throw new WebGLTextureError(
+        "This browser does not support rendering to half float textures"
+      );
     }
     return gl;
   }
 
   private _createStages(): RenderingStages {
     const simulate = stage_simulate.create(this._gl, this._renderConfig.maxNumParticles);
-    const materialize = stage_materialize.create(this._gl, simulate, this._renderWidth, this._renderHeight, this._renderConfig.maxNumParticles);
+    const materialize = stage_materialize.create(
+      this._gl,
+      simulate,
+      this._renderWidth,
+      this._renderHeight,
+      this._renderConfig.maxNumParticles
+    );
     const accumulate = stage_accumulate.create(this._gl, materialize);
     const luma = stage_luma.create(this._gl, accumulate);
-    const blur = stage_blur.create(this._gl, luma, "low", this._renderConfig.maxBloomSteps);
+    const blur = stage_blur.create(
+      this._gl,
+      luma,
+      "low",
+      this._renderConfig.maxBloomSteps
+    );
     const combine = stage_combine.create(this._gl, accumulate);
     const display = stage_output.create(this._gl, combine, false);
     const screenshot = stage_output.create(this._gl, combine, true);
-    let debug: Stage | undefined = undefined;//stage_debug.create(this._gl, combine, false, fdebugShaderSource);
-    
-    Object.keys(simulate.parameters).forEach((k) => (
-      this._params.register(simulate.name, k, simulate.parameters[k]))
+    let debug: Stage | undefined = undefined; //stage_debug.create(this._gl, combine, false, fdebugShaderSource);
+
+    Object.keys(simulate.parameters).forEach(k =>
+      this._params.register(simulate.name, k, simulate.parameters[k])
     );
-  
-    Object.keys(accumulate.parameters).forEach((k) => (
-      this._params.register(accumulate.name, k, accumulate.parameters[k]))
+
+    Object.keys(accumulate.parameters).forEach(k =>
+      this._params.register(accumulate.name, k, accumulate.parameters[k])
     );
     if (debug) {
-      Object.keys((debug as Stage).parameters).forEach((k) => (
-        this._params.register((debug as Stage).name, k, (debug as Stage).parameters[k]))
+      Object.keys((debug as Stage).parameters).forEach(k =>
+        this._params.register((debug as Stage).name, k, (debug as Stage).parameters[k])
       );
     }
-  
+
     return {
-      simulate, materialize, accumulate, luma, blur, combine, display, screenshot, debug
-    }
+      simulate,
+      materialize,
+      accumulate,
+      luma,
+      blur,
+      combine,
+      display,
+      screenshot,
+      debug,
+    };
   }
 
   private _configureStages(): void {

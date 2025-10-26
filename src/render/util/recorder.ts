@@ -1,4 +1,10 @@
-import { Output, Mp4OutputFormat, BufferTarget, CanvasSource, QUALITY_HIGH } from 'mediabunny';
+import {
+  Output,
+  Mp4OutputFormat,
+  BufferTarget,
+  CanvasSource,
+  QUALITY_HIGH,
+} from "mediabunny";
 import { Emitter, type Subscribable } from "../../util/events";
 
 export interface IVideoRecorder {
@@ -6,20 +12,25 @@ export interface IVideoRecorder {
   stop: () => Promise<ArrayBuffer | null>;
   captureFrame: () => Promise<void>;
   events: Subscribable<RecorderEvent>;
-};
+}
 
-export type RecorderStatus = "created" | "starting" | "ready" | "finalizing" | "completed";
+export type RecorderStatus =
+  | "created"
+  | "starting"
+  | "ready"
+  | "finalizing"
+  | "completed";
 
 export type RecorderEvent = {
-  status: RecorderStatus
-}
+  status: RecorderStatus;
+};
 
 const isWindows = window.navigator.platform === "Win32";
 
 type VideoRecorderOptions = {
   title: string;
   fps?: number;
-}
+};
 export class VideoRecorder implements IVideoRecorder {
   private _output: Output;
   private _source: CanvasSource;
@@ -28,23 +39,23 @@ export class VideoRecorder implements IVideoRecorder {
   private _status: RecorderStatus = "created";
   private _emitter: Emitter<RecorderEvent> = new Emitter<RecorderEvent>();
 
-  constructor(canvas: HTMLCanvasElement, {fps = 60, title} : VideoRecorderOptions) {
+  constructor(canvas: HTMLCanvasElement, { fps = 60, title }: VideoRecorderOptions) {
     this._fps = fps;
     this._output = new Output({
       format: new Mp4OutputFormat(),
       target: new BufferTarget(),
     });
     this._source = new CanvasSource(canvas, {
-      codec: isWindows ? 'vp9' : 'avc',
+      codec: isWindows ? "vp9" : "avc",
       bitrate: QUALITY_HIGH,
     });
     this._output.addVideoTrack(this._source, {
-      frameRate: this._fps
+      frameRate: this._fps,
     });
     this._output.setMetadataTags({
       title,
-      date: new Date()
-    })
+      date: new Date(),
+    });
   }
   get status() {
     return this._status;

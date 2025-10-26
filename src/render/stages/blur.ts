@@ -19,80 +19,95 @@ type BlurStageInternalData = {
 type BlurStage = Stage<BlurStageInternalData>;
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
-    return {
-        blur: assembleProgram(gl, vShaderSource, fBlurShaderSource, (program) => {
-            const attributes = {
-                position: gl.getAttribLocation(program, "position"),
-            };
-            const uniforms = {
-                texture: {
-                  type: "tex2d",
-                  location: gl.getUniformLocation(program, "tex"),
-                  slot: 0,
-                } as TextureUniform,
-                textureSize: {
-                  location: gl.getUniformLocation(program, "texture_size"),
-                },
-                direction: {
-                  location: gl.getUniformLocation(program, "direction"),
-                }
-            };
-            return { program, attributes, uniforms } as ShaderProgram;
-        }),
-        // TODO: Finish add shader: load correct fragment shader source
-        // TODO: Finish add shader: hook up draw calls correctly below, replace second blit-block
-        add: assembleProgram(gl, vShaderSource, fWeightedShaderSource, (program) => {
-            const attributes = {
-                position: gl.getAttribLocation(program, "position"),
-            };
-            const uniforms = {
-                texture: {
-                  type: "tex2d",
-                  location: gl.getUniformLocation(program, "tex"),
-                  slot: 0,
-                } as TextureUniform,
-                weight: {
-                  location: gl.getUniformLocation(program, "u_weight"),
-                },
-                sourceResolution: {
-                  location: gl.getUniformLocation(program, "u_source_resolution"),
-                }
-            };
-            return { program, attributes, uniforms } as ShaderProgram;
-        }),
-        downsample: assembleProgram(gl, vShaderSource, fDownsampleShaderSource, (program) => {
-          const attributes = {
-              position: gl.getAttribLocation(program, "position"),
-          };
-          const uniforms = {
-              texture: {
-                type: "tex2d",
-                location: gl.getUniformLocation(program, "tex"),
-                slot: 0,
-              } as TextureUniform,
-              sourceResolution: {
-                location: gl.getUniformLocation(program, "u_source_resolution"),
-              }
-          };
-          return { program, attributes, uniforms } as ShaderProgram;
-      }),
-    };
+  return {
+    blur: assembleProgram(gl, vShaderSource, fBlurShaderSource, program => {
+      const attributes = {
+        position: gl.getAttribLocation(program, "position"),
+      };
+      const uniforms = {
+        texture: {
+          type: "tex2d",
+          location: gl.getUniformLocation(program, "tex"),
+          slot: 0,
+        } as TextureUniform,
+        textureSize: {
+          location: gl.getUniformLocation(program, "texture_size"),
+        },
+        direction: {
+          location: gl.getUniformLocation(program, "direction"),
+        },
+      };
+      return { program, attributes, uniforms } as ShaderProgram;
+    }),
+    // TODO: Finish add shader: load correct fragment shader source
+    // TODO: Finish add shader: hook up draw calls correctly below, replace second blit-block
+    add: assembleProgram(gl, vShaderSource, fWeightedShaderSource, program => {
+      const attributes = {
+        position: gl.getAttribLocation(program, "position"),
+      };
+      const uniforms = {
+        texture: {
+          type: "tex2d",
+          location: gl.getUniformLocation(program, "tex"),
+          slot: 0,
+        } as TextureUniform,
+        weight: {
+          location: gl.getUniformLocation(program, "u_weight"),
+        },
+        sourceResolution: {
+          location: gl.getUniformLocation(program, "u_source_resolution"),
+        },
+      };
+      return { program, attributes, uniforms } as ShaderProgram;
+    }),
+    downsample: assembleProgram(gl, vShaderSource, fDownsampleShaderSource, program => {
+      const attributes = {
+        position: gl.getAttribLocation(program, "position"),
+      };
+      const uniforms = {
+        texture: {
+          type: "tex2d",
+          location: gl.getUniformLocation(program, "tex"),
+          slot: 0,
+        } as TextureUniform,
+        sourceResolution: {
+          location: gl.getUniformLocation(program, "u_source_resolution"),
+        },
+      };
+      return { program, attributes, uniforms } as ShaderProgram;
+    }),
+  };
 }
 
-function createOutput(gl: WebGL2RenderingContext, width: number, height: number, name: string) {
-    const textures = [createTexture(gl, width, height, "RGBA16F")];
-    const framebuffer = createFrameBuffer(gl, width, height, textures);
-    return { name, textures, framebuffer} as StageOutput;
+function createOutput(
+  gl: WebGL2RenderingContext,
+  width: number,
+  height: number,
+  name: string
+) {
+  const textures = [createTexture(gl, width, height, "RGBA16F")];
+  const framebuffer = createFrameBuffer(gl, width, height, textures);
+  return { name, textures, framebuffer } as StageOutput;
 }
 
-function copyStageOutput(gl: WebGL2RenderingContext, src: StageOutput, dest: StageOutput) {
+function copyStageOutput(
+  gl: WebGL2RenderingContext,
+  src: StageOutput,
+  dest: StageOutput
+) {
   const srcSize = [src.textures[0].width, src.textures[0].height];
   const destSize = [dest.textures[0].width, dest.textures[0].height];
   gl.bindFramebuffer(gl.READ_FRAMEBUFFER, src.framebuffer.framebuffer);
   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, dest.framebuffer.framebuffer);
   gl.blitFramebuffer(
-    0, 0, srcSize[0], srcSize[1],
-    0, 0, destSize[0], destSize[1],
+    0,
+    0,
+    srcSize[0],
+    srcSize[1],
+    0,
+    0,
+    destSize[0],
+    destSize[1],
     gl.COLOR_BUFFER_BIT,
     gl.LINEAR
   );
@@ -114,7 +129,11 @@ function createDownsamplePass(program: ShaderProgram, quad: WebGLBuffer) {
       const { framebuffer } = dest;
       gl.viewport(0, 0, framebuffer.width, framebuffer.height);
       gl.bindTexture(gl.TEXTURE_2D, src.textures[0].texture);
-      gl.uniform2f(u.sourceResolution.location, src.textures[0].width, src.textures[0].height);
+      gl.uniform2f(
+        u.sourceResolution.location,
+        src.textures[0].width,
+        src.textures[0].height
+      );
       gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       gl.bindTexture(gl.TEXTURE_2D, null);
@@ -122,8 +141,8 @@ function createDownsamplePass(program: ShaderProgram, quad: WebGLBuffer) {
     cleanup: (gl: WebGL2RenderingContext) => {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.useProgram(null);
-    }
-  }
+    },
+  };
 }
 
 function createAddPass(program: ShaderProgram, quad: WebGLBuffer) {
@@ -139,12 +158,21 @@ function createAddPass(program: ShaderProgram, quad: WebGLBuffer) {
       gl.activeTexture(gl.TEXTURE0);
       gl.uniform1i(u.texture.location, (u.texture as TextureUniform).slot);
     },
-    render: (gl: WebGL2RenderingContext, src: StageOutput, dest: StageOutput, weight: number) => {
+    render: (
+      gl: WebGL2RenderingContext,
+      src: StageOutput,
+      dest: StageOutput,
+      weight: number
+    ) => {
       const { framebuffer } = dest;
       gl.viewport(0, 0, framebuffer.width, framebuffer.height);
       gl.bindTexture(gl.TEXTURE_2D, src.textures[0].texture);
       gl.uniform1f(u.weight.location, weight);
-      gl.uniform2f(u.sourceResolution.location, src.textures[0].width, src.textures[0].height);
+      gl.uniform2f(
+        u.sourceResolution.location,
+        src.textures[0].width,
+        src.textures[0].height
+      );
       gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       gl.bindTexture(gl.TEXTURE_2D, null);
@@ -153,12 +181,12 @@ function createAddPass(program: ShaderProgram, quad: WebGLBuffer) {
       gl.disable(gl.BLEND);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.useProgram(null);
-    }
-  }
+    },
+  };
 }
 
 function createBlurPass(program: ShaderProgram, quad: WebGLBuffer) {
-let u = program.uniforms;
+  let u = program.uniforms;
   return {
     start: (gl: WebGL2RenderingContext) => {
       gl.disable(gl.BLEND);
@@ -169,9 +197,14 @@ let u = program.uniforms;
       gl.activeTexture(gl.TEXTURE0);
       gl.uniform1i(u.texture.location, (u.texture as TextureUniform).slot);
     },
-    render: (gl: WebGL2RenderingContext, src: StageOutput, dest: StageOutput, direction: [number, number]) => {
+    render: (
+      gl: WebGL2RenderingContext,
+      src: StageOutput,
+      dest: StageOutput,
+      direction: [number, number]
+    ) => {
       const { framebuffer } = dest;
-      const outputSize = [framebuffer.width, framebuffer.height]; 
+      const outputSize = [framebuffer.width, framebuffer.height];
       gl.viewport(0, 0, outputSize[0], outputSize[1]);
       gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -187,12 +220,12 @@ let u = program.uniforms;
       gl.disable(gl.BLEND);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.useProgram(null);
-    }
-  }
+    },
+  };
 }
 
 function seq(length: number): number[] {
-  return Array.from({length});
+  return Array.from({ length });
 }
 
 function reset(gl: WebGL2RenderingContext, stage: Stage) {
@@ -208,106 +241,118 @@ function reset(gl: WebGL2RenderingContext, stage: Stage) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
-function create(gl: WebGL2RenderingContext, input: Stage, quality: BlurQuality, steps: number): Stage {
-    const shaders = loadShaders(gl);
-    const { width, height } = input.targets[0];
-    const numSteps = steps;
+function create(
+  gl: WebGL2RenderingContext,
+  input: Stage,
+  quality: BlurQuality,
+  steps: number
+): Stage {
+  const shaders = loadShaders(gl);
+  const { width, height } = input.targets[0];
+  const numSteps = steps;
 
-    const layers: [StageOutput, StageOutput][] = seq(numSteps)
-      .map((_, i) => ([
-        createOutput(gl, width >> i, height >> i, `blur_a_${i}`),
-        createOutput(gl, width >> i, height >> i, `blur_b_${i}`)
-      ]));
+  const layers: [StageOutput, StageOutput][] = seq(numSteps).map((_, i) => [
+    createOutput(gl, width >> i, height >> i, `blur_a_${i}`),
+    createOutput(gl, width >> i, height >> i, `blur_b_${i}`),
+  ]);
 
-    const output = createOutput(gl, width, height, "blur_output");
+  const output = createOutput(gl, width, height, "blur_output");
 
-    const stage: BlurStage = {
-        name: "blur",
-        resources: {
-            buffers: { quad: createQuad(gl) },
-            shaders,
-            output,
-            internal: { layers, quality }
-        },
-        input,
-        targets: output.textures,
-        parameters: {},
-    }
-    return stage;
+  const stage: BlurStage = {
+    name: "blur",
+    resources: {
+      buffers: { quad: createQuad(gl) },
+      shaders,
+      output,
+      internal: { layers, quality },
+    },
+    input,
+    targets: output.textures,
+    parameters: {},
+  };
+  return stage;
 }
 
-function draw(gl: WebGL2RenderingContext, stage: Stage, mix?: number, maxSteps?: number, blurQuality?: BlurQuality) {
-    const resources = stage.resources as TypedResources<BlurStageInternalData>;
-    const { buffers, shaders, output } = resources as Resources & { output: StageOutput };
-    const { layers } = resources.internal;
-    const quality = blurQuality ?? resources.internal;
-    const { quad } = buffers;
-    const input = stage.input!.resources.currentOutput! as StageOutput;
+function draw(
+  gl: WebGL2RenderingContext,
+  stage: Stage,
+  mix?: number,
+  maxSteps?: number,
+  blurQuality?: BlurQuality
+) {
+  const resources = stage.resources as TypedResources<BlurStageInternalData>;
+  const { buffers, shaders, output } = resources as Resources & { output: StageOutput };
+  const { layers } = resources.internal;
+  const quality = blurQuality ?? resources.internal;
+  const { quad } = buffers;
+  const input = stage.input!.resources.currentOutput! as StageOutput;
 
-    const minBlurRadius = 1.0;
-    const maxBlurRadius = 1.5;
+  const minBlurRadius = 1.0;
+  const maxBlurRadius = 1.5;
 
-    const blurPass = createBlurPass(shaders.blur, quad);
-    const addPass = createAddPass(shaders.add, quad);
-    const numSteps = maxSteps ? Math.min(Math.max(maxSteps, 1), layers.length) : layers.length;
-    // Copy and downsample
-    if (quality === "high") {
-      const downsamplePass = createDownsamplePass(shaders.downsample, quad);
-      downsamplePass.start(gl);
-      for (let i = 0, src = input; i < numSteps; src = layers[i][0], i++) {
-        downsamplePass.render(gl, src, layers[i][0]);
-      }
-      downsamplePass.cleanup(gl);
-    } else {
-      for (let i = 0, src = input; i < numSteps; src = layers[i][0], i++) {
-        copyStageOutput(gl, src, layers[i][0]);
-      }
+  const blurPass = createBlurPass(shaders.blur, quad);
+  const addPass = createAddPass(shaders.add, quad);
+  const numSteps = maxSteps
+    ? Math.min(Math.max(maxSteps, 1), layers.length)
+    : layers.length;
+  // Copy and downsample
+  if (quality === "high") {
+    const downsamplePass = createDownsamplePass(shaders.downsample, quad);
+    downsamplePass.start(gl);
+    for (let i = 0, src = input; i < numSteps; src = layers[i][0], i++) {
+      downsamplePass.render(gl, src, layers[i][0]);
     }
-
-    // layers[i][0], a.k.a. a now contains downsampled versions
-
-    // Blur downsampled textures, using separable gaussian blur
-    blurPass.start(gl);
-    for (let i = numSteps - 1; i >= 0; i--) {
-      // Interpolate the blur radius based on the current layer.
-      const t = i / (numSteps - 1);
-      const blurRadius = minBlurRadius + t * (maxBlurRadius - minBlurRadius);
-
-      const [a, b] = layers[i];
-      blurPass.render(gl, a, b, [blurRadius, 0.0]);
-      blurPass.render(gl, b, a, [0.0, blurRadius]);
+    downsamplePass.cleanup(gl);
+  } else {
+    for (let i = 0, src = input; i < numSteps; src = layers[i][0], i++) {
+      copyStageOutput(gl, src, layers[i][0]);
     }
-    blurPass.cleanup(gl);
+  }
 
-    // layers[i][0], a.k.a. a now contains blurred downsampled versions
-    // Incrementally add downsampled textures together
+  // layers[i][0], a.k.a. a now contains downsampled versions
+
+  // Blur downsampled textures, using separable gaussian blur
+  blurPass.start(gl);
+  for (let i = numSteps - 1; i >= 0; i--) {
+    // Interpolate the blur radius based on the current layer.
+    const t = i / (numSteps - 1);
+    const blurRadius = minBlurRadius + t * (maxBlurRadius - minBlurRadius);
+
+    const [a, b] = layers[i];
+    blurPass.render(gl, a, b, [blurRadius, 0.0]);
+    blurPass.render(gl, b, a, [0.0, blurRadius]);
+  }
+  blurPass.cleanup(gl);
+
+  // layers[i][0], a.k.a. a now contains blurred downsampled versions
+  // Incrementally add downsampled textures together
+  addPass.start(gl);
+
+  // Define the weights for each accumulation step, from the blurriest layer to the sharpest.
+  // This provides a more direct and intuitive way to control the bloom's falloff
+  // than a procedural calculation, while maintaining the performance of the iterative approach.
+  // A smaller final weight de-emphasizes the sharpest, innermost layer.
+
+  const stepWeights = seq(numSteps - 1).map((_, i, a) => {
+    const p = 1.0 - i / (a.length - 1);
+    //return 1.0 - 0.5 * p * p * p * p;
+    return 1.0 - 0.5 * p * p;
+  });
+
+  for (let i = numSteps - 1; i > 0; i--) {
+    // The step weight index is i-1, corresponding to the blur layer being processed.
+    // E.g., when i=4 (smallest layer), we use weight at index 3.
+    const weight = stepWeights[i - 1];
+    addPass.render(gl, layers[i][0], layers[i - 1][0], weight);
+  }
+  // Fill the output buffer depending on mix (undefined means no mix and we are done)
+  copyStageOutput(gl, !mix ? layers[0][0] : input, output);
+  addPass.cleanup(gl);
+  if (mix) {
     addPass.start(gl);
-    
-    // Define the weights for each accumulation step, from the blurriest layer to the sharpest.
-    // This provides a more direct and intuitive way to control the bloom's falloff
-    // than a procedural calculation, while maintaining the performance of the iterative approach.
-    // A smaller final weight de-emphasizes the sharpest, innermost layer.
-    
-    const stepWeights = seq(numSteps - 1).map((_, i, a) => {
-      const p = 1.0 - i / (a.length - 1); 
-      //return 1.0 - 0.5 * p * p * p * p;
-      return 1.0 - 0.5 * p * p;
-    });
-
-    for (let i = numSteps - 1; i > 0; i--) {
-      // The step weight index is i-1, corresponding to the blur layer being processed.
-      // E.g., when i=4 (smallest layer), we use weight at index 3.
-      const weight = stepWeights[i - 1];
-      addPass.render(gl, layers[i][0], layers[i - 1][0], weight);
-    }
-    // Fill the output buffer depending on mix (undefined means no mix and we are done)
-    copyStageOutput(gl, !mix ? layers[0][0] : input, output);
+    addPass.render(gl, layers[0][0], output, 1.0 - mix);
     addPass.cleanup(gl);
-    if (mix) {  
-      addPass.start(gl);
-      addPass.render(gl, layers[0][0], output, 1.0 - mix);
-      addPass.cleanup(gl);
-    }
+  }
 }
 
 function lookupBlurQuality(qNum: number): BlurQuality {
@@ -321,4 +366,4 @@ function lookupBlurQuality(qNum: number): BlurQuality {
   }
 }
 
-export { create, draw, reset,lookupBlurQuality };
+export { create, draw, reset, lookupBlurQuality };

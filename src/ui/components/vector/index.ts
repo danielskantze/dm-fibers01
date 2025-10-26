@@ -14,27 +14,35 @@ function vecCompName(i: number) {
 }
 
 type AccessoryButton = {
-  title: string,
-  onClick: () => void
-}
-
-type VectorProps = {
-  name: string,
-  values: number[],
-  onChange: (i: number, value: number) => void,
-  min?: number,
-  max?: number,
-  step?: number,
-  accessoryButton?: AccessoryButton,
+  title: string;
+  onClick: () => void;
 };
 
-export function createVector({name, values, onChange, min, max, step, accessoryButton }: VectorProps): UIComponent {
+type VectorProps = {
+  name: string;
+  values: number[];
+  onChange: (i: number, value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  accessoryButton?: AccessoryButton;
+};
+
+export function createVector({
+  name,
+  values,
+  onChange,
+  min,
+  max,
+  step,
+  accessoryButton,
+}: VectorProps): UIComponent {
   const wrapper: HTMLDivElement = document.createElement("div");
   wrapper.innerHTML = template;
   const control = wrapper.firstElementChild as HTMLDivElement;
 
   if (accessoryButton) {
-    const button = wrapper.querySelector('.accessory-button') as HTMLButtonElement;
+    const button = wrapper.querySelector(".accessory-button") as HTMLButtonElement;
     button.innerText = accessoryButton.title;
     button.onclick = accessoryButton.onClick;
   }

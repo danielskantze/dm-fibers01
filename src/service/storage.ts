@@ -3,33 +3,31 @@ export type StorageType = "localStorage";
 export type StorageSettings = {
   type: StorageType;
   key: string;
-}
+};
 
 export type Store<T> = {
-  save: (data: T[]) => void,
-  load: () => T[]
-}
+  save: (data: T[]) => void;
+  load: () => T[];
+};
 
 export interface KeyedBlobItem {
   id: string;
 }
 
 export interface MutableBlomItemMetadata {
-  name: string,
+  name: string;
 }
 export interface BlobItemMetadata extends KeyedBlobItem, MutableBlomItemMetadata {
-  type: string,
+  type: string;
   originalName: string;
-  addedAt: Date,
-  size: number,
+  addedAt: Date;
+  size: number;
 }
 
 export interface BlobItemData extends KeyedBlobItem {
-  data: ArrayBuffer
+  data: ArrayBuffer;
 }
-export interface BlobItem extends BlobItemData, BlobItemMetadata {
-
-};
+export interface BlobItem extends BlobItemData, BlobItemMetadata {}
 
 export type BlobAddItem = Omit<BlobItem, "originalName" | "addedAt" | "size">;
 
@@ -40,4 +38,4 @@ export type BlobStore = {
   update(item: KeyedBlobItem & Partial<MutableBlomItemMetadata>): Promise<void>;
   get(id: string): Promise<BlobItem | undefined>;
   has(id: string): Promise<boolean>;
-}
+};

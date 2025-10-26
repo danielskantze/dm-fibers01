@@ -1,5 +1,8 @@
 import { Emitter, type Subscribable } from "../util/events";
-import type { InternalAudioStatsCollector, PublicAudioStatsCollector } from "./audio/audio-stats";
+import type {
+  InternalAudioStatsCollector,
+  PublicAudioStatsCollector,
+} from "./audio/audio-stats";
 
 export class AudioPlayerError extends Error {
   constructor(message: string) {
@@ -9,7 +12,7 @@ export class AudioPlayerError extends Error {
 
 export type AudioEvents = {
   status: "loading" | "loaded" | "playing" | "paused" | "stopped" | "cleared";
-}
+};
 export class AudioPlayer {
   private _audioContext: AudioContext;
   private _buffer?: AudioBuffer;
@@ -23,7 +26,7 @@ export class AudioPlayer {
   private _emitter = new Emitter<AudioEvents>();
   private _statsCollector: InternalAudioStatsCollector | null;
 
-  constructor(statsCollector: PublicAudioStatsCollector | null) { 
+  constructor(statsCollector: PublicAudioStatsCollector | null) {
     this._audioContext = new AudioContext();
     this._statsCollector = statsCollector as InternalAudioStatsCollector;
   }
@@ -102,7 +105,7 @@ export class AudioPlayer {
     this._source.onended = () => {
       this._source?.disconnect();
       this._source = null;
-    }
+    };
     const startPosition = this._playTime / 1000.0;
     this._source.start(0, startPosition);
     this._startTime = performance.now();

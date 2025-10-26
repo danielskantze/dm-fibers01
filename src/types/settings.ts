@@ -1,8 +1,8 @@
 type Settings = {
-    width: number;
-    height: number;
-    dpr: number;
-}
+  width: number;
+  height: number;
+  dpr: number;
+};
 
 type BlurQuality = "off" | "low" | "high";
 

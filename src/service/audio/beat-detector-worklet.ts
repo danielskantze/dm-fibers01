@@ -3,10 +3,10 @@
 class BeatDetector extends AudioWorkletProcessor {
   private _history: Float32Array | null = null;
   private _historyIndex: number = 0;
-  
+
   private _lastBeatTime: number = -1.0;
   private _historySize: number = 0;
-  
+
   public historySeconds: number = 1.5;
   public sensitivity: number = 1.4;
   public debounceTimeMs: number = 300.0;
@@ -22,14 +22,16 @@ class BeatDetector extends AudioWorkletProcessor {
   initHistoryBuffer() {
     // 128 samples is the default frame size
     // @ts-ignore
-    const framesPerSecond = sampleRate / 128.0; 
+    const framesPerSecond = sampleRate / 128.0;
     this._historySize = Math.floor(framesPerSecond * this.historySeconds);
     this._history = new Float32Array(this._historySize).fill(0.0);
   }
 
-  process(inputs: Float32Array<ArrayBufferLike>[][], 
-    _outputs: Float32Array<ArrayBufferLike>[][], 
-    _parameters: Record<string, Float32Array<ArrayBufferLike>>) {
+  process(
+    inputs: Float32Array<ArrayBufferLike>[][],
+    _outputs: Float32Array<ArrayBufferLike>[][],
+    _parameters: Record<string, Float32Array<ArrayBufferLike>>
+  ) {
     const inputChannel = inputs[0][0]; // Assuming mono input after filter
 
     // Guard against disconnected input
@@ -62,14 +64,13 @@ class BeatDetector extends AudioWorkletProcessor {
     // 3. Check for beat (peak > threshold + debounce)
     // @ts-ignore: Unreachable code error
     const now = currentTime; // `currentTime` is in seconds
-    if (framePeak > threshold && (now - this._lastBeatTime > this.debounceTimeSec)) {
-      
+    if (framePeak > threshold && now - this._lastBeatTime > this.debounceTimeSec) {
       // Send a beat event back to the main thread
       this.port.postMessage({
-        type: 'beat',
+        type: "beat",
         time: now,
       });
-      
+
       this._lastBeatTime = now;
     }
 
@@ -81,4 +82,4 @@ class BeatDetector extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('beat-detector', BeatDetector);
+registerProcessor("beat-detector", BeatDetector);

@@ -1,14 +1,14 @@
-import { rndSeed } from '../../util/seed';
-import type { UIComponent } from '../types';
-import './seed.css';
+import { rndSeed } from "../../util/seed";
+import type { UIComponent } from "../types";
+import "./seed.css";
 import template from "./seed.html?raw";
 
 type SeedProps = {
-  title: string,
-  value: string,
+  title: string;
+  value: string;
   buttonTitle: string;
   onSeed: (seed: string) => void;
-}
+};
 
 export function createSeed(props: SeedProps): UIComponent {
   const { title, buttonTitle, onSeed, value } = props;
@@ -31,11 +31,11 @@ export function createSeed(props: SeedProps): UIComponent {
     currentValue = v;
     buttonElmt.disabled = true;
     onSeed(inputElmt.value);
-  }
+  };
 
   inputElmt.oninput = () => {
     buttonElmt.disabled = inputElmt.value === currentValue;
-  }
+  };
   buttonElmt.onclick = () => {
     currentValue = inputElmt.value;
     buttonElmt.disabled = true;
@@ -49,5 +49,5 @@ export function createSeed(props: SeedProps): UIComponent {
       currentValue = v as string;
       buttonElmt.disabled = true;
     },
-  }
+  };
 }

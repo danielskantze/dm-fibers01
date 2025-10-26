@@ -11,7 +11,7 @@ import { filter } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext, fShaderSource: string): ShaderPrograms {
   return {
-    shader: assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
+    shader: assembleProgram(gl, vShaderSource, fShaderSource, program => {
       const attributes = {
         position: gl.getAttribLocation(program, "position"),
       };
@@ -28,22 +28,27 @@ function loadShaders(gl: WebGL2RenderingContext, fShaderSource: string): ShaderP
             [0.5, 0.5, 0.5],
             [0.5, 0.5, 0.5],
             [1.0, 1.0, 1.0],
-            [0.0, 0.9, 0.9]
+            [0.0, 0.9, 0.9],
           ]),
           ui: {
             name: "DPalette",
             min: 0.0,
             max: 1.0,
-            component: "cos-palette"
-          }
-        }
+            component: "cos-palette",
+          },
+        },
       };
       return { program, attributes, uniforms } as ShaderProgram;
     }),
   };
 }
 
-function createOutput(gl: WebGL2RenderingContext, width: number, height: number, name: string) {
+function createOutput(
+  gl: WebGL2RenderingContext,
+  width: number,
+  height: number,
+  name: string
+) {
   const textures = [createTexture(gl, width, height, "RGBA")];
   const framebuffer = createFrameBuffer(gl, width, height, textures);
   return { name, textures, framebuffer } as StageOutput;
@@ -61,18 +66,23 @@ function reset(gl: WebGL2RenderingContext, stage: Stage) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
-function create(gl: WebGL2RenderingContext, input: Stage, bufferOutput: boolean, fShaderSource: string): Stage {
+function create(
+  gl: WebGL2RenderingContext,
+  input: Stage,
+  bufferOutput: boolean,
+  fShaderSource: string
+): Stage {
   const shaders = loadShaders(gl, fShaderSource);
   const { width, height } = input.targets[0];
   const output = bufferOutput ? createOutput(gl, width, height, "output") : undefined;
   const uniforms = shaders.shader.uniforms;
-  const parameters = filter<Uniform>((_, v) => (!!v.ui), uniforms);
+  const parameters = filter<Uniform>((_, v) => !!v.ui, uniforms);
   return {
     name: "debug",
     resources: {
       buffers: { quad: createQuad(gl) },
       shaders,
-      output
+      output,
     },
     input,
     targets: bufferOutput ? output!.textures : [],

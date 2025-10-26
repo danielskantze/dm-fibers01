@@ -1,33 +1,35 @@
 import type { AudioStatsDetector } from "./types";
 
-
 export type FFTMonitorState = {
-    fftData: Float32Array<ArrayBuffer>,
+  fftData: Float32Array<ArrayBuffer>;
 };
 
 type FFTAnalyserSettings = {
-    bins: 128 | 256 | 512 | 1024 | 2048
-}
+  bins: 128 | 256 | 512 | 1024 | 2048;
+};
 
-export async function create(context: AudioContext, settings: FFTAnalyserSettings): Promise<AudioStatsDetector> {
-    const node = context.createAnalyser();
-    node.fftSize = settings.bins;
-    const state: FFTMonitorState = {
-        fftData: new Float32Array(node.frequencyBinCount)
-    };
-    
-    function update() {
-        node.getFloatFrequencyData(state.fftData);
-    }
+export async function create(
+  context: AudioContext,
+  settings: FFTAnalyserSettings
+): Promise<AudioStatsDetector> {
+  const node = context.createAnalyser();
+  node.fftSize = settings.bins;
+  const state: FFTMonitorState = {
+    fftData: new Float32Array(node.frequencyBinCount),
+  };
 
-    function reset() {
-        state.fftData.fill(0.0);
-    }
+  function update() {
+    node.getFloatFrequencyData(state.fftData);
+  }
 
-    return {
-        update,
-        reset,
-        node,
-        state
-    }
+  function reset() {
+    state.fftData.fill(0.0);
+  }
+
+  return {
+    update,
+    reset,
+    node,
+    state,
+  };
 }

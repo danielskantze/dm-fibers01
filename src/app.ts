@@ -1,12 +1,12 @@
-import './style.css';
-import main from './main';
+import "./style.css";
+import main from "./main";
 
-document.getElementById('app')!.innerHTML = `
+document.getElementById("app")!.innerHTML = `
   <canvas id="canvas"></canvas>
   <div id="controls" />
 `;
 
 main(
-  document.getElementById('canvas')! as HTMLCanvasElement,
-  document.getElementById('controls')! as HTMLDivElement
+  document.getElementById("canvas")! as HTMLCanvasElement,
+  document.getElementById("controls")! as HTMLDivElement
 );

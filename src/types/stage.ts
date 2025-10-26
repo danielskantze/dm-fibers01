@@ -6,44 +6,52 @@ import type { Texture } from "./gl/textures";
 import type { Uniform, Uniforms } from "./gl/uniforms";
 
 type StageOutput = {
-    name: string;
-    textures: Texture[];
-    framebuffer: FrameBuffer;
-}
+  name: string;
+  textures: Texture[];
+  framebuffer: FrameBuffer;
+};
 
 type BufferedStageOutput = StageOutput[];
 
 export type MultiSampleAntiAlias = {
-    samples: number;
-    internalformat: GLenum;
-    width: number;
-    height: number;
-    renderbuffer: RenderBuffer;
-    framebuffer: MultisamplerFrameBuffer;
-}
-
+  samples: number;
+  internalformat: GLenum;
+  width: number;
+  height: number;
+  renderbuffer: RenderBuffer;
+  framebuffer: MultisamplerFrameBuffer;
+};
 
 type Resources = {
-    buffers: Buffers;
-    output?: StageOutput | BufferedStageOutput;
-    currentOutput?: StageOutput; // FIXME: This is a hack to expose the current output/framebuffer. We should probably expose the framebuffer instead of the texture at the stage target instead. That would make it easier to support renderbuffers too for efficiency
-    multisampler?: MultiSampleAntiAlias;
-    shaders: ShaderPrograms;
-    uniforms?: Uniforms;
-}
+  buffers: Buffers;
+  output?: StageOutput | BufferedStageOutput;
+  currentOutput?: StageOutput; // FIXME: This is a hack to expose the current output/framebuffer. We should probably expose the framebuffer instead of the texture at the stage target instead. That would make it easier to support renderbuffers too for efficiency
+  multisampler?: MultiSampleAntiAlias;
+  shaders: ShaderPrograms;
+  uniforms?: Uniforms;
+};
 
 export interface TypedResources<T> extends Resources {
-  internal: T
+  internal: T;
 }
 
-export type StageName = "accumulate" | "simulate" | "blur" | "materialize" | "output" | "luma" | "combine" | "debug" | "test";
+export type StageName =
+  | "accumulate"
+  | "simulate"
+  | "blur"
+  | "materialize"
+  | "output"
+  | "luma"
+  | "combine"
+  | "debug"
+  | "test";
 
 type Stage<T = {}> = {
-    name: StageName;
-    resources: Resources | TypedResources<T>;
-    input: Stage | null;
-    targets: Texture[]; // see currentOutput FIXNME
-    parameters: Record<string, Uniform>;
-}
+  name: StageName;
+  resources: Resources | TypedResources<T>;
+  input: Stage | null;
+  targets: Texture[]; // see currentOutput FIXNME
+  parameters: Record<string, Uniform>;
+};
 
 export type { Stage, Resources, StageOutput, BufferedStageOutput, Buffers };

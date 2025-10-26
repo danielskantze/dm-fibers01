@@ -19,11 +19,7 @@ function getValue(value: number, config: ValueConfig): string {
     case "int":
       return `${Math.round(value)}`;
     case "enum":
-      return `${
-        enumValues![
-          Math.max(0, Math.min(enumValues!.length, Math.round(value)))
-        ]
-      }`;
+      return `${enumValues![Math.max(0, Math.min(enumValues!.length, Math.round(value)))]}`;
     default:
       return value.toFixed(2);
   }
@@ -40,19 +36,9 @@ export type ScalarProps = {
   enumValues?: string[];
 };
 
-
 export function createScalarInner(
   wrapper: HTMLElement,
-  {
-    name,
-    value,
-    onChange,
-    min,
-    max,
-    step,
-    type = "float",
-    enumValues,
-  }: ScalarProps
+  { name, value, onChange, min, max, step, type = "float", enumValues }: ScalarProps
 ): UIComponent {
   const label: HTMLLabelElement = document.createElement("label");
   const input: HTMLInputElement = document.createElement("input");
@@ -87,7 +73,7 @@ export function createScalarInner(
   const inputId = `control_${idSeq}`;
   input.id = inputId;
 
-  input.oninput = (e) => {
+  input.oninput = e => {
     const newValue = parseFloat((e.target as HTMLInputElement).value);
     onChange(newValue);
     text.value = getValue(newValue, valueConfig);

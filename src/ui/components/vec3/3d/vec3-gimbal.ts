@@ -7,7 +7,7 @@ import vShaderSource from "./shaders/quad.vs.glsl?raw";
 import fShaderSource from "./shaders/vec3-gimbal.fs.glsl?raw";
 
 function initGl(gl: WebGL2RenderingContext) {
-  return assembleProgram(gl, vShaderSource, fShaderSource, (program) => {
+  return assembleProgram(gl, vShaderSource, fShaderSource, program => {
     const attributes = {
       position: gl.getAttribLocation(program, "position"),
     };
@@ -26,8 +26,8 @@ function initGl(gl: WebGL2RenderingContext) {
       } as Uniform,
       u_time: {
         location: gl.getUniformLocation(program, "u_time"),
-        slot: 3
-      } as Uniform
+        slot: 3,
+      } as Uniform,
     };
     return { program, attributes, uniforms };
   });
@@ -80,8 +80,8 @@ function createVec3GimbalView(width: number, height: number) {
       objectMatrixI = iRotM;
       magnitude = length;
       scheduleDraw();
-    }
-  }
+    },
+  };
 }
 
 export { createVec3GimbalView };

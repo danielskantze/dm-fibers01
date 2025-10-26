@@ -23,7 +23,7 @@ const settings: Settings = {
   width: window.screen.width,
   height: window.screen.height,
   dpr: window.devicePixelRatio,
-}
+};
 
 function configureCanvas(canvas: HTMLCanvasElement) {
   const width = window.innerWidth;
@@ -34,7 +34,6 @@ function configureCanvas(canvas: HTMLCanvasElement) {
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
 }
-
 
 function downloadScreenshot(dataURL: string) {
   const aElmt = document.createElement("a");
@@ -63,11 +62,9 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const audioStore = new IndexedDBBlobStore("data", "audio");
   const audioStats = createAudioStatsCollector({
     enabledTypes: ["beat", "levels", "fft"],
-    logConfig: undefined
+    logConfig: undefined,
   });
   const audioPlayer = new AudioPlayer(audioStats);
-
-  init();
 
   function init() {
     const seed = (params.getParameter("main", "seed").value ?? "") as string;
@@ -94,9 +91,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       emitter.emit("record", "idle");
     } else {
       const recorder = new VideoRecorder(canvas, {
-        title: "DM Fibers 01"
-      }
-      );
+        title: "DM Fibers 01",
+      });
       emitter.emit("record", "waiting");
       recorder.start();
       const onRecorderStatusChange = (status: RecorderStatus) => {
@@ -105,7 +101,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
           recorder.events.unsubscribe("status", onRecorderStatusChange);
         }
         emitter.emit("record", "recording");
-      }
+      };
       recorder.events.subscribe("status", onRecorderStatusChange);
     }
   }
@@ -120,7 +116,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       if (audioPlayer.ready) {
         audioPlayer.play();
       }
-      renderer.start()
+      renderer.start();
     }
     return renderer.isRunning;
   }
@@ -135,7 +131,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   function onReset() {
     renderer.reset();
     audioPlayer.clear();
-    emitter.emit("audio", {status: "clear"});
+    emitter.emit("audio", { status: "clear" });
   }
 
   function onToggleVisibility() {
@@ -143,29 +139,27 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   }
 
   async function start(audioStore: BlobStore) {
-    
     await audioPlayer.initialize();
 
     const onSelectAudio = (item: BlobItemData | undefined) => {
       if (item) {
         params.setValue("main", "audio", item.id);
-        emitter.emit("audio", {status: "loading", id: item.id});
-        audioPlayer.load(item.data)
-          .then(() => {
-            emitter.emit("audio", {status: "loaded", id: item.id});
-          });
-      } 
-    }
+        emitter.emit("audio", { status: "loading", id: item.id });
+        audioPlayer.load(item.data).then(() => {
+          emitter.emit("audio", { status: "loaded", id: item.id });
+        });
+      }
+    };
 
     const initAudio = async () => {
       const audioId = params.getParameter("main", "audio")?.value;
-      if (audioId && await audioStore.has(audioId as string)) {
+      if (audioId && (await audioStore.has(audioId as string))) {
         onSelectAudio(await audioStore.get(audioId as string));
       } else {
         audioPlayer.stop();
-        emitter.emit("audio", {status: "clear"});
+        emitter.emit("audio", { status: "clear" });
       }
-    }
+    };
     const uiEvents = createUi({
       appEvents: emitter,
       element: controls,
@@ -180,7 +174,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       loadPresets: presetStore.load,
       savePresets: presetStore.save,
       onToggleVisibility,
-      onSelectAudio
+      onSelectAudio,
     });
 
     uiEvents.subscribe("play", () => {
@@ -188,14 +182,22 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     });
 
     uiEvents.subscribe("screenshot", onScreenshot);
-    uiEvents.subscribe("rec", () => { onRecord(); });
-    uiEvents.subscribe("seed", ({ seed }) => { onRandomSeed(seed); });
+    uiEvents.subscribe("rec", () => {
+      onRecord();
+    });
+    uiEvents.subscribe("seed", ({ seed }) => {
+      onRandomSeed(seed);
+    });
     uiEvents.subscribe("reset", onReset);
 
-    audioStats.events.subscribe("update", ({stats}) => {
-      const {rms, peak} = stats.levels;
+    audioStats.events.subscribe("update", ({ stats }) => {
+      const { rms, peak } = stats.levels;
       //params.setValue("main", "particles", 300000 * (0.5 + rms));
-      params.setValue("simulate", "audioLevelStats", vec3.create([rms, peak, stats.beat.timeSinceLastBeat]));
+      params.setValue(
+        "simulate",
+        "audioLevelStats",
+        vec3.create([rms, peak, stats.beat.timeSinceLastBeat])
+      );
     });
 
     window.addEventListener("resize", resize);
@@ -203,12 +205,22 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     await initAudio();
     onPlayPause();
   }
-  audioStore.initialize().then(() => (start(audioStore)));
+
+  init();
+  audioStore.initialize().then(() => start(audioStore));
 }
 
 export default main;
 
 // TODO:
+
+// Figure out a way to connect number of particles to sound intensity
+// - windowed average
+
+// Math
+// - Add smoothing and damping functions
+
+// Figure out how relative parameters should work
 
 // Simple add music (hook up to audio features)
 // - Sync beats with stroke noise x/y (each kick will pulse these)

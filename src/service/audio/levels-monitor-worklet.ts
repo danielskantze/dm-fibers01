@@ -4,9 +4,10 @@ class LevelsProcessor extends AudioWorkletProcessor {
   }
 
   process(
-    inputs: Float32Array<ArrayBufferLike>[][], 
-    _outputs: Float32Array<ArrayBufferLike>[][], 
-    _parameters: Record<string, Float32Array<ArrayBufferLike>>) {
+    inputs: Float32Array<ArrayBufferLike>[][],
+    _outputs: Float32Array<ArrayBufferLike>[][],
+    _parameters: Record<string, Float32Array<ArrayBufferLike>>
+  ) {
     const input = inputs[0];
     if (input && input[0]) {
       const channelData = input[0];
@@ -25,4 +26,4 @@ class LevelsProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('levels-monitor', LevelsProcessor);
+registerProcessor("levels-monitor", LevelsProcessor);

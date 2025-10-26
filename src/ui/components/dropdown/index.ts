@@ -1,12 +1,12 @@
-import { Emitter, type Subscribable } from '../../../util/events';
-import type { UIComponent } from '../types';
-import './dropdown.css';
+import { Emitter, type Subscribable } from "../../../util/events";
+import type { UIComponent } from "../types";
+import "./dropdown.css";
 import template from "./dropdown.html?raw";
 
 export type DropdownItem = {
   id: string;
   name: string;
-}
+};
 
 export class ItemManager<T extends DropdownItem> {
   private _items: T[];
@@ -16,18 +16,18 @@ export class ItemManager<T extends DropdownItem> {
   get items(): T[] {
     return this._items;
   }
-  clear()  {
+  clear() {
     this._items = [];
   }
   item(id: string): T | undefined {
-    return this._items.find((i) => (i.id === id));
+    return this._items.find(i => i.id === id);
   }
   itemAt(index: number): T | undefined {
     return this._items[index];
   }
   indexOf(itemOrIndex: T | string): number {
-    const id = typeof(itemOrIndex) === "string" ? itemOrIndex : itemOrIndex.id;
-    return this._items.findIndex((i) => (i.id === id));
+    const id = typeof itemOrIndex === "string" ? itemOrIndex : itemOrIndex.id;
+    return this._items.findIndex(i => i.id === id);
   }
   add(item: T) {
     this._items.push(item);
@@ -39,26 +39,26 @@ export class ItemManager<T extends DropdownItem> {
     if (this._items.length <= 1) {
       return -1;
     }
-    const i = this._items.findIndex((i) => i.id === id);
+    const i = this._items.findIndex(i => i.id === id);
     this._items.splice(i, 1);
     return Math.min(i, this._items.length - 1);
   }
   update(item: T) {
-    const i = this._items.findIndex((i) => i.id === item.id);
+    const i = this._items.findIndex(i => i.id === item.id);
     this._items[i] = item;
   }
 }
 
 export type DropdownEvents<T extends DropdownItem> = {
   select: {
-    index: number,
-    item: T | undefined
-  },
-  remove: string,
-  update: T,
+    index: number;
+    item: T | undefined;
+  };
+  remove: string;
+  update: T;
   change: {
-    items: T[]
-  } 
+    items: T[];
+  };
 };
 export interface DropdownUIComponent<T extends DropdownItem> extends UIComponent {
   events: Subscribable<DropdownEvents<T>>;
@@ -68,21 +68,21 @@ export interface DropdownUIComponent<T extends DropdownItem> extends UIComponent
 }
 
 export function createDropdown<T extends DropdownItem>(
-    id: string, 
-    items: T[], 
-    createItemFn: (() => T | undefined) | undefined
-  ): DropdownUIComponent<T> {
+  id: string,
+  items: T[],
+  createItemFn: (() => T | undefined) | undefined
+): DropdownUIComponent<T> {
   const mgr: ItemManager<T> = new ItemManager<T>(items);
   const emitter = new Emitter<DropdownEvents<T>>();
   let isDisabled = false;
 
   const wrapper = document.createElement("div");
   wrapper.innerHTML = template;
-  const addButton = wrapper.querySelector('.add-button')! as HTMLButtonElement;
-  const removeButton = wrapper.querySelector('.remove-button')! as HTMLButtonElement;
-  const select = wrapper.querySelector('select')! as HTMLSelectElement;
-  const selectTrigger = wrapper.querySelector('.trigger')! as HTMLElement;
-  const editInput = wrapper.querySelector('.edit-input')! as HTMLInputElement;
+  const addButton = wrapper.querySelector(".add-button")! as HTMLButtonElement;
+  const removeButton = wrapper.querySelector(".remove-button")! as HTMLButtonElement;
+  const select = wrapper.querySelector("select")! as HTMLSelectElement;
+  const selectTrigger = wrapper.querySelector(".trigger")! as HTMLElement;
+  const editInput = wrapper.querySelector(".edit-input")! as HTMLInputElement;
   select.id = `id-${id}`;
 
   function setDisabled(value: boolean) {
@@ -102,7 +102,7 @@ export function createDropdown<T extends DropdownItem>(
 
   function getOption(id: string) {
     const node = select.querySelector(`option[value="${id}"]`);
-    return node ? node as HTMLOptionElement : undefined;
+    return node ? (node as HTMLOptionElement) : undefined;
   }
 
   function setItems(items: T[]) {
@@ -111,7 +111,7 @@ export function createDropdown<T extends DropdownItem>(
     mgr.clear();
     mgr.addAll(items);
     for (const item of mgr.items) {
-     select.appendChild(createOption(item));
+      select.appendChild(createOption(item));
     }
     select.value = selectedValue;
   }
@@ -119,9 +119,9 @@ export function createDropdown<T extends DropdownItem>(
   // Select handler
 
   select.addEventListener("change", () => {
-    const index = mgr.items.findIndex((i) => (i.id === select.value));
+    const index = mgr.items.findIndex(i => i.id === select.value);
     if (index >= 0) {
-      emitter.emit("select", {index, item: mgr.itemAt(index)});
+      emitter.emit("select", { index, item: mgr.itemAt(index) });
     } else {
       console.log("clear");
     }
@@ -139,7 +139,7 @@ export function createDropdown<T extends DropdownItem>(
     editInput.value = selectedItem?.name ?? "";
     const blurListener = (e: Event) => {
       if (e.target !== editInput) {
-        const newValue = {...mgr.item(select.value)!};
+        const newValue = { ...mgr.item(select.value)! };
         newValue.name = editInput.value;
         mgr.update(newValue);
         const opt = getOption(select.value);
@@ -159,22 +159,22 @@ export function createDropdown<T extends DropdownItem>(
   // Add handler
 
   if (createItemFn) {
-    addButton.addEventListener('click', () => {
+    addButton.addEventListener("click", () => {
       const newItem = createItemFn();
       if (newItem) {
         select.appendChild(createOption(newItem));
         mgr.add(newItem);
         select.value = newItem.id;
-        emitter.emit("change", { items: mgr.items.concat() })
+        emitter.emit("change", { items: mgr.items.concat() });
       }
     });
   } else {
     addButton.style.display = "none";
   }
-  
+
   // Remove handler
 
-  removeButton.addEventListener('click', () => {
+  removeButton.addEventListener("click", () => {
     const removeId = select.value;
     const nextIdx = mgr.remove(removeId);
     if (nextIdx < 0) {
@@ -187,14 +187,14 @@ export function createDropdown<T extends DropdownItem>(
       select.value = nextValue.id;
     }
     emitter.emit("remove", removeId);
-    emitter.emit("select", { index: nextIdx, item: mgr.itemAt(nextIdx)});
+    emitter.emit("select", { index: nextIdx, item: mgr.itemAt(nextIdx) });
   });
 
   // Add options
   for (const item of mgr.items) {
-     select.appendChild(createOption(item));
+    select.appendChild(createOption(item));
   }
-  
+
   return {
     element: wrapper,
     update: () => {},
@@ -203,6 +203,6 @@ export function createDropdown<T extends DropdownItem>(
     },
     setItems,
     events: emitter,
-    setDisabled
-  }
+    setDisabled,
+  };
 }

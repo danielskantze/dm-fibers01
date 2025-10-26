@@ -13,7 +13,11 @@ function mapCartesianToGimbal(v: [number, number, number]): [number, number, num
   return [rotX, rotZ, length];
 }
 
-function mapGimbalToCartesian(rotX: number, rotZ: number, length: number): [number, number, number] {
+function mapGimbalToCartesian(
+  rotX: number,
+  rotZ: number,
+  length: number
+): [number, number, number] {
   const rx = rotX - Math.PI * 0.5;
   const rz = rotZ;
   const x = length * Math.cos(rx) * Math.cos(rz);
