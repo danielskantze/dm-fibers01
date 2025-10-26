@@ -1,7 +1,4 @@
-import type {
-  ApplicationEvents,
-  ApplicationRecordStatus,
-} from "../../types/application-events";
+import type { ApplicationEvents } from "../../types/application-events";
 import { Emitter, type EventMap, type Subscribable } from "../../util/events";
 import { createButtons } from "../components/buttons";
 import type { UIComponent } from "../components/types";
@@ -10,6 +7,7 @@ import {
   pauseIcon,
   playIcon,
   recordIcon,
+  recordingIcon,
   screenshotIcon,
   stopIcon,
 } from "../icons";
@@ -73,13 +71,17 @@ export function createStatusBar(
   element.appendChild(buttons.element);
 
   appEvents.subscribe("record", status => {
-    const statusTitles: Record<ApplicationRecordStatus, string> = {
-      idle: "Rec",
-      recording: "Rec...",
-      waiting: "...",
-    };
-    const title = statusTitles[status];
-    buttons.updateButton("rec", title);
+    switch (status) {
+      case "idle":
+        buttons.updateButton("rec", "Screen record", recordIcon);
+        break;
+      case "recording":
+        buttons.updateButton("rec", "Recording", recordingIcon);
+        break;
+      case "waiting":
+        buttons.updateButton("rec", "Processing...", recordIcon);
+        break;
+    }
     buttons.setDisabled("rec", status === "waiting");
   });
   appEvents.subscribe("transport", status => {

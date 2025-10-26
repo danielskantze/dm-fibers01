@@ -4,14 +4,14 @@ import stopIcon from "./stop.svg?raw";
 import recordIcon from "./record.svg?raw";
 import screenshotIcon from "./screenshot.svg?raw";
 import clearIcon from "./clear.svg?raw";
-
-
+import recordingIcon from "./recording.svg?raw";
 
 export {
-    playIcon,
-    pauseIcon,
-    stopIcon,
-    recordIcon,
-    screenshotIcon,
-    clearIcon
+  playIcon,
+  pauseIcon,
+  stopIcon,
+  recordIcon,
+  recordingIcon,
+  screenshotIcon,
+  clearIcon,
 };
