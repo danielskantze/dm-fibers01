@@ -1,15 +1,17 @@
-import type { ParameterPreset, ParameterRegistry } from "../../service/parameters";
-import type { BlobItemData, BlobItemMetadata, BlobStore } from "../../service/storage";
-import type { ApplicationEvents } from "../../types/application-events";
-import { Emitter, type Subscribable } from "../../util/events";
-import type { DropdownUIComponent } from "../components/dropdown";
-import type { Component } from "../components/types";
-import { createFileSelector } from "./file-selector";
-import { createPresetControls } from "./presets";
-import { createStatusBar } from "./statusbar";
-import { createUniformControls } from "./uniforms";
+import type { ParameterPreset, ParameterRegistry } from "../service/parameters";
+import type { BlobItemData, BlobItemMetadata, BlobStore } from "../service/storage";
+import type { ApplicationEvents } from "../types/application-events";
+import { Emitter, type Subscribable } from "../util/events";
+import ControlFactory from "./components/controls";
+import type { DropdownUIComponent } from "./components/dropdown";
+import { createModal } from "./components/modal/modal";
+import type { Component } from "./components/types";
+import { createFileSelector } from "./views/file-selector";
+import { createPresetControls } from "./views/presets";
+import { createStatusBar } from "./views/statusbar";
+import { createUniformControls } from "./views/uniforms";
 
-export type UIEvents = {
+export type UIRootEvents = {
   screenshot: {};
   rec: {};
   play: {};
@@ -18,53 +20,48 @@ export type UIEvents = {
   seed: {
     seed: string;
   };
+  selectPreset: { preset: ParameterPreset };
+  selectAudio: { item: BlobItemData | undefined };
 };
 
-export type UIProps = {
+export type UIRootProps = {
   element: HTMLElement;
   audioStore: BlobStore;
   params: ParameterRegistry;
   appEvents: Subscribable<ApplicationEvents>;
   initialPresetId: string;
-  selectPreset: (item: ParameterPreset) => void;
   loadPresets: () => ParameterPreset[];
   savePresets: (items: ParameterPreset[]) => void;
-  onToggleVisibility: () => void;
-  onSelectAudio: (item: BlobItemData | undefined) => void;
 };
 
-export interface UI extends Subscribable<UIEvents> {
+export interface UIRoot extends Subscribable<UIRootEvents> {
   destroy: () => void;
 }
 
-export function createUi({
+export function createRoot({
   appEvents,
   element,
   audioStore,
   params,
   initialPresetId,
-  selectPreset,
   loadPresets,
   savePresets,
-  onToggleVisibility,
-  onSelectAudio,
-}: UIProps): UI {
+}: UIRootProps): UIRoot {
+  const controlFactory = new ControlFactory(element);
+  const emitter = new Emitter<UIRootEvents>();
   const presetControls = createPresetControls(
-    selectPreset,
+    item => emitter.emit("selectPreset", { preset: item }),
     loadPresets,
     savePresets,
     params
   ) as DropdownUIComponent<ParameterPreset>;
-  const audioControl = createFileSelector(
-    audioStore,
-    "audio",
-    "audio",
-    onSelectAudio
+  const audioControl = createFileSelector(audioStore, "audio", "audio", item =>
+    emitter.emit("selectAudio", { item })
   ) as DropdownUIComponent<BlobItemMetadata>;
   const statusBar = createStatusBar(appEvents);
-  const emitter = new Emitter<UIEvents>();
+  const modal = createModal();
   let isEditing = false;
-  const children: Component[] = [presetControls, audioControl, statusBar];
+  const children: Component[] = [presetControls, audioControl, statusBar, modal];
 
   element.appendChild(presetControls.element);
   element.appendChild(audioControl.element);
@@ -78,6 +75,20 @@ export function createUi({
   children.push(...uniformControls);
 
   element.append(statusBar.element);
+
+  const onStatus = ({
+    type,
+    message,
+  }: {
+    type: "loading" | "ready";
+    message: string;
+  }) => {
+    if (type === "loading") {
+      modal.show(message);
+    } else {
+      modal.update?.(message);
+    }
+  };
 
   const onAudio = ({
     status,
@@ -96,10 +107,12 @@ export function createUi({
     }
   };
   appEvents.subscribe("audio", onAudio);
+  appEvents.subscribe("status", onStatus);
 
   const onStatusBarClick = (id: "play" | "stop" | "record" | "reset" | "screenshot") => {
     switch (id) {
       case "play":
+        modal.hide();
         emitter.emit("play", {});
         break;
       case "stop":
@@ -127,10 +140,10 @@ export function createUi({
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) {
-      // 112 = p
-      onToggleVisibility();
+      controlFactory.visible = !controlFactory.visible;
     } else if (e.key.charCodeAt(0) === " ".charCodeAt(0)) {
       if (!isEditing) {
+        modal.hide();
         emitter.emit("play", {});
       }
     }
@@ -143,6 +156,7 @@ export function createUi({
     unsubscribe: emitter.unsubscribe.bind(emitter),
     destroy: () => {
       appEvents.unsubscribe("audio", onAudio);
+      appEvents.unsubscribe("status", onStatus);
       statusBar.events.unsubscribe("click", onStatusBarClick);
       audioControl.events.unsubscribe("edit", onEdit);
       presetControls.events.unsubscribe("edit", onEdit);

@@ -15,18 +15,23 @@ export function createModal(): ModalComponent {
   const message = container.querySelector(".message")!;
   return {
     element: container,
-    update: (value: any) => {
-      const strValue = value as string;
-      message.innerHTML = strValue;
+    update: (value: string) => {
+      message.innerHTML = value;
+      console.log("update", value);
     },
     show: (text?: string) => {
       modal.classList.add("show");
+      console.log("show", text);
       if (text) {
         message.innerHTML = text;
       }
     },
     hide: () => {
+      console.log("hide");
       modal.classList.remove("show");
+    },
+    destroy: () => {
+      container.remove();
     },
   };
 }
