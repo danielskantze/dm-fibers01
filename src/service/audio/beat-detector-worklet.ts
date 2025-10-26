@@ -1,5 +1,4 @@
-// beat-detector.js
-
+const webAudioBlockSize = 128;
 class BeatDetector extends AudioWorkletProcessor {
   private _history: Float32Array | null = null;
   private _historyIndex: number = 0;
@@ -22,7 +21,7 @@ class BeatDetector extends AudioWorkletProcessor {
   initHistoryBuffer() {
     // 128 samples is the default frame size
     // @ts-ignore
-    const framesPerSecond = sampleRate / 128.0;
+    const framesPerSecond = sampleRate / webAudioBlockSize;
     this._historySize = Math.floor(framesPerSecond * this.historySeconds);
     this._history = new Float32Array(this._historySize).fill(0.0);
   }

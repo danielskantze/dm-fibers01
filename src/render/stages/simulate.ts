@@ -140,12 +140,12 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         },
         audioLevelStats: {
           location: audioLevelStatsLocation,
-          value: vec3.createZero(),
+          value: vec4.createZero(),
           ui: {
             name: "Audio level stats",
             type: "hidden",
           },
-          type: "vec3",
+          type: "vec4",
         } as Uniform,
       };
       return { program, attributes, uniforms } as ShaderProgram;
@@ -287,8 +287,7 @@ function draw(
   gl.uniform4fv(u.strokeNoise.location, u.strokeNoise.value as Vec4);
   gl.uniform4fv(u.strokeDrift.location, u.strokeDrift.value as Vec4);
   gl.uniform4fv(u.colorNoise.location, u.colorNoise.value as Vec4);
-  gl.uniform3fv(u.audioLevelStats.location, u.audioLevelStats.value as Vec3);
-
+  gl.uniform4fv(u.audioLevelStats.location, u.audioLevelStats.value as Vec4);
   gl.uniformMatrix4x3fv(u.cosPalette.location, false, u.cosPalette.value as Float32Array);
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, sources[0].texture);

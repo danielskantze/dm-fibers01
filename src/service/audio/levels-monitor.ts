@@ -5,12 +5,16 @@ const workletId = "levels-monitor";
 export type LevelsMonitorState = {
   rms: number;
   peak: number;
+  avgPeak: number;
+  avgRms: number;
 };
 
 export async function create(context: AudioContext): Promise<AudioStatsDetector> {
   const state: LevelsMonitorState = {
     rms: 0,
     peak: 0,
+    avgPeak: 0,
+    avgRms: 0,
   };
   await context.audioWorklet.addModule(workletUrl);
 
@@ -18,6 +22,8 @@ export async function create(context: AudioContext): Promise<AudioStatsDetector>
   node.port.onmessage = e => {
     state.rms = e.data.rms;
     state.peak = e.data.peak;
+    state.avgRms = e.data.avgRms;
+    state.avgPeak = e.data.avgPeak;
   };
 
   function update() {}
@@ -25,6 +31,8 @@ export async function create(context: AudioContext): Promise<AudioStatsDetector>
   function reset() {
     state.rms = 0;
     state.peak = 0;
+    state.avgPeak = 0;
+    state.avgRms = 0;
   }
 
   return {

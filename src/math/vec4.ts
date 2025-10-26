@@ -4,6 +4,10 @@ export function create(a: [number, number, number, number] | Float32Array): Vec4
   return new Float32Array(a);
 }
 
+export function createZero(): Vec4 {
+  return new Float32Array([0, 0, 0, 0]);
+}
+
 export function fromVec3(vec3: Vec3, pad: number = 0.0): Vec4 {
   const a = new Float32Array(4);
   a[0] = vec3[0];
