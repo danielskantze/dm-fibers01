@@ -320,6 +320,9 @@ export function createVec3(
   return {
     element: control,
     update: (value: Vec3) => {
+      if (vec3.equals(value, mapper.fromBToA(state.value, true))) {
+        return;
+      }
       setComponentValues(value as Vec3);
       updateGimbal(state.matrix, state.matrixI, state.length);
       initializeControls();

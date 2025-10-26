@@ -99,11 +99,14 @@ export function createCosPalette(
     element: container,
     update: (value: Matrix4x3) => {
       const m = value as Matrix4x3;
+      if (mat43.equals(matrix, m)) {
+        return;
+      }
       matrix.set(m);
-      children[0].update(getRow(0, m));
-      children[1].update(getRow(1, m));
-      children[2].update(getRow(2, m));
-      children[3].update(getRow(3, m));
+      children[0].update(mat43.getRow(0, m));
+      children[1].update(mat43.getRow(1, m));
+      children[2].update(mat43.getRow(2, m));
+      children[3].update(mat43.getRow(3, m));
       drawPalette();
     },
     destroy: () => {

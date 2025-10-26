@@ -38,3 +38,12 @@ export function setRow(i: number, vec3: Vec3, m: Matrix4x3) {
 export function zero() {
   return create([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 }
+
+export function equals(a: Matrix4x3, b: Matrix4x3): boolean {
+  for (let i = 0; i < 12; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}

@@ -7,10 +7,10 @@ uniform mat4 u_object_mat_i;
 uniform float u_magnitude;
 
 out vec4 out_color;
-const float PI = 3.14159265357989f;
-const float NORMAL_DELTA = 0.01f;
+const float PI = 3.14159265357989;
+const float NORMAL_DELTA = 0.01;
 
-const vec3 Y_AXIS = vec3(0.0f, 1.0, 0.0f);
+const vec3 Y_AXIS = vec3(0.0, 1.0, 0.0);
 
 struct Axes3D {
   vec3 aa;
@@ -39,7 +39,7 @@ struct MapResult {
   int id;
 };
 
-const int kMaxIterations = 40;
+const int kMaxIterations = 20;
 const float kPixel = 0.001f;
 
 const int kIdNone = -1;
