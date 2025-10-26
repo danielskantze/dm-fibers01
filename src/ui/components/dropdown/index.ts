@@ -54,6 +54,7 @@ export type DropdownEvents<T extends DropdownItem> = {
     index: number;
     item: T | undefined;
   };
+  edit: "begin" | "end";
   remove: string;
   update: T;
   change: {
@@ -139,6 +140,7 @@ export function createDropdown<T extends DropdownItem>(
     editInput.style.display = "block";
     const selectedItem = mgr.item(select.value);
     editInput.value = selectedItem?.name ?? "";
+    emitter.emit("edit", "begin");
     const blurListener = (e: Event) => {
       if (e.target !== editInput) {
         const newValue = { ...mgr.item(select.value)! };
@@ -157,6 +159,7 @@ export function createDropdown<T extends DropdownItem>(
           items: mgr.items.concat(),
         });
         document.removeEventListener("mousedown", blurListener);
+        emitter.emit("edit", "end");
       }
     };
     document.addEventListener("mousedown", blurListener);
