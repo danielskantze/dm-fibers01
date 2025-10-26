@@ -64,10 +64,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const audioStore = new IndexedDBBlobStore("data", "audio");
   const audioStats = createAudioStatsCollector({
     enabledTypes: ["beat", "levels", "fft"],
-    logConfig: {
-      interval: 0.5,
-      types: ["levels", "beat"],
-    },
+    logConfig: undefined,
   });
   const modal = createModal();
   const audioPlayer = new AudioPlayer(audioStats);
@@ -82,7 +79,6 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   }
 
   function onScreenshot() {
-    console.log("onScreenshot");
     const imageData = renderer.screenshot();
     downloadScreenshot(imageData);
   }
