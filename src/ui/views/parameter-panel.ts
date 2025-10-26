@@ -24,6 +24,7 @@ export type UIProps = {
   audioStore: BlobStore;
   params: ParameterRegistry;
   appEvents: Subscribable<ApplicationEvents>;
+  initialPresetId: string;
   selectPreset: (item: ParameterPreset) => void;
   loadPresets: () => ParameterPreset[];
   savePresets: (items: ParameterPreset[]) => void;
@@ -36,6 +37,7 @@ export function createUi({
   element,
   audioStore,
   params,
+  initialPresetId,
   selectPreset,
   loadPresets,
   savePresets,
@@ -47,7 +49,7 @@ export function createUi({
     loadPresets,
     savePresets,
     params
-  );
+  ) as DropdownUIComponent<ParameterPreset>;
   const audioControl = createFileSelector(
     audioStore,
     "audio",
@@ -105,5 +107,7 @@ export function createUi({
       onToggleVisibility();
     }
   });
+
+  presetControls.select(initialPresetId);
   return emitter;
 }

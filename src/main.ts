@@ -8,7 +8,7 @@ import { AudioPlayer } from "./service/audioplayer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
 import type { BlobItemData, BlobStore } from "./service/storage";
 import { IndexedDBBlobStore } from "./service/storage/localblob";
-import { presetStore } from "./service/stores";
+import { presetStore, userSettingsStore } from "./service/stores";
 import type { ApplicationEvents } from "./types/application-events";
 import { type Settings } from "./types/settings";
 import ControlFactory from "./ui/components/controls";
@@ -58,6 +58,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   configureCanvas(canvas);
   const controlFactory = new ControlFactory(controls);
   const renderer = new WebGLRenderer(settings, canvas, params);
+  const userSettings = userSettingsStore.load();
   params.load(defaultValues as ParameterPreset);
   const audioStore = new IndexedDBBlobStore("data", "audio");
   const audioStats = createAudioStatsCollector({
@@ -168,17 +169,22 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
         emitter.emit("audio", { status: "clear" });
       }
     };
+
+    const selectPreset = (item: ParameterPreset) => {
+      params.load(item);
+      userSettingsStore.save({ presetId: item.id });
+      audioPlayer.clear();
+      init();
+      initAudio();
+    };
+
     const uiEvents = createUi({
       appEvents: emitter,
       element: controls,
       audioStore: audioStore,
       params,
-      selectPreset: (item: ParameterPreset) => {
-        params.load(item);
-        audioPlayer.clear();
-        init();
-        initAudio();
-      },
+      initialPresetId: userSettings.presetId,
+      selectPreset,
       loadPresets: presetStore.load,
       savePresets: presetStore.save,
       onToggleVisibility,
@@ -211,6 +217,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
     window.addEventListener("resize", resize);
     await initAudio();
+    const initialPreset = presetStore.load().find(p => p.id === userSettings.presetId);
+    if (initialPreset) {
+      selectPreset(initialPreset);
+    }
     emitter.emit("transport", "stop");
   }
 
