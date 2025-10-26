@@ -5,7 +5,14 @@ import type {
 import { Emitter, type EventMap, type Subscribable } from "../../util/events";
 import { createButtons } from "../components/buttons";
 import type { UIComponent } from "../components/types";
-import { clearIcon, pauseIcon, playIcon, recordIcon, screenshotIcon } from "../icons";
+import {
+  clearIcon,
+  pauseIcon,
+  playIcon,
+  recordIcon,
+  screenshotIcon,
+  stopIcon,
+} from "../icons";
 
 export interface StatusBarEvents extends EventMap {
   click: "screenshot" | "record" | "reset" | "play" | "stop";
@@ -45,6 +52,15 @@ export function createStatusBar(
       color: 0,
     },
     {
+      id: "stop",
+      title: "Stop",
+      svgIcon: stopIcon,
+      onClick: () => {
+        emitter.emit("click", "stop");
+      },
+      color: 0,
+    },
+    {
       id: "playpause",
       title: "Pause",
       svgIcon: playIcon,
@@ -69,12 +85,21 @@ export function createStatusBar(
   appEvents.subscribe("transport", status => {
     let title: string;
     let svgIcon: string;
-    if (status === "playing") {
-      title = "Pause";
-      svgIcon = pauseIcon;
-    } else {
-      title = "Resume";
-      svgIcon = playIcon;
+    switch (status) {
+      case "playing":
+        title = "Pause";
+        svgIcon = pauseIcon;
+        buttons.setDisabled("stop", false);
+        break;
+      case "stop":
+        title = "Resume";
+        svgIcon = playIcon;
+        buttons.setDisabled("stop", true);
+        break;
+      case "paused":
+        title = "Resume";
+        svgIcon = playIcon;
+        break;
     }
     buttons.updateButton("playpause", title, svgIcon);
   });
@@ -83,7 +108,6 @@ export function createStatusBar(
       buttons.setDisabled("playpause", true);
     } else if (status === "loaded") {
       buttons.setDisabled("playpause", false);
-    } else if (status === "clear") {
     }
   });
   return {

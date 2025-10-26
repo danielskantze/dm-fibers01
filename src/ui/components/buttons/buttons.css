@@ -1,6 +1,6 @@
 .buttons .button-wrapper {
-  padding-left: 3px;
-  padding-right: 3px;
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .buttons .button-wrapper:last-child {
@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: row;
   width: 100%;
-  margin-top: 3px;
+  margin-top: 4px;
 }
 
 .buttons button.color-1 {

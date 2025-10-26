@@ -131,10 +131,15 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     renderer.reset();
   }
 
-  function onReset() {
+  function onReset(clearAudio: boolean) {
     renderer.reset();
-    audioPlayer.clear();
-    emitter.emit("audio", { status: "clear" });
+    renderer.pause();
+    audioPlayer.stop(true);
+    emitter.emit("transport", "stop");
+    if (clearAudio) {
+      audioPlayer.clear();
+      emitter.emit("audio", { status: "clear" });
+    }
   }
 
   function onToggleVisibility() {
@@ -188,10 +193,11 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     uiEvents.subscribe("rec", () => {
       onRecord();
     });
+    uiEvents.subscribe("stop", () => onReset(false));
     uiEvents.subscribe("seed", ({ seed }) => {
       onRandomSeed(seed);
     });
-    uiEvents.subscribe("reset", onReset);
+    uiEvents.subscribe("reset", () => onReset(true));
 
     audioStats.events.subscribe("update", ({ stats }) => {
       const { rms, peak, avgRms, avgPeak } = stats.levels;
@@ -204,9 +210,8 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     });
 
     window.addEventListener("resize", resize);
-    emitter.emit("transport", renderer.isRunning ? "playing" : "paused");
     await initAudio();
-    onPlayPause();
+    emitter.emit("transport", "stop");
   }
 
   init();
@@ -232,7 +237,7 @@ export default main;
 // Audio:
 // - Understand spectral flux for novelty detection
 
-// Refactoring: 
+// Refactoring:
 // - Go through all random types.ts files - are they needed?
 // - Improve uniform send (base this on Uniform type, check type, pick location and so on)
 
