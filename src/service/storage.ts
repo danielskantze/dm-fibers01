@@ -5,9 +5,14 @@ export type StorageSettings = {
   key: string;
 };
 
-export type Store<T> = {
+export type ArrayStore<T> = {
   save: (data: T[]) => void;
   load: () => T[];
+};
+
+export type ObjectStore<T> = {
+  save: (data: T) => void;
+  load: () => T;
 };
 
 export interface KeyedBlobItem {
