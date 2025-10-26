@@ -57,6 +57,8 @@ export type DropdownEvents<T extends DropdownItem> = {
   remove: string;
   update: T;
   change: {
+    type: "add" | "update";
+    id: string;
     items: T[];
   };
 };
@@ -149,7 +151,11 @@ export function createDropdown<T extends DropdownItem>(
         selectTrigger.style.display = "block";
         editInput.style.display = "none";
         emitter.emit("update", newValue);
-        emitter.emit("change", { items: mgr.items.concat() });
+        emitter.emit("change", {
+          id: select.value,
+          type: "update",
+          items: mgr.items.concat(),
+        });
         document.removeEventListener("mousedown", blurListener);
       }
     };
@@ -165,7 +171,11 @@ export function createDropdown<T extends DropdownItem>(
         select.appendChild(createOption(newItem));
         mgr.add(newItem);
         select.value = newItem.id;
-        emitter.emit("change", { items: mgr.items.concat() });
+        emitter.emit("change", {
+          id: newItem.id,
+          type: "add",
+          items: mgr.items.concat(),
+        });
       }
     });
   } else {
