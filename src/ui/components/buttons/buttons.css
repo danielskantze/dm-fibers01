@@ -49,3 +49,9 @@
 .buttons button[disabled] {
   opacity: 0.5;
 }
+
+.buttons button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

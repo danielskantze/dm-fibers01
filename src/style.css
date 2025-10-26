@@ -14,6 +14,7 @@
   --component-input-height: 22px;
   --component-collapsed-height: 28px;
   --component-border-radius: 8px;
+  --color-0: var(--component-color-accent-1);
   --color-1: #10d5a4;
   --color-2: #ecaa70;
   --color-3: #93a0f1;
