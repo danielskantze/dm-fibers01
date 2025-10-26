@@ -1,9 +1,7 @@
-import { getRow } from "../../../math/mat43";
 import type { Matrix4x3 } from "../../../math/types";
 import type { Component } from "../types";
-import { createVec3, type Vec3Component, type Vec3Params } from "../vec3";
+import { createVec3, type Vec3Component } from "../vec3";
 import * as mat43 from "../../../math/mat43";
-import * as vec3 from "../../../math/vec3";
 import "./cos-palette.css";
 import template from "./cos-palette.html?raw";
 
@@ -21,45 +19,73 @@ function cosPalette(t: number, m: Matrix4x3) {
 }
 
 export function createCosPalette(
-  values: Matrix4x3,
+  value: Matrix4x3,
   onChange: (value: Matrix4x3) => void,
   width: number = 320,
-  height = 1
+  height: number = 1
 ): Component {
-  const wrapper = document.createElement("div");
-  wrapper.innerHTML = template;
+  let matrix = mat43.copy(value);
+  const vec3A = createVec3({
+    name: "A",
+    values: mat43.getRow(0, value),
+    onChange: v => {
+      mat43.setRow(0, v, matrix);
+      onChange(matrix);
+      requestAnimationFrame(drawPalette);
+    },
+    params: { expandable: false },
+  });
+  const vec3B = createVec3({
+    name: "B",
+    values: mat43.getRow(1, value),
+    onChange: v => {
+      mat43.setRow(1, v, matrix);
+      onChange(matrix);
+      requestAnimationFrame(drawPalette);
+    },
+    params: { expandable: false },
+  });
+  const vec3C = createVec3({
+    name: "C",
+    values: mat43.getRow(2, value),
+    onChange: v => {
+      mat43.setRow(2, v, matrix);
+      onChange(matrix);
+      requestAnimationFrame(drawPalette);
+    },
+    params: { expandable: false },
+  });
+  const vec3D = createVec3({
+    name: "D",
+    values: mat43.getRow(3, value),
+    onChange: v => {
+      mat43.setRow(3, v, matrix);
+      onChange(matrix);
+      requestAnimationFrame(drawPalette);
+    },
+    params: { expandable: false },
+  });
 
-  let matrix = mat43.copy(values);
+  const element = document.createElement("div");
+  element.innerHTML = template;
 
-  const container = wrapper.querySelector(".cos-palette") as HTMLDivElement;
-  const canvas = wrapper.querySelector(".palette") as HTMLCanvasElement;
-  const components = wrapper.querySelector(".components") as HTMLDivElement;
+  const container = element.querySelector(".cos-palette") as HTMLDivElement;
+  const canvas = element.querySelector(".palette") as HTMLCanvasElement;
+  const components = element.querySelector(".components") as HTMLDivElement;
   const children: Vec3Component[] = [];
-  const expandRadio = wrapper.querySelector(
+  const expandRadio = element.querySelector(
     ".cos-palette .expand-checkbox"
   ) as HTMLInputElement;
   container.dataset.collapsed = "1";
 
-  const vec3Params: Partial<Vec3Params> = {
-    minVal: vec3.fromValues(0, 0, 0),
-    maxVal: vec3.fromValues(1, 1, 1),
-    expandable: false,
-  };
-
-  ["a", "b", "c", "d"].forEach((name, i) => {
-    const child = createVec3(
-      name,
-      getRow(i, matrix),
-      v => {
-        mat43.setRow(i, v, matrix);
-        onChange(matrix);
-        requestAnimationFrame(drawPalette);
-      },
-      vec3Params
-    );
-    components.appendChild(child.element);
-    children.push(child);
-  });
+  components.appendChild(vec3A.element);
+  components.appendChild(vec3B.element);
+  components.appendChild(vec3C.element);
+  components.appendChild(vec3D.element);
+  children.push(vec3A);
+  children.push(vec3B);
+  children.push(vec3C);
+  children.push(vec3D);
 
   const onContainerClick = (e: Event) => {
     if (e.currentTarget === e.target) {

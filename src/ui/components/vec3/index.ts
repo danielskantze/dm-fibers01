@@ -132,6 +132,13 @@ export interface Vec3Component extends Component {
   update: (value: Vec3) => void;
 }
 
+export type Vec3Props = {
+  name: string;
+  values: Vec3;
+  onChange: (value: Vec3) => void;
+  params?: Partial<Vec3Params>;
+};
+
 const defaultVec3Params: Vec3Params = {
   minVal: [0, 0, 0] as Vec3,
   maxVal: [1, 1, 1] as Vec3,
@@ -145,18 +152,18 @@ function getCssVar(element: HTMLElement, property: string): string {
   return value;
 }
 
-export function createVec3(
-  name: string,
-  value: Vec3,
-  onChange: (value: Vec3) => void,
-  params: Partial<Vec3Params> = defaultVec3Params
-): Vec3Component {
+export function createVec3({
+  name,
+  values,
+  onChange,
+  params = defaultVec3Params,
+}: Vec3Props): Vec3Component {
   const { minVal, maxVal, inputPrecision, expandable } = {
     ...defaultVec3Params,
     ...params,
   };
   const mapper = new DomainMapping(minVal, maxVal, [-1, -1, -1], [1, 1, 1]);
-  const state = new Vec3State(mapper.fromAToB(value, true));
+  const state = new Vec3State(mapper.fromAToB(values, true));
   // TODO: Continue with mapper implementation
 
   const wrapper = document.createElement("div");
