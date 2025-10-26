@@ -2,18 +2,18 @@ import type { UIComponent } from "../types";
 import "./buttons.css";
 
 interface ButtonsComponent extends UIComponent {
-  setTitle: (id: string, title: string) => void;
+  updateButton: (id: string, title: string, svgIcon?: string) => void;
   setDisabled: (id: string, isDisabled: boolean) => void;
 }
 
 export function createButtons(
-  buttons: { id: string; title: string; onClick: () => void; color?: number }[]
+  buttons: { id: string; title: string; svgIcon?: string; onClick: () => void; color?: number }[]
 ): ButtonsComponent {
   const container = document.createElement("div");
   const buttonWidth = (100 / buttons.length).toPrecision(4);
   container.classList.add("buttons");
   const buttonElements: { id: string; button: HTMLButtonElement }[] = [];
-  for (const { id, title, onClick, color } of buttons) {
+  for (const { id, title, svgIcon, onClick, color } of buttons) {
     const buttonWrapper = document.createElement("div");
     const button = document.createElement("button") as HTMLButtonElement;
     buttonWrapper.className = "button-wrapper";
@@ -22,7 +22,13 @@ export function createButtons(
     if (color !== undefined) {
       button.classList.add(`color-${color}`);
     }
-    button.innerText = title;
+    if (svgIcon) {
+      button.innerHTML = svgIcon;
+      button.setAttribute("title", title);
+    } else {
+      button.innerText = title;
+    }
+
     button.onclick = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
@@ -35,8 +41,14 @@ export function createButtons(
   }
   return {
     element: container,
-    setTitle: (id, title) => {
-      buttonElements.find(b => b.id === id)!.button.innerText = title;
+    updateButton: (id, title, svgIcon) => {
+      let button = buttonElements.find(b => b.id === id)!.button;
+      if (svgIcon) {
+        button.innerHTML = svgIcon;
+        button.setAttribute("title", title);
+      } else {        
+        button.innerText = title;
+      }
     },
     update: () => {},
     setDisabled: (id, isDisabled) => {
