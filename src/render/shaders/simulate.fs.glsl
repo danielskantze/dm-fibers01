@@ -18,7 +18,7 @@ uniform int u_frame;
 uniform vec4 u_stroke_noise_p;
 uniform vec4 u_stroke_drift_p;
 uniform vec4 u_color_noise_p;
-uniform vec3 u_audio_level_stats;
+uniform vec4 u_audio_level_stats;
 
 uniform mat4x3 u_cos_palette;
 
@@ -58,14 +58,13 @@ vec3 mod289(vec3 x) {
 
 vec2 mod289(vec2 x) {
   return x - floor(x * (1.0 / 289.0)) * 289.0;
-} 
+}
 
 float hash12(vec2 p) {
   vec3 p3 = fract(p.xyx * .1031);
   p3 += dot(p3, p3.yzx + 33.33);
   return fract((p3.x + p3.y) * p3.z);
 }
-
 
 vec2 hash22(vec2 p) {
   vec3 p3 = fract(p.xyx * vec3(.1031, .1030, .0973));
@@ -75,11 +74,7 @@ vec2 hash22(vec2 p) {
 
 vec3 hash33(vec3 p)      // this hash is not production ready, please
 {                        // replace this by something better
-  p = vec3(
-    dot(p, vec3(127.1, 311.7, 74.7)), 
-    dot(p, vec3(269.5, 183.3, 246.1)), 
-    dot(p, vec3(113.5, 271.9, 124.6))
-  );
+  p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
 
   return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
 }
@@ -102,7 +97,6 @@ vec3 permute(vec3 x) {
 // ---------------
 // NOISE FUNCTIONS
 // ---------------
-
 
 float snoise(vec2 v) {
   //v = v + u_rnd_seed.xy * u_rnd_seed.z;
@@ -207,10 +201,7 @@ float fbm(vec2 x) {
 }
 
 vec2 fbm2(vec2 p) {
-  return vec2(
-    fbm(p),
-    fbm(p + vec2(32.2, 94.2))
-  );
+  return vec2(fbm(p), fbm(p + vec2(32.2, 94.2)));
 }
 
 float fbmW2(vec2 p, vec2 o, float k) {
@@ -221,9 +212,7 @@ float fbmW2(vec2 p, vec2 o, float k) {
 float fbmW3(vec2 p, vec2 o1, vec2 o2, vec2 o3, float k) {
   vec2 q = vec2(fbm(p), fbm(p + o1));
   vec2 kq = k * q;
-  vec2 r = vec2(
-    fbm(p + kq + o2), 
-    fbm(p + kq + o3));
+  vec2 r = vec2(fbm(p + kq + o2), fbm(p + kq + o3));
   return fbm(p + k * r);
 }
 
@@ -243,19 +232,13 @@ float sinBounce(float x) {
 float angleAt(vec2 coord) {
   //vec2 scale = vec2(1.25, .33);
   float time = TIME;
-  float bt = sinBounce(time * 0.1);  
+  float bt = sinBounce(time * 0.1);
   float scaleFactor = u_stroke_noise_p.x + u_stroke_noise_p.y * bt; //0.2;
   float driftFactor = u_stroke_drift_p.x + u_stroke_drift_p.y * bt; //0.1;
   vec2 scale = vec2(u_stroke_noise_p.z, u_stroke_noise_p.w) * scaleFactor;
   vec2 drift = driftFactor * vec2(snoise(vec2(time * u_stroke_drift_p.z)), snoise(vec2(time * u_stroke_drift_p.w + 1.3)));
   vec2 p = vec2(coord + drift) * scale;
-  return gnoise(
-    vec3(
-      p.x + 0.5 * fbm(p), 
-      p.y + 0.5 * fbm(p + vec2(0.1) * bt), 
-      time * .05
-    )
-  );
+  return gnoise(vec3(p.x + 0.5 * fbm(p), p.y + 0.5 * fbm(p + vec2(0.1) * bt), time * .05));
 }
 
 vec3 palette1(float t) {
@@ -304,11 +287,8 @@ void main() {
     float lifetime = (hash12(rndCoord) * 256.0 + 512.0) * 1.0;
     float age = -hash12(rndCoord) * lifetime;
     //position = vec4(hash22(100.0 * rndCoord) * 2.0 - 1.0, 0, 1.0);
-    
-    position = vec4(
-      fbm2((rndCoord * 0.5)),
-      0.0, 1.0
-    );
+
+    position = vec4(fbm2((rndCoord * 0.5)), 0.0, 1.0);
 
     properties = vec4(hash12(rndCoord) * u_max_radius, 0.0, age, lifetime);
     color = colorAt(rndCoord);
@@ -327,6 +307,9 @@ void main() {
 
     float tA = pow(t, 0.33);
     color.a = mix(0.0, 1.1, tA);
+    float colorK = mix(1.0, 0.97, u_audio_level_stats.w);
+    color.xyz *= colorK;
+    color.a *= min(1.0, (u_audio_level_stats.z * 0.02));
     // color *= max(0.0, 1.0 - u_audio_level_stats.z);
   }
 

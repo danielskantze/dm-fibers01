@@ -16,7 +16,7 @@ import { timestamp } from "./ui/util/date";
 import { strToVec3 } from "./ui/util/seed";
 import { createUi } from "./ui/views/parameter-panel";
 import { Emitter } from "./util/events";
-import * as vec3 from "./math/vec3";
+import * as vec4 from "./math/vec4";
 import { createAudioStatsCollector } from "./service/audio/audio-stats";
 
 const settings: Settings = {
@@ -62,7 +62,10 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   const audioStore = new IndexedDBBlobStore("data", "audio");
   const audioStats = createAudioStatsCollector({
     enabledTypes: ["beat", "levels", "fft"],
-    logConfig: undefined,
+    logConfig: {
+      interval: 0.5,
+      types: ["levels", "beat"],
+    },
   });
   const audioPlayer = new AudioPlayer(audioStats);
 
@@ -191,12 +194,12 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     uiEvents.subscribe("reset", onReset);
 
     audioStats.events.subscribe("update", ({ stats }) => {
-      const { rms, peak } = stats.levels;
+      const { rms, peak, avgRms, avgPeak } = stats.levels;
       //params.setValue("main", "particles", 300000 * (0.5 + rms));
       params.setValue(
         "simulate",
         "audioLevelStats",
-        vec3.create([rms, peak, stats.beat.timeSinceLastBeat])
+        vec4.create([rms, avgRms, avgPeak, stats.beat.timeSinceLastBeat])
       );
     });
 
