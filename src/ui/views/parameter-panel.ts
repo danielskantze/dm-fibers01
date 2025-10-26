@@ -3,6 +3,7 @@ import type { BlobItemData, BlobItemMetadata, BlobStore } from "../../service/st
 import type { ApplicationEvents } from "../../types/application-events";
 import { Emitter, type Subscribable } from "../../util/events";
 import type { DropdownUIComponent } from "../components/dropdown";
+import type { Component } from "../components/types";
 import { createFileSelector } from "./file-selector";
 import { createPresetControls } from "./presets";
 import { createStatusBar } from "./statusbar";
@@ -32,6 +33,10 @@ export type UIProps = {
   onSelectAudio: (item: BlobItemData | undefined) => void;
 };
 
+export interface UI extends Subscribable<UIEvents> {
+  destroy: () => void;
+}
+
 export function createUi({
   appEvents,
   element,
@@ -43,7 +48,7 @@ export function createUi({
   savePresets,
   onToggleVisibility,
   onSelectAudio,
-}: UIProps): Subscribable<UIEvents> {
+}: UIProps): UI {
   const presetControls = createPresetControls(
     selectPreset,
     loadPresets,
@@ -59,19 +64,28 @@ export function createUi({
   const statusBar = createStatusBar(appEvents);
   const emitter = new Emitter<UIEvents>();
   let isEditing = false;
+  const children: Component[] = [presetControls, audioControl, statusBar];
+
   element.appendChild(presetControls.element);
   element.appendChild(audioControl.element);
 
-  createUniformControls(
+  const uniformControls = createUniformControls(
     element,
     params.list().map(([, , u]) => u),
     params,
     emitter
   );
+  children.push(...uniformControls);
 
   element.append(statusBar.element);
 
-  appEvents.subscribe("audio", ({ status, id }) => {
+  const onAudio = ({
+    status,
+    id,
+  }: {
+    status: "loading" | "loaded" | "clear";
+    id?: string;
+  }) => {
     if (status === "loading") {
       audioControl.setDisabled(true);
     } else if (status === "loaded") {
@@ -80,9 +94,10 @@ export function createUi({
     } else if (status === "clear") {
       audioControl.select(undefined);
     }
-  });
+  };
+  appEvents.subscribe("audio", onAudio);
 
-  statusBar.events.subscribe("click", id => {
+  const onStatusBarClick = (id: "play" | "stop" | "record" | "reset" | "screenshot") => {
     switch (id) {
       case "play":
         emitter.emit("play", {});
@@ -100,7 +115,8 @@ export function createUi({
         emitter.emit("screenshot", {});
         break;
     }
-  });
+  };
+  statusBar.events.subscribe("click", onStatusBarClick);
 
   function onEdit(type: "begin" | "end") {
     isEditing = type === "begin";
@@ -109,7 +125,7 @@ export function createUi({
   audioControl.events.subscribe("edit", onEdit);
   presetControls.events.subscribe("edit", onEdit);
 
-  document.addEventListener("keydown", (e: KeyboardEvent) => {
+  const onKeyDown = (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) {
       // 112 = p
       onToggleVisibility();
@@ -118,8 +134,22 @@ export function createUi({
         emitter.emit("play", {});
       }
     }
-  });
+  };
+  document.addEventListener("keydown", onKeyDown);
 
   presetControls.select(initialPresetId);
-  return emitter;
+  return {
+    subscribe: emitter.subscribe.bind(emitter),
+    unsubscribe: emitter.unsubscribe.bind(emitter),
+    destroy: () => {
+      appEvents.unsubscribe("audio", onAudio);
+      statusBar.events.unsubscribe("click", onStatusBarClick);
+      audioControl.events.unsubscribe("edit", onEdit);
+      presetControls.events.unsubscribe("edit", onEdit);
+      document.removeEventListener("keydown", onKeyDown);
+      for (const child of children) {
+        child.destroy?.();
+      }
+    },
+  };
 }

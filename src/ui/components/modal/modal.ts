@@ -1,8 +1,8 @@
 import template from "./modal.html?raw";
 import "./modal.css";
-import type { UIComponent, UIComponentValue } from "../types";
+import type { Component } from "../types";
 
-export interface ModalComponent extends UIComponent {
+export interface ModalComponent extends Component {
   show: (text?: string) => void;
   hide: () => void;
 }
@@ -15,7 +15,7 @@ export function createModal(): ModalComponent {
   const message = container.querySelector(".message")!;
   return {
     element: container,
-    update: (value: UIComponentValue) => {
+    update: (value: any) => {
       const strValue = value as string;
       message.innerHTML = strValue;
     },

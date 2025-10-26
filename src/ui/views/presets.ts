@@ -1,6 +1,5 @@
 import type { ParameterPreset, ParameterRegistry } from "../../service/parameters";
-import { createDropdown } from "../components/dropdown";
-import type { UIComponent } from "../components/types";
+import { createDropdown, type DropdownUIComponent } from "../components/dropdown";
 import { generateId } from "../util/id";
 
 export function createPresetControls(
@@ -8,24 +7,39 @@ export function createPresetControls(
   load: () => ParameterPreset[],
   save: (items: ParameterPreset[]) => void,
   params: ParameterRegistry
-): UIComponent {
+): DropdownUIComponent<ParameterPreset> {
   const dropdown = createDropdown<ParameterPreset>("presets", load(), () =>
     params.toPreset(generateId(), new Date().toLocaleString())
   );
-  dropdown.events.subscribe("select", ({ item }) => {
+
+  const onSelect = ({ item }: { item: ParameterPreset | undefined }) => {
     if (item) {
       select(item);
     }
-  });
-  dropdown.events.subscribe("remove", removeId => {
+  };
+  dropdown.events.subscribe("select", onSelect);
+
+  const onRemove = (removeId: string) => {
     save(load().filter(i => i.id !== removeId));
-  });
-  dropdown.events.subscribe("change", ({ id, items }) => {
+  };
+  dropdown.events.subscribe("remove", onRemove);
+
+  const onChange = ({ id, items }: { id: string; items: ParameterPreset[] }) => {
     const presets = [...items];
     let idx = presets.findIndex(p => p.id === id);
     const updatedItem = params.toPreset(id, presets[idx].name);
     presets[idx] = updatedItem;
     save(presets);
-  });
+  };
+  dropdown.events.subscribe("change", onChange);
+
+  const originalDestroy = dropdown.destroy;
+  dropdown.destroy = () => {
+    dropdown.events.unsubscribe("select", onSelect);
+    dropdown.events.unsubscribe("remove", onRemove);
+    dropdown.events.unsubscribe("change", onChange);
+    originalDestroy!();
+  };
+
   return dropdown;
 }

@@ -3,7 +3,7 @@ import type { Matrix4x4, Vec3 } from "../../../math/types";
 import * as vec3 from "../../../math/vec3";
 import * as vec4 from "../../../math/vec4";
 import { createVec3GimbalView } from "./3d/vec3-gimbal";
-import type { UIComponent, UIComponentValue } from "../types";
+import type { Component } from "../types";
 import "./vec3.css";
 import template from "./vec3.html?raw";
 class Vec3State {
@@ -128,6 +128,10 @@ export type Vec3Params = {
   expandable: boolean;
 };
 
+export interface Vec3Component extends Component {
+  update: (value: Vec3) => void;
+}
+
 const defaultVec3Params: Vec3Params = {
   minVal: [0, 0, 0] as Vec3,
   maxVal: [1, 1, 1] as Vec3,
@@ -146,7 +150,7 @@ export function createVec3(
   value: Vec3,
   onChange: (value: Vec3) => void,
   params: Partial<Vec3Params> = defaultVec3Params
-): UIComponent {
+): Vec3Component {
   const { minVal, maxVal, inputPrecision, expandable } = {
     ...defaultVec3Params,
     ...params,
@@ -189,20 +193,24 @@ export function createVec3(
 
   label.innerHTML = name;
 
+  const onExpandClick = (e: Event) => {
+    if (e.currentTarget === e.target) {
+      const newValue = control.dataset.expanded === "1" ? "0" : "1";
+      control.dataset.expanded = newValue;
+      expandRadio.checked = newValue === "1";
+    }
+  };
+
   if (expandable) {
-    expandRadio.onclick = (e: Event) => {
-      if (e.currentTarget === e.target) {
-        const newValue = control.dataset.expanded === "1" ? "0" : "1";
-        control.dataset.expanded = newValue;
-        expandRadio.checked = newValue === "1";
-      }
-    };
+    expandRadio.addEventListener("click", onExpandClick);
   } else {
     expandRadio.parentElement?.removeChild(expandRadio);
   }
+
+  const panelClickHandlers: [HTMLDivElement, (e: Event) => void][] = [];
   panelSelectors.forEach((s: Element) => {
     const elmt = s as HTMLDivElement;
-    elmt.onclick = (e: Event) => {
+    const handler = (e: Event) => {
       const type = (e.currentTarget as HTMLDivElement).dataset.type;
       if (type) {
         control.dataset.panel = type;
@@ -211,6 +219,8 @@ export function createVec3(
         initializeControls();
       }
     };
+    elmt.addEventListener("click", handler);
+    panelClickHandlers.push([elmt, handler]);
   });
 
   // 3D
@@ -309,10 +319,27 @@ export function createVec3(
 
   return {
     element: control,
-    update: (value: UIComponentValue) => {
+    update: (value: Vec3) => {
       setComponentValues(value as Vec3);
       updateGimbal(state.matrix, state.matrixI, state.length);
       initializeControls();
+    },
+    destroy: () => {
+      inputH.removeEventListener("input", onDragH);
+      inputV.removeEventListener("input", onDragV);
+      inputS.removeEventListener("input", onDragS);
+      if (expandable) {
+        expandRadio.removeEventListener("click", onExpandClick);
+      }
+      panelClickHandlers.forEach(([elmt, handler]) => {
+        elmt.removeEventListener("click", handler);
+      });
+      componentRangeInputs.forEach(node => {
+        node.removeEventListener("input", onChangeComponent);
+      });
+      componentNumberInputs.forEach(node => {
+        node.removeEventListener("change", onChangeComponent);
+      });
     },
   };
 }

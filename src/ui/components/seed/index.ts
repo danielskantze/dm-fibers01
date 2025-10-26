@@ -1,5 +1,5 @@
 import { rndSeed } from "../../util/seed";
-import type { UIComponent } from "../types";
+import type { Component } from "../types";
 import "./seed.css";
 import template from "./seed.html?raw";
 
@@ -10,7 +10,7 @@ type SeedProps = {
   onSeed: (seed: string) => void;
 };
 
-export function createSeed(props: SeedProps): UIComponent {
+export function createSeed(props: SeedProps): Component {
   const { title, buttonTitle, onSeed, value } = props;
   let currentValue = value;
   const wrapper: HTMLDivElement = document.createElement("div");
@@ -25,22 +25,26 @@ export function createSeed(props: SeedProps): UIComponent {
   buttonElmt.disabled = true;
   inputElmt.value = value;
 
-  rndButton.onclick = () => {
+  const onRndClick = () => {
     const v = rndSeed(12, 4);
     inputElmt.value = v;
     currentValue = v;
     buttonElmt.disabled = true;
     onSeed(inputElmt.value);
   };
+  rndButton.addEventListener("click", onRndClick);
 
-  inputElmt.oninput = () => {
+  const onInputChange = () => {
     buttonElmt.disabled = inputElmt.value === currentValue;
   };
-  buttonElmt.onclick = () => {
+  inputElmt.addEventListener("input", onInputChange);
+
+  const onButtonClick = () => {
     currentValue = inputElmt.value;
     buttonElmt.disabled = true;
     onSeed(inputElmt.value);
   };
+  buttonElmt.addEventListener("click", onButtonClick);
 
   return {
     element: wrapper,
@@ -48,6 +52,11 @@ export function createSeed(props: SeedProps): UIComponent {
       inputElmt.value = v as string;
       currentValue = v as string;
       buttonElmt.disabled = true;
+    },
+    destroy: () => {
+      rndButton.removeEventListener("click", onRndClick);
+      inputElmt.removeEventListener("input", onInputChange);
+      buttonElmt.removeEventListener("click", onButtonClick);
     },
   };
 }

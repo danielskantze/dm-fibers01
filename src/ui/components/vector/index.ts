@@ -1,6 +1,5 @@
-import type { UniformValue } from "../../../types/gl/uniforms";
 import { createScalar } from "../scalar";
-import type { UIComponent, UIComponentValue } from "../types";
+import type { Component } from "../types";
 import "./vector.css";
 import template from "./vector.html?raw";
 
@@ -36,7 +35,7 @@ export function createVector({
   max,
   step,
   accessoryButton,
-}: VectorProps): UIComponent {
+}: VectorProps): Component {
   const wrapper: HTMLDivElement = document.createElement("div");
   wrapper.innerHTML = template;
   const control = wrapper.firstElementChild as HTMLDivElement;
@@ -44,7 +43,7 @@ export function createVector({
   if (accessoryButton) {
     const button = wrapper.querySelector(".accessory-button") as HTMLButtonElement;
     button.innerText = accessoryButton.title;
-    button.onclick = accessoryButton.onClick;
+    button.addEventListener("click", accessoryButton.onClick);
   }
 
   control.dataset.expanded = "0";
@@ -56,18 +55,19 @@ export function createVector({
 
   label.innerText = name;
 
-  expandRadio.onclick = (e: Event) => {
+  const onExpandClick = (e: Event) => {
     if (e.currentTarget === e.target) {
       const newValue = control.dataset.expanded === "1" ? "0" : "1";
       control.dataset.expanded = newValue;
       expandRadio.checked = newValue === "1";
     }
   };
+  expandRadio.addEventListener("click", onExpandClick);
 
-  const updateFunctions: ((value: UniformValue) => void)[] = [];
+  const children: Component[] = [];
 
   for (let i = 0; i < values.length; i++) {
-    const { element, update } = createScalar({
+    const child = createScalar({
       name: vecCompName(i),
       value: values[i],
       onChange: (v: number) => onChange(i, v),
@@ -75,12 +75,21 @@ export function createVector({
       max,
       step,
     });
-    components?.appendChild(element);
-    updateFunctions.push(update);
+    components?.appendChild(child.element);
+    children.push(child);
   }
   return {
     element: wrapper,
-    update: (values: UIComponentValue) =>
-      updateFunctions.forEach((fn, i) => fn((values as number[])[i])),
+    update: (values: number[]) => children.forEach((c, i) => c.update!(values[i])),
+    destroy: () => {
+      expandRadio.removeEventListener("click", onExpandClick);
+      if (accessoryButton) {
+        const button = wrapper.querySelector(".accessory-button") as HTMLButtonElement;
+        button.removeEventListener("click", accessoryButton.onClick);
+      }
+      for (const child of children) {
+        child.destroy!();
+      }
+    },
   };
 }
