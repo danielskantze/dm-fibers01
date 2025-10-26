@@ -1,6 +1,6 @@
 import type { BlobItemData, BlobItemMetadata, BlobStore } from "../../service/storage";
-import { createDropdown } from "../components/dropdown";
-import type { UIComponent } from "../components/types";
+import { createDropdown, type DropdownUIComponent } from "../components/dropdown";
+import type { Component } from "../components/types";
 import { generateId } from "../util/id";
 
 function asyncReadFile(file: File): Promise<ArrayBuffer> {
@@ -21,7 +21,7 @@ export function createFileSelector(
   id: string,
   type: string,
   onSelect: (item: BlobItemData | undefined) => void = () => {}
-): UIComponent {
+): DropdownUIComponent<BlobItemMetadata> {
   const hiddenInput = document.createElement("input");
   hiddenInput.type = "file";
   hiddenInput.style.display = "none";
@@ -70,13 +70,26 @@ export function createFileSelector(
   store.list(type).then((items: BlobItemMetadata[]) => {
     dropdown.setItems(items);
   });
-  dropdown.events.subscribe("select", ({ item }) => {
+
+  const onSelectEvent = ({ item }: { item: BlobItemMetadata | undefined }) => {
     if (item) {
       selectHandler(item.id);
     }
-  });
+  };
+
+  dropdown.events.subscribe("select", onSelectEvent);
   dropdown.events.subscribe("remove", removeHandler);
   dropdown.events.subscribe("update", updateHandler);
   updateItems();
+
+  const originalDestroy = dropdown.destroy;
+  dropdown.destroy = () => {
+    hiddenInput.removeEventListener("change", onFileSelected);
+    dropdown.events.unsubscribe("select", onSelectEvent);
+    dropdown.events.unsubscribe("remove", removeHandler);
+    dropdown.events.unsubscribe("update", updateHandler);
+    originalDestroy!();
+  };
+
   return dropdown;
 }

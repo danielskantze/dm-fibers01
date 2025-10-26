@@ -1,5 +1,5 @@
 import type { ScalarUIType } from "../../../types/gl/uniforms";
-import type { UIComponent, UIComponentValue } from "../types";
+import type { Component } from "../types";
 import "./scalar.css";
 
 let idSeq = 1;
@@ -36,10 +36,22 @@ export type ScalarProps = {
   enumValues?: string[];
 };
 
-export function createScalarInner(
-  wrapper: HTMLElement,
-  { name, value, onChange, min, max, step, type = "float", enumValues }: ScalarProps
-): UIComponent {
+export function createScalar({
+  name,
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  type = "float",
+  enumValues,
+}: ScalarProps): Component {
+  const container: HTMLDivElement = document.createElement("div");
+  container.classList.add("scalar");
+  container.classList.add("ui-control");
+
+  const wrapper: HTMLDivElement = document.createElement("div");
+
   const label: HTMLLabelElement = document.createElement("label");
   const input: HTMLInputElement = document.createElement("input");
   const text: HTMLInputElement = document.createElement("input");
@@ -73,11 +85,12 @@ export function createScalarInner(
   const inputId = `control_${idSeq}`;
   input.id = inputId;
 
-  input.oninput = e => {
+  const onInputChange = (e: Event) => {
     const newValue = parseFloat((e.target as HTMLInputElement).value);
     onChange(newValue);
     text.value = getValue(newValue, valueConfig);
   };
+  input.addEventListener("input", onInputChange);
 
   label.textContent = name;
   label.setAttribute("for", inputId);
@@ -88,26 +101,16 @@ export function createScalarInner(
   text.classList.add("digits");
   wrapper.classList.add("parameter");
 
-  return {
-    element: wrapper,
-    update: (value: UIComponentValue) => {
-      input.value = value.toString();
-      text.value = getValue(value as number, valueConfig);
-    },
-  };
-}
-
-export function createScalar(props: ScalarProps): UIComponent {
-  const container: HTMLDivElement = document.createElement("div");
-  container.classList.add("scalar");
-  container.classList.add("ui-control");
-
-  const wrapper: HTMLDivElement = document.createElement("div");
-  const { update } = createScalarInner(wrapper, props);
   container.appendChild(wrapper);
 
   return {
     element: container,
-    update,
+    update: (value: number) => {
+      input.value = value.toString();
+      text.value = getValue(value as number, valueConfig);
+    },
+    destroy: () => {
+      input.removeEventListener("input", onInputChange);
+    },
   };
 }

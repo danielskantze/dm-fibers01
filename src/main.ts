@@ -214,7 +214,7 @@ function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       await selectPreset(initialPreset);
     }
     emitter.emit("transport", "stop");
-    modal.update("Press space to start\nPress ctrl-. for menu");
+    modal.update!("Press space to start\nPress ctrl-. for menu");
 
     uiEvents.subscribe("play", () => {
       modal.hide();

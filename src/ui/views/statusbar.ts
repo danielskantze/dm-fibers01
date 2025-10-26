@@ -1,7 +1,7 @@
 import type { ApplicationEvents } from "../../types/application-events";
 import { Emitter, type EventMap, type Subscribable } from "../../util/events";
 import { createButtons } from "../components/buttons";
-import type { UIComponent } from "../components/types";
+import type { Component } from "../components/types";
 import {
   clearIcon,
   pauseIcon,
@@ -16,7 +16,7 @@ export interface StatusBarEvents extends EventMap {
   click: "screenshot" | "record" | "reset" | "play" | "stop";
 }
 
-interface StatusBarComponent extends UIComponent {
+export interface StatusBarComponent extends Component {
   events: Subscribable<StatusBarEvents>;
 }
 
@@ -70,7 +70,7 @@ export function createStatusBar(
   ]);
   element.appendChild(buttons.element);
 
-  appEvents.subscribe("record", status => {
+  const onRecord = (status: "idle" | "recording" | "waiting") => {
     switch (status) {
       case "idle":
         buttons.updateButton("rec", "Screen record", recordIcon);
@@ -83,8 +83,10 @@ export function createStatusBar(
         break;
     }
     buttons.setDisabled("rec", status === "waiting");
-  });
-  appEvents.subscribe("transport", status => {
+  };
+  appEvents.subscribe("record", onRecord);
+
+  const onTransport = (status: "playing" | "paused" | "stop") => {
     let title: string;
     let svgIcon: string;
     switch (status) {
@@ -104,17 +106,27 @@ export function createStatusBar(
         break;
     }
     buttons.updateButton("playpause", title, svgIcon);
-  });
-  appEvents.subscribe("audio", ({ status }) => {
+  };
+  appEvents.subscribe("transport", onTransport);
+
+  const onAudio = ({ status }: { status: "loading" | "loaded" | "clear" }) => {
     if (status === "loading") {
       buttons.setDisabled("playpause", true);
     } else if (status === "loaded") {
       buttons.setDisabled("playpause", false);
     }
-  });
+  };
+  appEvents.subscribe("audio", onAudio);
+
   return {
     element,
     update: () => {},
     events: emitter,
+    destroy: () => {
+      appEvents.unsubscribe("record", onRecord);
+      appEvents.unsubscribe("transport", onTransport);
+      appEvents.unsubscribe("audio", onAudio);
+      buttons.destroy!();
+    },
   };
 }

@@ -1,8 +1,5 @@
-import type { UniformValue } from "../../types/gl/uniforms";
-
-export type UIComponentValue = UniformValue | string;
-
-export type UIComponent = {
+export interface Component {
   element: HTMLElement;
-  update: (value: UIComponentValue) => void;
-};
+  update?: (props: any) => void;
+  destroy?: () => void;
+}

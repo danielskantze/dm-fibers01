@@ -1,13 +1,19 @@
-import type { UIComponent } from "../types";
+import type { Component } from "../types";
 import "./buttons.css";
 
-interface ButtonsComponent extends UIComponent {
+interface ButtonsComponent extends Component {
   updateButton: (id: string, title: string, svgIcon?: string) => void;
   setDisabled: (id: string, isDisabled: boolean) => void;
 }
 
 export function createButtons(
-  buttons: { id: string; title: string; svgIcon?: string; onClick: () => void; color?: number }[]
+  buttons: {
+    id: string;
+    title: string;
+    svgIcon?: string;
+    onClick: () => void;
+    color?: number;
+  }[]
 ): ButtonsComponent {
   const container = document.createElement("div");
   const buttonWidth = (100 / buttons.length).toPrecision(4);
@@ -29,13 +35,14 @@ export function createButtons(
       button.innerText = title;
     }
 
-    button.onclick = (e: Event) => {
+    const clickHandler = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
       if (!button.disabled) {
         onClick();
       }
     };
+    button.addEventListener("click", clickHandler);
     buttonElements.push({ id, button });
     container.appendChild(buttonWrapper);
   }
@@ -46,13 +53,18 @@ export function createButtons(
       if (svgIcon) {
         button.innerHTML = svgIcon;
         button.setAttribute("title", title);
-      } else {        
+      } else {
         button.innerText = title;
       }
     },
     update: () => {},
     setDisabled: (id, isDisabled) => {
       buttonElements.find(b => b.id === id)!.button.disabled = isDisabled;
+    },
+    destroy: () => {
+      for (const { button } of buttonElements) {
+        button.replaceWith(button.cloneNode(true));
+      }
     },
   };
 }

@@ -1,5 +1,5 @@
 import { Emitter, type Subscribable } from "../../../util/events";
-import type { UIComponent } from "../types";
+import type { Component } from "../types";
 import "./dropdown.css";
 import template from "./dropdown.html?raw";
 
@@ -63,7 +63,7 @@ export type DropdownEvents<T extends DropdownItem> = {
     items: T[];
   };
 };
-export interface DropdownUIComponent<T extends DropdownItem> extends UIComponent {
+export interface DropdownUIComponent<T extends DropdownItem> extends Component {
   events: Subscribable<DropdownEvents<T>>;
   setItems: (items: T[]) => void;
   setDisabled: (isDisabled: boolean) => void;
@@ -87,6 +87,8 @@ export function createDropdown<T extends DropdownItem>(
   const selectTrigger = wrapper.querySelector(".trigger")! as HTMLElement;
   const editInput = wrapper.querySelector(".edit-input")! as HTMLInputElement;
   select.id = `id-${id}`;
+
+  let blurListener: ((e: Event) => void) | undefined;
 
   function setDisabled(value: boolean) {
     select.disabled = value;
@@ -121,18 +123,19 @@ export function createDropdown<T extends DropdownItem>(
 
   // Select handler
 
-  select.addEventListener("change", () => {
+  const onSelectChange = () => {
     const index = mgr.items.findIndex(i => i.id === select.value);
     if (index >= 0) {
       emitter.emit("select", { index, item: mgr.itemAt(index) });
     } else {
       console.log("clear");
     }
-  });
+  };
+  select.addEventListener("change", onSelectChange);
 
   // Rename
 
-  selectTrigger.addEventListener("click", () => {
+  const onSelectTriggerClick = () => {
     if (isDisabled) {
       return;
     }
@@ -141,7 +144,7 @@ export function createDropdown<T extends DropdownItem>(
     const selectedItem = mgr.item(select.value);
     editInput.value = selectedItem?.name ?? "";
     emitter.emit("edit", "begin");
-    const blurListener = (e: Event) => {
+    blurListener = (e: Event) => {
       if (e.target !== editInput) {
         const newValue = { ...mgr.item(select.value)! };
         newValue.name = editInput.value;
@@ -158,17 +161,21 @@ export function createDropdown<T extends DropdownItem>(
           type: "update",
           items: mgr.items.concat(),
         });
-        document.removeEventListener("mousedown", blurListener);
+        if (blurListener) {
+          document.removeEventListener("mousedown", blurListener);
+        }
         emitter.emit("edit", "end");
       }
     };
     document.addEventListener("mousedown", blurListener);
-  });
+  };
+  selectTrigger.addEventListener("click", onSelectTriggerClick);
 
   // Add handler
 
+  let onAddButtonClick: (() => void) | undefined;
   if (createItemFn) {
-    addButton.addEventListener("click", () => {
+    onAddButtonClick = () => {
       const newItem = createItemFn();
       if (newItem) {
         select.appendChild(createOption(newItem));
@@ -180,14 +187,15 @@ export function createDropdown<T extends DropdownItem>(
           items: mgr.items.concat(),
         });
       }
-    });
+    };
+    addButton.addEventListener("click", onAddButtonClick);
   } else {
     addButton.style.display = "none";
   }
 
   // Remove handler
 
-  removeButton.addEventListener("click", () => {
+  const onRemoveButtonClick = () => {
     const removeId = select.value;
     const nextIdx = mgr.remove(removeId);
     if (nextIdx < 0) {
@@ -201,7 +209,8 @@ export function createDropdown<T extends DropdownItem>(
     }
     emitter.emit("remove", removeId);
     emitter.emit("select", { index: nextIdx, item: mgr.itemAt(nextIdx) });
-  });
+  };
+  removeButton.addEventListener("click", onRemoveButtonClick);
 
   // Add options
   for (const item of mgr.items) {
@@ -217,5 +226,16 @@ export function createDropdown<T extends DropdownItem>(
     setItems,
     events: emitter,
     setDisabled,
+    destroy: () => {
+      select.removeEventListener("change", onSelectChange);
+      selectTrigger.removeEventListener("click", onSelectTriggerClick);
+      if (onAddButtonClick) {
+        addButton.removeEventListener("click", onAddButtonClick);
+      }
+      removeButton.removeEventListener("click", onRemoveButtonClick);
+      if (blurListener) {
+        document.removeEventListener("mousedown", blurListener);
+      }
+    },
   };
 }

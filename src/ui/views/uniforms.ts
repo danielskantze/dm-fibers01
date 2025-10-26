@@ -5,6 +5,7 @@ import type { Emitter } from "../../util/events";
 import { createCosPalette } from "../components/cos-palette";
 import { createScalar } from "../components/scalar";
 import { createSeed } from "../components/seed";
+import type { Component } from "../components/types";
 import { createVector } from "../components/vector";
 import { rndSeed } from "../util/seed";
 import type { UIEvents } from "./parameter-panel";
@@ -14,25 +15,23 @@ export function createUniformControls(
   uniforms: ParameterData[],
   registry: ParameterRegistry,
   eventSource: Emitter<UIEvents>
-) {
+): Component[] {
+  const children: Component[] = [];
   for (const u of uniforms) {
     const { ui } = u;
     if (ui) {
       const { name, min, max, step, component, type } = u.ui!;
       const numComponents = UniformComponents[u.type!]!;
+      let child: Component | undefined;
       if (type === "hidden") {
         continue;
       } else if (component === "cos-palette") {
-        const { element, update } = createCosPalette(
-          u.value as Matrix4x3,
-          (v: Matrix4x3) => {
-            u.value = v;
-          }
-        );
-        controlsContainer.appendChild(element);
-        registry.subscribeParam(u, update);
+        child = createCosPalette(u.value as Matrix4x3, (v: Matrix4x3) => {
+          u.value = v;
+        });
+        registry.subscribeParam(u, child.update!);
       } else if (component === "seed") {
-        const { element, update } = createSeed({
+        child = createSeed({
           title: "Seed",
           buttonTitle: "Update",
           onSeed: (seed: string) => {
@@ -40,14 +39,13 @@ export function createUniformControls(
           },
           value: rndSeed(),
         });
-        controlsContainer.appendChild(element);
-        registry.subscribeParam(u, update);
+        registry.subscribeParam(u, child.update!);
       } else if (numComponents > 1) {
         const values = u.value as number[];
         const onChange = (i: number, v: number) => {
           values[i] = v;
         };
-        const { element, update } = createVector({
+        child = createVector({
           name,
           values,
           onChange,
@@ -55,8 +53,7 @@ export function createUniformControls(
           max,
           step,
         });
-        controlsContainer.appendChild(element);
-        registry.subscribeParam(u, update);
+        registry.subscribeParam(u, child.update!);
       } else {
         const value = u.value as number;
         const type = u.ui?.type ?? (u.type == "int" ? "int" : "float");
@@ -64,7 +61,7 @@ export function createUniformControls(
         const onChange = (v: number) => {
           u.value = v;
         };
-        const { element, update } = createScalar({
+        child = createScalar({
           name,
           value,
           onChange,
@@ -74,9 +71,13 @@ export function createUniformControls(
           type,
           enumValues,
         });
-        controlsContainer.appendChild(element);
-        registry.subscribeParam(u, update);
+        registry.subscribeParam(u, child.update!);
+      }
+      if (child) {
+        controlsContainer.appendChild(child.element);
+        children.push(child);
       }
     }
   }
+  return children;
 }
