@@ -14,19 +14,15 @@ function initGl(gl: WebGL2RenderingContext) {
     const uniforms = {
       u_object_mat: {
         location: gl.getUniformLocation(program, "u_object_mat"),
-        slot: 0,
       } as Uniform,
       u_object_mat_i: {
         location: gl.getUniformLocation(program, "u_object_mat_i"),
-        slot: 1,
       } as Uniform,
       u_magnitude: {
         location: gl.getUniformLocation(program, "u_magnitude"),
-        slot: 2,
       } as Uniform,
       u_time: {
         location: gl.getUniformLocation(program, "u_time"),
-        slot: 3,
       } as Uniform,
     };
     return { program, attributes, uniforms };
@@ -43,7 +39,6 @@ function createVec3GimbalView(width: number, height: number) {
   const gl = canvas.getContext("webgl2")!;
   const quad = createQuad(gl);
   const { program, attributes, uniforms } = initGl(gl);
-  let angle = 0.0;
   const startTime = Date.now();
   let objectMatrix = mat4.identity();
   let objectMatrixI = mat4.identity();
@@ -75,7 +70,6 @@ function createVec3GimbalView(width: number, height: number) {
   return {
     canvas,
     update: (rotM: Matrix4x4, iRotM: Matrix4x4, length: number) => {
-      angle += 0.01;
       objectMatrix = rotM;
       objectMatrixI = iRotM;
       magnitude = length;
