@@ -251,6 +251,7 @@ export default main;
 // Refactoring:
 // - Go through all random types.ts files - are they needed?
 // - Improve uniform send (base this on Uniform type, check type, pick location and so on)
+// - Check how non-uniform (or virtual uniforms) such as particles are sent to shader
 
 // Math
 // - Add smoothing and damping functions
