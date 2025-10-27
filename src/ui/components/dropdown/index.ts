@@ -139,7 +139,7 @@ export function createDropdown(props: DropdownProps): DropdownUIComponent {
       }
       selectTrigger.style.display = "none";
       editInput.style.display = "block";
-      saveButton.style.display = "block";
+      saveButton.style.display = "";
       editInput.focus();
       const selectedItem = getSelectedItem();
       originalName = selectedItem?.name ?? "";
