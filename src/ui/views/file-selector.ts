@@ -61,7 +61,7 @@ export function createFileSelector(
     hiddenInput.click();
   };
 
-  const onRename = ({ id, newName }: { id: string; newName: string }) => {
+  const onSave = ({ id, newName }: { id: string; newName: string }) => {
     const item = items.find(i => i.id === id);
     if (item) {
       item.name = newName;
@@ -93,7 +93,7 @@ export function createFileSelector(
 
   dropdown.events.subscribe("select", onSelectEvent);
   dropdown.events.subscribe("add", onAdd);
-  dropdown.events.subscribe("rename", onRename);
+  dropdown.events.subscribe("save", onSave);
   dropdown.events.subscribe("delete", onDelete);
   updateItems();
 
@@ -102,7 +102,7 @@ export function createFileSelector(
     hiddenInput.removeEventListener("change", onFileSelected);
     dropdown.events.unsubscribe("select", onSelectEvent);
     dropdown.events.unsubscribe("add", onAdd);
-    dropdown.events.unsubscribe("rename", onRename);
+    dropdown.events.unsubscribe("save", onSave);
     dropdown.events.unsubscribe("delete", onDelete);
     originalDestroy!();
   };

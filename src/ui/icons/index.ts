@@ -5,6 +5,7 @@ import recordIcon from "./record.svg?raw";
 import screenshotIcon from "./screenshot.svg?raw";
 import clearIcon from "./clear.svg?raw";
 import recordingIcon from "./recording.svg?raw";
+import saveIcon from "./save.svg?raw";
 
 export {
   playIcon,
@@ -14,4 +15,5 @@ export {
   recordingIcon,
   screenshotIcon,
   clearIcon,
+  saveIcon,
 };

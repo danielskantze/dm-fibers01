@@ -22,6 +22,7 @@ export function createPresetControls(
   const dropdown = createDropdown({
     id: "presets",
     items: presets.map(toDropdownItem),
+    saveButtonAlwaysVisible: true,
   });
 
   const onSelect = ({ id }: { id: string | undefined }) => {
@@ -40,10 +41,12 @@ export function createPresetControls(
     select(newPreset);
   };
 
-  const onRename = ({ id, newName }: { id: string; newName: string }) => {
+  const onSave = ({ id, newName }: { id: string; newName: string }) => {
     const preset = presets.find(p => p.id === id);
     if (preset) {
       preset.name = newName;
+      const currentValues = params.toPreset(preset.id, preset.name);
+      preset.data = currentValues.data;
       save(presets);
       dropdown.setItems(presets.map(toDropdownItem), id);
     }
@@ -67,14 +70,14 @@ export function createPresetControls(
 
   dropdown.events.subscribe("select", onSelect);
   dropdown.events.subscribe("add", onAdd);
-  dropdown.events.subscribe("rename", onRename);
+  dropdown.events.subscribe("save", onSave);
   dropdown.events.subscribe("delete", onDelete);
 
   const originalDestroy = dropdown.destroy;
   dropdown.destroy = () => {
     dropdown.events.unsubscribe("select", onSelect);
     dropdown.events.unsubscribe("add", onAdd);
-    dropdown.events.unsubscribe("rename", onRename);
+    dropdown.events.unsubscribe("save", onSave);
     dropdown.events.unsubscribe("delete", onDelete);
     originalDestroy!();
   };
