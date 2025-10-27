@@ -268,10 +268,6 @@ export default main;
 
 // Hook up music timeline file
 
-// Refactoring cont'd (is this needed?):
-// - Improve UI code quality (use interfaces, improve method to put the UI together)
-
-// Ensure preset is recalled properly and that audio file is loaded too
 // Migrate all vectors and math classes to use Float32Arrays instead of number[]
 // Handle outdated parameters (wrong version)
 // 3D support (each particle has Z component)

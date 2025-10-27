@@ -31,11 +31,22 @@ export function createUniformControls(
         step,
         value: u.value,
         values: u.value,
-        onChange: (v: any, i: number) => {
-          if (i !== undefined) {
-            (u.value as number[])[i] = v;
+        onChange: (valOrIndex: any, val?: number) => {
+          const uniformId = registry.lookup(u);
+          if (!uniformId) return;
+          const [group, parameter] = uniformId;
+
+          if (val !== undefined) {
+            // Vector component: valOrIndex is index, val is value
+            const index = valOrIndex;
+            const value = val;
+            const currentValue = registry.getValue<number[]>(group, parameter);
+            const newValue = [...currentValue];
+            newValue[index] = value;
+            registry.setValue(group, parameter, newValue);
           } else {
-            u.value = v;
+            // Scalar, vec3, cos-palette etc.: valOrIndex is the new value
+            registry.setValue(group, parameter, valOrIndex);
           }
         },
         onSeed: (seed: string) => eventSource.emit("seed", { seed }),

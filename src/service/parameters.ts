@@ -97,7 +97,7 @@ class ParameterService<G extends string> {
     };
   }
 
-  lookup(param: ParameterData): [string, string] | undefined {
+  lookup(param: ParameterData): [G, string] | undefined {
     const p = this.list().find(([, , data]) => param === data);
     return p ? [p[0], p[1]] : undefined;
   }
@@ -112,10 +112,9 @@ class ParameterService<G extends string> {
   }
 
   private notify(group: G, parameter: string, value: UniformValue) {
-    const subscriber = this.subscribers.find(
-      s => s.group === group && s.parameter === parameter
-    );
-    subscriber?.update(value);
+    this.subscribers
+      .filter(s => s.group === group && s.parameter === parameter)
+      .forEach(s => s.update(value));
   }
 
   load(preset: ParameterPreset) {
@@ -194,8 +193,8 @@ class ParameterService<G extends string> {
     return this.getParameter(group, parameter).value! as T;
   }
 
-  list(): [string, string, ParameterData][] {
-    const result: [string, string, ParameterData][] = [];
+  list(): [G, string, ParameterData][] {
+    const result: [G, string, ParameterData][] = [];
     const orderedGroups = orderedValues<ParameterGroupDescriptor<G>>((a, b) => {
       return a.order - b.order;
     }, this.groups);
