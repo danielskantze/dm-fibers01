@@ -237,6 +237,18 @@ export default main;
 
 // TODO:
 
+// UI:
+// - Modal button (click to start in addition to spacebar)
+// - Block menu until experience is started
+
+// Audio:
+// - Research spectral flux for novelty detection
+
+// Research a way of automating preset transitions (for novelty / state changes)
+// - Formulate requirements (different levels? slow fundamental ones, quick transient one. Is this a state machine or a stack of layers or both?)
+// - Consider chaining presets with a state machine (and visualising)
+// - Formulate fundamental needs automate single parameters - respond to audio's perceptual qualities vs create variation through "theme changes" (a.k.a group of parameter changes and ranges)
+
 // Figure out a way to connect number of particles to sound intensity
 
 // Experience:
@@ -244,9 +256,6 @@ export default main;
 
 // Simulation:
 // - Support max number of particles being created per frame being spawned
-
-// Audio:
-// - Understand spectral flux for novelty detection
 
 // Refactoring:
 // - Go through all random types.ts files - are they needed?
