@@ -61,6 +61,7 @@ export function createRoot({
   const statusBar = createStatusBar(appEvents);
   const modal = createModal();
   let isEditing = false;
+  let hasStarted = false;
   const children: Component[] = [presetControls, audioControl, statusBar, modal];
 
   element.appendChild(presetControls.element);
@@ -138,13 +139,30 @@ export function createRoot({
   audioControl.events.subscribe("edit", onEdit);
   presetControls.events.subscribe("edit", onEdit);
 
+  function onUserStart() {
+    hasStarted = true;
+    modal.hide();
+    emitter.emit("play", {});
+    modal.events.unsubscribe("click", onUserStart);
+  }
+
+  modal.events.subscribe("click", onUserStart);
+
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0)) {
-      controlFactory.visible = !controlFactory.visible;
-    } else if (e.key.charCodeAt(0) === " ".charCodeAt(0)) {
-      if (!isEditing) {
-        modal.hide();
-        emitter.emit("play", {});
+    const menuKey = e.ctrlKey && e.key.charCodeAt(0) === ".".charCodeAt(0);
+    const spaceKey = e.key.charCodeAt(0) === " ".charCodeAt(0);
+    if (!hasStarted && (menuKey || spaceKey)) {
+      onUserStart();
+      if (menuKey) {
+        controlFactory.visible = true;
+      }
+    } else {
+      if (menuKey) {
+        controlFactory.visible = !controlFactory.visible;
+      } else if (spaceKey) {
+        if (!isEditing) {
+          emitter.emit("play", {});
+        }
       }
     }
   };
