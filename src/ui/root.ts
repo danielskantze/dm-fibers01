@@ -1,5 +1,5 @@
 import type { ParameterPreset, ParameterRegistry } from "../service/parameters";
-import type { BlobItemData, BlobItemMetadata, BlobStore } from "../service/storage";
+import type { BlobItemData, BlobStore } from "../service/storage";
 import type { ApplicationEvents } from "../types/application-events";
 import { Emitter, type Subscribable } from "../util/events";
 import ControlFactory from "./components/controls";
@@ -54,10 +54,10 @@ export function createRoot({
     loadPresets,
     savePresets,
     params
-  ) as DropdownUIComponent<ParameterPreset>;
+  ) as DropdownUIComponent;
   const audioControl = createFileSelector(audioStore, "audio", "audio", item =>
     emitter.emit("selectAudio", { item })
-  ) as DropdownUIComponent<BlobItemMetadata>;
+  ) as DropdownUIComponent;
   const statusBar = createStatusBar(appEvents);
   const modal = createModal();
   let isEditing = false;
@@ -131,7 +131,7 @@ export function createRoot({
   };
   statusBar.events.subscribe("click", onStatusBarClick);
 
-  function onEdit(type: "begin" | "end") {
+  function onEdit({ type }: { type: "begin" | "end" }) {
     isEditing = type === "begin";
   }
 

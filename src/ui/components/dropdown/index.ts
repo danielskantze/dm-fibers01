@@ -3,81 +3,52 @@ import type { Component } from "../types";
 import "./dropdown.css";
 import template from "./dropdown.html?raw";
 
+// The shallow object the dropdown works with.
 export type DropdownItem = {
   id: string;
   name: string;
 };
 
-export class ItemManager<T extends DropdownItem> {
-  private _items: T[];
-  constructor(items: T[]) {
-    this._items = items;
-  }
-  get items(): T[] {
-    return this._items;
-  }
-  clear() {
-    this._items = [];
-  }
-  item(id: string): T | undefined {
-    return this._items.find(i => i.id === id);
-  }
-  itemAt(index: number): T | undefined {
-    return this._items[index];
-  }
-  indexOf(itemOrIndex: T | string): number {
-    const id = typeof itemOrIndex === "string" ? itemOrIndex : itemOrIndex.id;
-    return this._items.findIndex(i => i.id === id);
-  }
-  add(item: T) {
-    this._items.push(item);
-  }
-  addAll(items: T[]) {
-    this._items.push(...items);
-  }
-  remove(id: string): number {
-    if (this._items.length <= 1) {
-      return -1;
-    }
-    const i = this._items.findIndex(i => i.id === id);
-    this._items.splice(i, 1);
-    return Math.min(i, this._items.length - 1);
-  }
-  update(item: T) {
-    const i = this._items.findIndex(i => i.id === item.id);
-    this._items[i] = item;
-  }
-}
-
-export type DropdownEvents<T extends DropdownItem> = {
-  select: {
-    index: number;
-    item: T | undefined;
-  };
-  edit: "begin" | "end";
-  remove: string;
-  update: T;
-  change: {
-    type: "add" | "update";
-    id: string;
-    items: T[];
-  };
+// Events emit IDs, not full objects.
+export type DropdownEvents = {
+  select: { id: string | undefined };
+  add: { name: string };
+  rename: { id: string; newName: string };
+  delete: { id: string };
+  edit: { type: "begin" | "end" };
 };
-export interface DropdownUIComponent<T extends DropdownItem> extends Component {
-  events: Subscribable<DropdownEvents<T>>;
-  setItems: (items: T[]) => void;
-  setDisabled: (isDisabled: boolean) => void;
-  select: (id: string | undefined) => void;
+
+export type DropdownProps = {
+  id: string;
+  items: DropdownItem[];
+  selectedId?: string;
+  canAdd?: boolean;
+  canEdit?: boolean;
+  canRemove?: boolean;
+};
+
+export interface DropdownUIComponent extends Component {
+  element: HTMLElement;
+  events: Subscribable<DropdownEvents>;
+
+  // Public methods for the parent to control the dropdown.
+  setItems(items: DropdownItem[], selectedId?: string): void;
+  select(id?: string): void;
+  setDisabled(state: boolean): void;
 }
 
-export function createDropdown<T extends DropdownItem>(
-  id: string,
-  items: T[],
-  createItemFn: (() => T | undefined) | undefined
-): DropdownUIComponent<T> {
-  const mgr: ItemManager<T> = new ItemManager<T>(items);
-  const emitter = new Emitter<DropdownEvents<T>>();
+export function createDropdown(props: DropdownProps): DropdownUIComponent {
+  const {
+    id,
+    items,
+    selectedId,
+    canAdd = true,
+    canEdit = true,
+    canRemove = true,
+  } = props;
+  const emitter = new Emitter<DropdownEvents>();
   let isDisabled = false;
+  let currentItems = [...items];
 
   const wrapper = document.createElement("div");
   wrapper.innerHTML = template;
@@ -105,88 +76,70 @@ export function createDropdown<T extends DropdownItem>(
     return option;
   }
 
-  function getOption(id: string) {
-    const node = select.querySelector(`option[value="${id}"]`);
-    return node ? (node as HTMLOptionElement) : undefined;
+  function getSelectedItem(): DropdownItem | undefined {
+    return currentItems.find(i => i.id === select.value);
   }
 
-  function setItems(items: T[]) {
-    const selectedValue = select.value;
+  function setItems(newItems: DropdownItem[], newSelectedId?: string) {
+    currentItems = [...newItems];
+    const anId =
+      newSelectedId ??
+      select.value ??
+      (currentItems.length > 0 ? currentItems[0].id : undefined);
+
     select.innerHTML = "";
-    mgr.clear();
-    mgr.addAll(items);
-    for (const item of mgr.items) {
+    for (const item of currentItems) {
       select.appendChild(createOption(item));
     }
-    select.value = selectedValue;
+    if (anId) {
+      select.value = anId;
+    }
   }
+
+  setItems(items, selectedId);
 
   // Select handler
 
   const onSelectChange = () => {
-    const index = mgr.items.findIndex(i => i.id === select.value);
-    if (index >= 0) {
-      emitter.emit("select", { index, item: mgr.itemAt(index) });
-    } else {
-      console.log("clear");
-    }
+    emitter.emit("select", { id: select.value });
   };
   select.addEventListener("change", onSelectChange);
 
   // Rename
-
-  const onSelectTriggerClick = () => {
-    if (isDisabled) {
-      return;
-    }
-    selectTrigger.style.display = "none";
-    editInput.style.display = "block";
-    const selectedItem = mgr.item(select.value);
-    editInput.value = selectedItem?.name ?? "";
-    emitter.emit("edit", "begin");
-    blurListener = (e: Event) => {
-      if (e.target !== editInput) {
-        const newValue = { ...mgr.item(select.value)! };
-        newValue.name = editInput.value;
-        mgr.update(newValue);
-        const opt = getOption(select.value);
-        if (opt) {
-          opt!.text = editInput.value;
-        }
-        selectTrigger.style.display = "block";
-        editInput.style.display = "none";
-        emitter.emit("update", newValue);
-        emitter.emit("change", {
-          id: select.value,
-          type: "update",
-          items: mgr.items.concat(),
-        });
-        if (blurListener) {
-          document.removeEventListener("mousedown", blurListener);
-        }
-        emitter.emit("edit", "end");
+  let onSelectTriggerClick: (() => void) | undefined;
+  if (canEdit) {
+    onSelectTriggerClick = () => {
+      if (isDisabled) {
+        return;
       }
+      selectTrigger.style.display = "none";
+      editInput.style.display = "block";
+      editInput.focus();
+      const selectedItem = getSelectedItem();
+      editInput.value = selectedItem?.name ?? "";
+      emitter.emit("edit", { type: "begin" });
+      blurListener = (e: Event) => {
+        if (e.target !== editInput) {
+          selectTrigger.style.display = "block";
+          editInput.style.display = "none";
+          emitter.emit("rename", { id: select.value, newName: editInput.value });
+          if (blurListener) {
+            document.removeEventListener("mousedown", blurListener);
+          }
+          emitter.emit("edit", { type: "end" });
+        }
+      };
+      document.addEventListener("mousedown", blurListener);
     };
-    document.addEventListener("mousedown", blurListener);
-  };
-  selectTrigger.addEventListener("click", onSelectTriggerClick);
+    selectTrigger.addEventListener("click", onSelectTriggerClick);
+  }
 
   // Add handler
 
   let onAddButtonClick: (() => void) | undefined;
-  if (createItemFn) {
+  if (canAdd) {
     onAddButtonClick = () => {
-      const newItem = createItemFn();
-      if (newItem) {
-        select.appendChild(createOption(newItem));
-        mgr.add(newItem);
-        select.value = newItem.id;
-        emitter.emit("change", {
-          id: newItem.id,
-          type: "add",
-          items: mgr.items.concat(),
-        });
-      }
+      emitter.emit("add", { name: "New" });
     };
     addButton.addEventListener("click", onAddButtonClick);
   } else {
@@ -194,27 +147,18 @@ export function createDropdown<T extends DropdownItem>(
   }
 
   // Remove handler
-
-  const onRemoveButtonClick = () => {
-    const removeId = select.value;
-    const nextIdx = mgr.remove(removeId);
-    if (nextIdx < 0) {
-      return;
-    }
-    const nextValue = mgr.itemAt(nextIdx)!;
-    const opt = getOption(select.value);
-    if (opt) {
-      select.removeChild(opt);
-      select.value = nextValue.id;
-    }
-    emitter.emit("remove", removeId);
-    emitter.emit("select", { index: nextIdx, item: mgr.itemAt(nextIdx) });
-  };
-  removeButton.addEventListener("click", onRemoveButtonClick);
-
-  // Add options
-  for (const item of mgr.items) {
-    select.appendChild(createOption(item));
+  let onRemoveButtonClick: (() => void) | undefined;
+  if (canRemove) {
+    onRemoveButtonClick = () => {
+      if (currentItems.length <= 1) {
+        return;
+      }
+      const removeId = select.value;
+      emitter.emit("delete", { id: removeId });
+    };
+    removeButton.addEventListener("click", onRemoveButtonClick);
+  } else {
+    removeButton.style.display = "none";
   }
 
   return {
@@ -228,11 +172,15 @@ export function createDropdown<T extends DropdownItem>(
     setDisabled,
     destroy: () => {
       select.removeEventListener("change", onSelectChange);
-      selectTrigger.removeEventListener("click", onSelectTriggerClick);
+      if (canEdit && onSelectTriggerClick) {
+        selectTrigger.removeEventListener("click", onSelectTriggerClick);
+      }
       if (onAddButtonClick) {
         addButton.removeEventListener("click", onAddButtonClick);
       }
-      removeButton.removeEventListener("click", onRemoveButtonClick);
+      if (canRemove && onRemoveButtonClick) {
+        removeButton.removeEventListener("click", onRemoveButtonClick);
+      }
       if (blurListener) {
         document.removeEventListener("mousedown", blurListener);
       }

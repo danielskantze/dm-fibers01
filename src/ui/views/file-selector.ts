@@ -1,6 +1,9 @@
 import type { BlobItemData, BlobItemMetadata, BlobStore } from "../../service/storage";
-import { createDropdown, type DropdownUIComponent } from "../components/dropdown";
-import type { Component } from "../components/types";
+import {
+  createDropdown,
+  type DropdownUIComponent,
+  type DropdownItem,
+} from "../components/dropdown";
 import { generateId } from "../util/id";
 
 function asyncReadFile(file: File): Promise<ArrayBuffer> {
@@ -21,31 +24,55 @@ export function createFileSelector(
   id: string,
   type: string,
   onSelect: (item: BlobItemData | undefined) => void = () => {}
-): DropdownUIComponent<BlobItemMetadata> {
+): DropdownUIComponent {
+  let items: BlobItemMetadata[] = [];
+  const toDropdownItem = (p: BlobItemMetadata): DropdownItem => ({
+    id: p.id,
+    name: p.name,
+  });
+
+  const dropdown = createDropdown({
+    id,
+    items: [],
+  });
+
   const hiddenInput = document.createElement("input");
   hiddenInput.type = "file";
   hiddenInput.style.display = "none";
 
   document.body.appendChild(hiddenInput);
 
-  const selectHandler = (id: string) => {
-    store.get(id).then(onSelect);
-  };
-  const addHandler = () => {
-    hiddenInput.click();
-    return undefined;
-  };
   const updateItems = () => {
-    return store.list(type).then(items => {
-      dropdown.setItems(items);
+    return store.list(type).then(newItems => {
+      items = newItems;
+      dropdown.setItems(items.map(toDropdownItem));
     });
   };
-  const removeHandler = (id: string) => {
+
+  const onSelectEvent = ({ id }: { id: string | undefined }) => {
+    if (id) {
+      store.get(id).then(onSelect);
+    } else {
+      onSelect(undefined);
+    }
+  };
+
+  const onAdd = () => {
+    hiddenInput.click();
+  };
+
+  const onRename = ({ id, newName }: { id: string; newName: string }) => {
+    const item = items.find(i => i.id === id);
+    if (item) {
+      item.name = newName;
+      store.update(item).then(updateItems);
+    }
+  };
+
+  const onDelete = ({ id }: { id: string }) => {
     store.remove(id).then(updateItems);
   };
-  const updateHandler = (item: BlobItemMetadata) => {
-    store.update(item).then(updateItems);
-  };
+
   const onFileSelected = () => {
     let promises: Promise<void>[] = [];
     for (const file of hiddenInput!.files ?? []) {
@@ -60,34 +87,23 @@ export function createFileSelector(
         )
       );
     }
-    Promise.all(promises)
-      .then(() => store.list("audio"))
-      .then(updateItems);
+    Promise.all(promises).then(updateItems);
   };
   hiddenInput.addEventListener("change", onFileSelected);
 
-  const dropdown = createDropdown<BlobItemMetadata>(id, [], addHandler);
-  store.list(type).then((items: BlobItemMetadata[]) => {
-    dropdown.setItems(items);
-  });
-
-  const onSelectEvent = ({ item }: { item: BlobItemMetadata | undefined }) => {
-    if (item) {
-      selectHandler(item.id);
-    }
-  };
-
   dropdown.events.subscribe("select", onSelectEvent);
-  dropdown.events.subscribe("remove", removeHandler);
-  dropdown.events.subscribe("update", updateHandler);
+  dropdown.events.subscribe("add", onAdd);
+  dropdown.events.subscribe("rename", onRename);
+  dropdown.events.subscribe("delete", onDelete);
   updateItems();
 
   const originalDestroy = dropdown.destroy;
   dropdown.destroy = () => {
     hiddenInput.removeEventListener("change", onFileSelected);
     dropdown.events.unsubscribe("select", onSelectEvent);
-    dropdown.events.unsubscribe("remove", removeHandler);
-    dropdown.events.unsubscribe("update", updateHandler);
+    dropdown.events.unsubscribe("add", onAdd);
+    dropdown.events.unsubscribe("rename", onRename);
+    dropdown.events.unsubscribe("delete", onDelete);
     originalDestroy!();
   };
 

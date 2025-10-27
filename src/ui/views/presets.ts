@@ -1,5 +1,9 @@
 import type { ParameterPreset, ParameterRegistry } from "../../service/parameters";
-import { createDropdown, type DropdownUIComponent } from "../components/dropdown";
+import {
+  createDropdown,
+  type DropdownUIComponent,
+  type DropdownItem,
+} from "../components/dropdown";
 import { generateId } from "../util/id";
 
 export function createPresetControls(
@@ -7,37 +11,71 @@ export function createPresetControls(
   load: () => ParameterPreset[],
   save: (items: ParameterPreset[]) => void,
   params: ParameterRegistry
-): DropdownUIComponent<ParameterPreset> {
-  const dropdown = createDropdown<ParameterPreset>("presets", load(), () =>
-    params.toPreset(generateId(), new Date().toLocaleString())
-  );
+): DropdownUIComponent {
+  let presets = load();
 
-  const onSelect = ({ item }: { item: ParameterPreset | undefined }) => {
-    if (item) {
-      select(item);
+  const toDropdownItem = (p: ParameterPreset): DropdownItem => ({
+    id: p.id,
+    name: p.name,
+  });
+
+  const dropdown = createDropdown({
+    id: "presets",
+    items: presets.map(toDropdownItem),
+  });
+
+  const onSelect = ({ id }: { id: string | undefined }) => {
+    const preset = presets.find(p => p.id === id);
+    if (preset) {
+      select(preset);
     }
   };
-  dropdown.events.subscribe("select", onSelect);
 
-  const onRemove = (removeId: string) => {
-    save(load().filter(i => i.id !== removeId));
-  };
-  dropdown.events.subscribe("remove", onRemove);
-
-  const onChange = ({ id, items }: { id: string; items: ParameterPreset[] }) => {
-    const presets = [...items];
-    let idx = presets.findIndex(p => p.id === id);
-    const updatedItem = params.toPreset(id, presets[idx].name);
-    presets[idx] = updatedItem;
+  const onAdd = ({ name }: { name: string }) => {
+    const newPreset = params.toPreset(generateId(), name);
+    presets = [...presets, newPreset];
     save(presets);
+
+    dropdown.setItems(presets.map(toDropdownItem), newPreset.id);
+    select(newPreset);
   };
-  dropdown.events.subscribe("change", onChange);
+
+  const onRename = ({ id, newName }: { id: string; newName: string }) => {
+    const preset = presets.find(p => p.id === id);
+    if (preset) {
+      preset.name = newName;
+      save(presets);
+      dropdown.setItems(presets.map(toDropdownItem), id);
+    }
+  };
+
+  const onDelete = ({ id }: { id: string }) => {
+    const index = presets.findIndex(p => p.id === id);
+    if (index === -1) return;
+
+    presets = presets.filter(p => p.id !== id);
+    save(presets);
+
+    const newIndex = Math.min(index, presets.length - 1);
+    const newSelected = presets[newIndex];
+
+    dropdown.setItems(presets.map(toDropdownItem), newSelected.id);
+    if (newSelected) {
+      select(newSelected);
+    }
+  };
+
+  dropdown.events.subscribe("select", onSelect);
+  dropdown.events.subscribe("add", onAdd);
+  dropdown.events.subscribe("rename", onRename);
+  dropdown.events.subscribe("delete", onDelete);
 
   const originalDestroy = dropdown.destroy;
   dropdown.destroy = () => {
     dropdown.events.unsubscribe("select", onSelect);
-    dropdown.events.unsubscribe("remove", onRemove);
-    dropdown.events.unsubscribe("change", onChange);
+    dropdown.events.unsubscribe("add", onAdd);
+    dropdown.events.unsubscribe("rename", onRename);
+    dropdown.events.unsubscribe("delete", onDelete);
     originalDestroy!();
   };
 
