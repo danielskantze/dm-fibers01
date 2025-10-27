@@ -44,6 +44,7 @@
   border: 1px solid transparent;
   margin: 0;
   width: 100%;
+  transition: background-color 0.125s ease;
 }
 
 .buttons button[disabled] {
@@ -54,4 +55,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.buttons button:hover {
+  background: var(--component-color-background-1);
+}
+
+.buttons button:active {
+  background: var(--component-color-background-down);
 }
