@@ -79,7 +79,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   });
 
   function init() {
-    const seed = (params.getParameter("main", "seed").value ?? "") as string;
+    const seed = params.getValue("main", "seed") as string;
     onRandomSeed(seed);
   }
 
@@ -165,7 +165,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     };
 
     const initAudio = async () => {
-      const audioId = params.getParameter("main", "audio")?.value;
+      const audioId = params.getValue("main", "audio");
       if (audioId && (await audioStore.has(audioId as string))) {
         return onSelectAudio(await audioStore.get(audioId as string));
       } else {
@@ -234,53 +234,3 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 }
 
 export default main;
-
-// TODO:
-
-// UI:
-// - Modal button (click to start in addition to spacebar)
-// - Block menu until experience is started
-
-// Audio:
-// - Research spectral flux for novelty detection
-
-// Research a way of automating preset transitions (for novelty / state changes)
-// - Formulate requirements (different levels? slow fundamental ones, quick transient one. Is this a state machine or a stack of layers or both?)
-// - Consider chaining presets with a state machine (and visualising)
-// - Formulate fundamental needs automate single parameters - respond to audio's perceptual qualities vs create variation through "theme changes" (a.k.a group of parameter changes and ranges)
-
-// Figure out a way to connect number of particles to sound intensity
-
-// Experience:
-// - Support palette rotation
-
-// Simulation:
-// - Support max number of particles being created per frame being spawned
-
-// Refactoring:
-// - Go through all random types.ts files - are they needed?
-// - Improve uniform send (base this on Uniform type, check type, pick location and so on)
-// - Check how non-uniform (or virtual uniforms) such as particles are sent to shader
-
-// Math
-// - Add smoothing and damping functions
-
-// Figure out how relative parameters should work
-
-// Simple add music (hook up to audio features)
-// - Sync beats with stroke noise x/y (each kick will pulse these)
-// - Also pulsate stroke radius (maybe for a new section?)
-// - Possibly tune palette x/y too
-// - Experiment with syncing particle start time too (high intensity - particle restarts immediately)
-// - And of course, test controlling number of particles (possibly relate to radius)
-
-// Hook up midi parameters
-
-// Hook up music timeline file
-
-// Migrate all vectors and math classes to use Float32Arrays instead of number[]
-// Handle outdated parameters (wrong version)
-// 3D support (each particle has Z component)
-// Group parameters of different types (e.g. bloom)
-// Consider adding LFOs
-// Support brightness, contrast and color temperature post controls

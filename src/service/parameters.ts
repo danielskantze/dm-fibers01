@@ -9,9 +9,19 @@ export type ParameterGroupKey = "main" | "bloom" | StageName;
 
 const presetFormatVersion = 1.0;
 
+export interface ParameterModifier {
+  apply: (value: ParameterData, baseValue: ParameterData) => UniformValue;
+}
+
+export type ManagedParameter = {
+  data: ParameterData;
+  baseValue: UniformValue;
+  modifiers: ParameterModifier[];
+};
+
 export type ParameterGroup<G extends string> = {
   group: G;
-  parameters: Record<string, ParameterData>;
+  parameters: Record<string, ManagedParameter>;
 };
 
 export type ParameterGroupDescriptor<G extends string> = {
@@ -145,7 +155,7 @@ class ParameterService<G extends string> {
       if (!result.data[group]) {
         result.data[group] = {};
       }
-      Object.entries(parameters).forEach(([id, data]) => {
+      Object.entries(parameters).forEach(([id, { data }]) => {
         result.data[group][id] = uniforms.valueToJson(data.value, data.type);
       });
     });
@@ -166,7 +176,12 @@ class ParameterService<G extends string> {
         parameters: {},
       };
     }
-    this.registry[group].parameters[parameter] = descriptor;
+    const p: ManagedParameter = {
+      data: descriptor,
+      baseValue: descriptor.value ?? 0,
+      modifiers: [],
+    };
+    this.registry[group].parameters[parameter] = p;
   }
 
   setGroupInfo(group: G, order?: number, displayName?: string) {
@@ -176,7 +191,11 @@ class ParameterService<G extends string> {
     }
   }
 
-  getParameter(group: G, parameter: string): ParameterData {
+  private getParameter(group: G, parameter: string): ParameterData {
+    return this.getManagedParameter(group, parameter).data;
+  }
+
+  private getManagedParameter(group: G, parameter: string): ManagedParameter {
     const data = this.registry[group].parameters[parameter];
     if (!data) {
       throw new NoSuchParameterError(group, parameter);
@@ -185,12 +204,12 @@ class ParameterService<G extends string> {
   }
 
   setValue(group: G, parameter: string, value: UniformValue) {
-    this.getParameter(group, parameter).value = value;
+    this.getManagedParameter(group, parameter).data.value = value;
     this.notify(group, parameter, value);
   }
 
   getValue<T extends UniformValue>(group: G, parameter: string): T {
-    return this.getParameter(group, parameter).value! as T;
+    return this.getManagedParameter(group, parameter).data.value! as T;
   }
 
   list(): [G, string, ParameterData][] {
@@ -201,7 +220,7 @@ class ParameterService<G extends string> {
     orderedGroups.forEach(g => {
       const keys = Object.keys(this.registry[g.id].parameters);
       keys.forEach(k => {
-        result.push([g.id, k, this.registry[g.id].parameters[k]]);
+        result.push([g.id, k, this.registry[g.id].parameters[k].data]);
       });
     });
     return result;
