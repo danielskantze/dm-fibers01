@@ -10,7 +10,7 @@ export type ParameterGroupKey = "main" | "bloom" | StageName;
 const presetFormatVersion = 1.0;
 
 export interface ParameterModifier {
-  apply: (value: ParameterData, baseValue: ParameterData) => UniformValue;
+  transform: (frame: number, data: ParameterData, value: UniformValue) => UniformValue;
 }
 
 export type ManagedParameter = {
@@ -18,6 +18,7 @@ export type ManagedParameter = {
   baseValue: UniformValue;
   modifiers: ParameterModifier[];
   value: UniformValue;
+  updatedFrame: number;
 };
 
 export type ParameterGroup<G extends string> = {
@@ -75,6 +76,7 @@ class ParameterService<G extends string> {
   private registry: Record<string, ParameterGroup<G>>;
   private groups: Record<G, ParameterGroupDescriptor<G>>;
   private subscribers: Subscriber[];
+  private frame: number = 0;
 
   constructor() {
     this.registry = {};
@@ -182,6 +184,7 @@ class ParameterService<G extends string> {
       baseValue: descriptor.value ?? 0,
       modifiers: [],
       value: 0,
+      updatedFrame: -1,
     };
     this.registry[group].parameters[parameter] = p;
   }
@@ -206,28 +209,48 @@ class ParameterService<G extends string> {
   }
 
   setValue(group: G, parameter: string, value: UniformValue) {
-    //this.getManagedParameter(group, parameter).data.value = value;
-    this.getManagedParameter(group, parameter).value = value;
+    this.getManagedParameter(group, parameter).baseValue = value;
     this.notify(group, parameter, value);
   }
 
   getValue<T extends UniformValue>(group: G, parameter: string): T {
-    //return this.getManagedParameter(group, parameter).data.value! as T;
-    return this.getManagedParameter(group, parameter).value! as T;
+    const p = this.getManagedParameter(group, parameter);
+    let value = p.baseValue;
+    if (p.updatedFrame != this.frame) {
+      for (const m of p.modifiers) {
+        value = m.transform(this.frame, p, value);
+      }
+      p.updatedFrame = this.frame;
+    }
+    p.value = value;
+    return p.value! as T;
   }
 
-  list(): [G, string, ParameterData][] {
-    const result: [G, string, ParameterData][] = [];
+  setModifiers(group: G, parameter: string, modifiers: ParameterModifier[]) {
+    const p = this.getManagedParameter(group, parameter);
+    p.modifiers = modifiers;
+  }
+
+  listParameters(): [G, string, ManagedParameter][] {
+    const result: [G, string, ManagedParameter][] = [];
     const orderedGroups = orderedValues<ParameterGroupDescriptor<G>>((a, b) => {
       return a.order - b.order;
     }, this.groups);
     orderedGroups.forEach(g => {
       const keys = Object.keys(this.registry[g.id].parameters);
       keys.forEach(k => {
-        result.push([g.id, k, this.registry[g.id].parameters[k].data]);
+        result.push([g.id, k, this.registry[g.id].parameters[k]]);
       });
     });
     return result;
+  }
+
+  list(): [G, string, ParameterData][] {
+    return this.listParameters().map(([g, k, p]) => [g, k, p.data]);
+  }
+
+  update(frame: number) {
+    this.frame = frame;
   }
 }
 

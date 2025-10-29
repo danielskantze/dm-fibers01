@@ -17,6 +17,7 @@ import { createRoot } from "./ui/root";
 import { Emitter, type EventMap } from "./util/events";
 import * as vec4 from "./math/vec4";
 import { createAudioStatsCollector } from "./service/audio/audio-stats";
+import { createLFO } from "./service/parameters/lfo-modifier";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -57,7 +58,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   >();
   const params = createRegistryFromConfig(defaultParameters);
   configureCanvas(canvas);
-  const renderer = new WebGLRenderer(settings, canvas, params);
+  const renderer = new WebGLRenderer(settings, canvas, params, f => params.update(f));
   const userSettings = userSettingsStore.load();
   params.load(defaultValues as ParameterPreset);
   const audioStore = new IndexedDBBlobStore("data", "audio");
@@ -231,6 +232,10 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   emitter.emit("status", { type: "loading", message: "Loading" });
   init();
   await start(audioStore);
+
+  params.setModifiers("simulate", "maxRadius", [
+    createLFO({ curve: "sine", hz: 0.1, min: 1.0, max: 40.0 }),
+  ]);
 }
 
 export default main;
