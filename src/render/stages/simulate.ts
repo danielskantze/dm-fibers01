@@ -2,22 +2,22 @@ import { createQuad } from "../../gl/buffers";
 import { createFrameBuffer, getFramebufferAttachment } from "../../gl/framebuffers";
 import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
+import * as mat43 from "../../math/mat43";
+import type { Vec3, Vec4 } from "../../math/types";
+import * as vec3 from "../../math/vec3";
+import * as vec4 from "../../math/vec4";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
 import type { TextureUniform, Uniform } from "../../types/gl/uniforms";
 import type {
+  BufferedStageOutput,
+  Resources,
   Stage,
   StageOutput,
-  Resources,
-  BufferedStageOutput,
 } from "../../types/stage";
 import fShaderSource from "../shaders/simulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
-import * as mat43 from "../../math/mat43";
-import * as vec3 from "../../math/vec3";
-import * as vec4 from "../../math/vec4";
 import { filter } from "../util/dict";
-import type { Vec3, Vec4 } from "../../math/types";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
   return {
@@ -308,4 +308,4 @@ function draw(
   stage.targets = output[writeIndex].textures;
 }
 
-export { create, draw, resize, reset };
+export { create, draw, reset, resize };

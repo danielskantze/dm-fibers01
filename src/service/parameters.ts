@@ -17,6 +17,7 @@ export type ManagedParameter = {
   data: ParameterData;
   baseValue: UniformValue;
   modifiers: ParameterModifier[];
+  value: UniformValue;
 };
 
 export type ParameterGroup<G extends string> = {
@@ -180,6 +181,7 @@ class ParameterService<G extends string> {
       data: descriptor,
       baseValue: descriptor.value ?? 0,
       modifiers: [],
+      value: 0,
     };
     this.registry[group].parameters[parameter] = p;
   }
@@ -204,12 +206,14 @@ class ParameterService<G extends string> {
   }
 
   setValue(group: G, parameter: string, value: UniformValue) {
-    this.getManagedParameter(group, parameter).data.value = value;
+    //this.getManagedParameter(group, parameter).data.value = value;
+    this.getManagedParameter(group, parameter).value = value;
     this.notify(group, parameter, value);
   }
 
   getValue<T extends UniformValue>(group: G, parameter: string): T {
-    return this.getManagedParameter(group, parameter).data.value! as T;
+    //return this.getManagedParameter(group, parameter).data.value! as T;
+    return this.getManagedParameter(group, parameter).value! as T;
   }
 
   list(): [G, string, ParameterData][] {

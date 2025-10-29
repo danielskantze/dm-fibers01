@@ -166,11 +166,24 @@ export class WebGLRenderer {
       bloomIntensity: this._params.getValue<number>("bloom", "intensity"),
     };
 
+    this._updateUniforms();
     for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
       this._updateSimulationStages(numParticles);
       this._frame++;
     }
     this._drawOutputStages({ bloom: bloomState }, isScreenshot);
+  }
+
+  private _updateUniforms() {
+    Object.values(this._stages)
+      .filter(stage => stage && stage.resources)
+      .forEach(stage => {
+        Object.values(stage.resources.shaders).forEach(shader => {
+          Object.entries(shader.uniforms)
+            .filter(([, u]) => !!u.value)
+            .forEach(([name, u]) => (u.value = this._params.getValue(stage.name, name)));
+        });
+      });
   }
 
   private _updateSimulationStages(numParticles: number): void {
