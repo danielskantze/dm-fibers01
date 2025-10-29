@@ -2,9 +2,6 @@
 
 ## Implement new architecture
 
-- Rethink how we work with uniform values. They should probably be copied from ParameterService
-- Use ManagedParameter in internal storage in ParameterService (do not change anything on the outside right now). We make as few changes to the current interface as possible
-
 # TODO:
 
 ParameterService modifiers
