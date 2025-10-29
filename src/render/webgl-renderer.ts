@@ -64,13 +64,20 @@ export class WebGLRenderer {
   private readonly _params: ParameterRegistry;
   private readonly _stages: RenderingStages;
   private readonly _renderConfig: RenderingConfig;
+  private _updateParamsCallback: (frame: number) => void;
 
-  constructor(settings: Settings, canvas: HTMLCanvasElement, params: ParameterRegistry) {
+  constructor(
+    settings: Settings,
+    canvas: HTMLCanvasElement,
+    params: ParameterRegistry,
+    updateParamsCallback: (frame: number) => void
+  ) {
     this._canvas = canvas;
     this._params = params;
     this._renderWidth = settings.width * settings.dpr;
     this._renderHeight = settings.height * settings.dpr;
     this._renderConfig = defaultRenderConfig;
+    this._updateParamsCallback = updateParamsCallback;
 
     this._gl = this._createGl();
     this._stages = this._createStages();
@@ -166,8 +173,10 @@ export class WebGLRenderer {
       bloomIntensity: this._params.getValue<number>("bloom", "intensity"),
     };
 
-    this._updateUniforms();
     for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
+      // TODO: Fix this - not sure we should update the params inside the renderer
+      this._updateParamsCallback(this._frame);
+      this._updateUniforms();
       this._updateSimulationStages(numParticles);
       this._frame++;
     }
