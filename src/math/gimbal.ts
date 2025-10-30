@@ -23,7 +23,6 @@ function mapGimbalToCartesian(
   const x = length * Math.cos(rx) * Math.cos(rz);
   const y = length * Math.cos(rx) * Math.sin(rz);
   const z = length * Math.sin(rx);
-  console.log(`testGimbal output for rotX=${rx}, rotZ=${rz}:`, [x, y, z]);
   return [x, y, z];
 }
 
