@@ -2,22 +2,22 @@
 //import * as stage_display from "./render/stages/display";
 import defaultValues from "./config/defaultValues.json";
 import { defaultParameters } from "./config/parameters";
+import * as vec4 from "./math/vec4";
 import { VideoRecorder, type RecorderStatus } from "./render/util/recorder";
 import { WebGLRenderer } from "./render/webgl-renderer";
+import { createAudioStatsCollector } from "./service/audio/audio-stats";
 import { AudioPlayer } from "./service/audioplayer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
+import { createScalarLFO } from "./service/parameters/lfo-modifier";
 import type { BlobItemData, BlobStore } from "./service/storage";
 import { IndexedDBBlobStore } from "./service/storage/localblob";
 import { presetStore, userSettingsStore } from "./service/stores";
 import type { ApplicationEvents } from "./types/application-events";
 import { type Settings } from "./types/settings";
+import { createRoot } from "./ui/root";
 import { timestamp } from "./ui/util/date";
 import { strToVec3 } from "./ui/util/seed";
-import { createRoot } from "./ui/root";
 import { Emitter, type EventMap } from "./util/events";
-import * as vec4 from "./math/vec4";
-import { createAudioStatsCollector } from "./service/audio/audio-stats";
-import { createLFO } from "./service/parameters/lfo-modifier";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -234,7 +234,19 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   await start(audioStore);
 
   params.setModifiers("simulate", "maxRadius", [
-    createLFO({ curve: "sine", hz: 0.1, min: 1.0, max: 40.0 }),
+    createScalarLFO({
+      curve: "square",
+      hz: 0.01,
+      range: 1.0,
+      offset: 0,
+      phase: 0.5,
+      domain: {
+        min: 1,
+        max: 50,
+        type: "float",
+      },
+      type: "float",
+    }),
   ]);
 }
 

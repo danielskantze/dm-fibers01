@@ -44,19 +44,22 @@ export const UniformComponents: Record<UniformType, number> = {
   custom: -1,
 };
 
-export type ScalarUIType = "int" | "float" | "enum" | "custom" | "hidden";
+export type ScalarValueType = "int" | "float" | "enum" | "custom" | "hidden";
 
 export type UniformValue = number | number[] | Float32Array | string;
 
-export type UniformUI = {
-  name: string;
-  min?: number;
-  max?: number;
+export interface UniformValueDomain {
+  min: number;
+  max: number;
   step?: number;
-  component?: string;
-  type?: ScalarUIType;
+  type: ScalarValueType;
   options?: string[];
-};
+}
+
+export interface UniformUI extends Partial<UniformValueDomain> {
+  name: string;
+  component?: string;
+}
 
 type Uniform = {
   ui?: UniformUI;

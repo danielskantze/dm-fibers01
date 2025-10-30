@@ -9,8 +9,13 @@ export type ParameterGroupKey = "main" | "bloom" | StageName;
 
 const presetFormatVersion = 1.0;
 
+export type ParameterModifierTransformFn = (
+  frame: number,
+  value: UniformValue,
+  data?: ParameterData
+) => UniformValue;
 export interface ParameterModifier {
-  transform: (frame: number, data: ParameterData, value: UniformValue) => UniformValue;
+  transform: ParameterModifierTransformFn;
 }
 
 export type ManagedParameter = {
@@ -218,7 +223,7 @@ class ParameterService<G extends string> {
     let value = p.baseValue;
     if (p.updatedFrame != this.frame) {
       for (const m of p.modifiers) {
-        value = m.transform(this.frame, p, value);
+        value = m.transform(this.frame, value, p);
       }
       p.updatedFrame = this.frame;
     }

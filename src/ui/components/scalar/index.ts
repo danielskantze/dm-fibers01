@@ -1,4 +1,4 @@
-import type { ScalarUIType } from "../../../types/gl/uniforms";
+import type { ScalarValueType } from "../../../types/gl/uniforms";
 import type { Component } from "../types";
 import "./scalar.css";
 
@@ -9,7 +9,7 @@ function sanitizeName(name: string) {
 }
 
 type ValueConfig = {
-  type: ScalarUIType;
+  type: ScalarValueType;
   enumValues?: string[];
 };
 
@@ -32,7 +32,7 @@ export type ScalarProps = {
   min?: number;
   max?: number;
   step?: number;
-  type?: ScalarUIType;
+  type?: ScalarValueType;
   enumValues?: string[];
 };
 
