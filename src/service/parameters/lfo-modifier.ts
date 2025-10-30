@@ -10,7 +10,7 @@ type Props = {
   range: number;
   offset?: number;
   phase?: number;
-  curve: "sine" | "square";
+  curve: "sine" | "square" | "triangle";
   domain: UniformValueDomain;
   type: UniformType;
 };
@@ -50,6 +50,21 @@ export function createScalarLFO(props: Props): ParameterModifier {
         const y = frac((frame + shift) / (fps / hz)) > 0.5 ? 1 : -1;
         return clamp((value as number) + map(y), domain.min, domain.max);
       };
+      break;
+    case "triangle":
+      transform = (frame, value) => {
+        const p = ((hz * (phase + frame)) / fps) % 1;
+        let y = 0;
+        if (p < 0.25) {
+          y = p / 0.25;
+        } else if (p < 0.75) {
+          y = 1.0 - (2.0 * (p - 0.25)) / 0.5;
+        } else {
+          y = -1.0 + (p - 0.75) / 0.25;
+        }
+        return clamp((value as number) + map(y), domain.min, domain.max);
+      };
+      break;
   }
 
   return {

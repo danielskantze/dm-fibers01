@@ -235,7 +235,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
   params.setModifiers("simulate", "maxRadius", [
     createScalarLFO({
-      curve: "square",
+      curve: "triangle",
       hz: 0.01,
       range: 1.0,
       offset: 0,
