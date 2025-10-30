@@ -14,6 +14,8 @@ import { WebGLTextureError } from "../types/error";
 import { defaultRenderConfig } from "../config/parameters";
 import * as screenshot from "./util/screenshot";
 import type { IVideoRecorder } from "./util/recorder";
+import { StreamLogging } from "../util/logging";
+import type { UniformValue } from "../types/gl/uniforms";
 
 // import fdebugShaderSource from "./shaders/debug.fs.glsl?raw";
 
@@ -58,6 +60,7 @@ export class WebGLRenderer {
   private _renderWidth: number;
   private _renderHeight: number;
   private _recorder?: IVideoRecorder | null;
+  private _paramListeners: ((v: UniformValue) => void)[] = [];
 
   private readonly _canvas: HTMLCanvasElement;
   private readonly _gl: WebGL2RenderingContext;
@@ -82,6 +85,8 @@ export class WebGLRenderer {
     this._gl = this._createGl();
     this._stages = this._createStages();
     this._configureStages();
+
+    this._configureSubscriptions();
   }
 
   public get isRunning(): boolean {
@@ -151,23 +156,28 @@ export class WebGLRenderer {
     }
   }
 
-  private _render(isScreenshot: boolean = false): void {
-    const bloomSteps = this._params.getValue<number>("bloom", "steps");
-    const bloomQuality = this._params.getValue<number>("bloom", "quality");
+  private _configureSubscriptions() {
+    let listener: (v: UniformValue) => void = v =>
+      (this._renderConfig.updatesPerDraw = v as number);
+    this._paramListeners.push(listener);
+    this._params.subscribe("main", "updatesPerDraw", listener);
 
-    if (bloomSteps !== this._renderConfig.bloomSteps) {
-      this._renderConfig.bloomSteps = bloomSteps;
+    listener = v => {
+      this._renderConfig.bloomQuality = v as number;
       this._configureStages();
-    }
-    if (bloomQuality !== this._renderConfig.bloomQuality) {
-      this._renderConfig.bloomQuality = bloomQuality;
+    };
+    this._paramListeners.push(listener);
+    this._params.subscribe("bloom", "quality", listener);
+
+    listener = v => {
+      this._renderConfig.bloomSteps = v as number;
       this._configureStages();
-    }
-    this._renderConfig.updatesPerDraw = this._params.getValue<number>(
-      "main",
-      "updatesPerDraw"
-    );
-    const numParticles = this._params.getValue<number>("main", "particles");
+    };
+    this._paramListeners.push(listener);
+    this._params.subscribe("bloom", "steps", listener);
+  }
+
+  private _render(isScreenshot: boolean = false): void {
     const bloomState: BloomStageParams = {
       lumaThreshold: this._params.getValue<number>("bloom", "luma"),
       bloomIntensity: this._params.getValue<number>("bloom", "intensity"),
@@ -175,6 +185,10 @@ export class WebGLRenderer {
 
     for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
       // TODO: Fix this - not sure we should update the params inside the renderer
+      const numParticles = this._params.getValue<number>("main", "particles");
+      StreamLogging.addOrlog("accumulate", 60, [
+        this._params.getValue("accumulate", "accumulate"),
+      ]);
       this._updateParamsCallback(this._frame);
       this._updateUniforms();
       this._updateSimulationStages(numParticles);
@@ -189,7 +203,7 @@ export class WebGLRenderer {
       .forEach(stage => {
         Object.values(stage.resources.shaders).forEach(shader => {
           Object.entries(shader.uniforms)
-            .filter(([, u]) => !!u.value)
+            .filter(([, u]) => u.value !== undefined)
             .forEach(([name, u]) => (u.value = this._params.getValue(stage.name, name)));
         });
       });

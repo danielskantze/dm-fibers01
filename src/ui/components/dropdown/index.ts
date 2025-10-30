@@ -3,6 +3,7 @@ import type { Component } from "../types";
 import "./dropdown.css";
 import template from "./dropdown.html?raw";
 import { saveIcon } from "../../icons";
+import { svgToUrl } from "../../util/svg";
 
 // The shallow object the dropdown works with.
 export type DropdownItem = {
@@ -146,7 +147,7 @@ export function createDropdown(props: DropdownProps): DropdownUIComponent {
       editInput.value = originalName;
       emitter.emit("edit", { type: "begin" });
       blurListener = (e: Event) => {
-        if (e.target !== editInput && e.target !== saveButton) {
+        if (e.target !== editInput && !saveButton.contains(e.target as Node)) {
           editInput.value = originalName;
           endEdit();
         }

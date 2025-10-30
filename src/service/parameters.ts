@@ -164,7 +164,10 @@ class ParameterService<G extends string> {
         result.data[group] = {};
       }
       Object.entries(parameters).forEach(([id, { data }]) => {
-        result.data[group][id] = uniforms.valueToJson(data.value, data.type);
+        result.data[group][id] = uniforms.valueToJson(
+          this.getValue(group, id),
+          data.type
+        );
       });
     });
     return result;

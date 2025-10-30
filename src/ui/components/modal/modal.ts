@@ -29,17 +29,14 @@ export function createModal(): ModalComponent {
     element: container,
     update: (value: string) => {
       message.innerHTML = value;
-      console.log("update", value);
     },
     show: (text?: string) => {
       modal.classList.add("show");
-      console.log("show", text);
       if (text) {
         message.innerHTML = text;
       }
     },
     hide: () => {
-      console.log("hide");
       modal.classList.remove("show");
     },
     destroy: () => {

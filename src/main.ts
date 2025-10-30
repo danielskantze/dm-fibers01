@@ -76,7 +76,9 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     params,
     initialPresetId: userSettings.presetId,
     loadPresets: presetStore.load,
-    savePresets: presetStore.save,
+    savePresets: items => {
+      presetStore.save(items);
+    },
   });
 
   function init() {
@@ -233,37 +235,37 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   init();
   await start(audioStore);
 
-  params.setModifiers("simulate", "maxRadius", [
-    createScalarLFO({
-      curve: "triangle",
-      hz: 0.01,
-      range: 1.0,
-      offset: 0,
-      phase: 0.5,
-      domain: {
-        min: 1,
-        max: 50,
-        type: "float",
-      },
-      type: "float",
-    }),
-  ]);
+  // params.setModifiers("simulate", "maxRadius", [
+  //   createScalarLFO({
+  //     curve: "triangle",
+  //     hz: 0.01,
+  //     range: 1.0,
+  //     offset: 0,
+  //     phase: 0.5,
+  //     domain: {
+  //       min: 1,
+  //       max: 50,
+  //       type: "float",
+  //     },
+  //     type: "float",
+  //   }),
+  // ]);
 
-  params.setModifiers("main", "particles", [
-    createScalarLFO({
-      curve: "triangle",
-      hz: 0.01,
-      range: 1.0,
-      offset: 0,
-      phase: 0.5,
-      domain: {
-        min: 1000,
-        max: 400000,
-        type: "int",
-      },
-      type: "int",
-    }),
-  ]);
+  // params.setModifiers("main", "particles", [
+  //   createScalarLFO({
+  //     curve: "sine",
+  //     hz: 0.0025,
+  //     range: 0.67,
+  //     offset: 0,
+  //     phase: 0.5,
+  //     domain: {
+  //       min: 1000,
+  //       max: 400000,
+  //       type: "int",
+  //     },
+  //     type: "int",
+  //   }),
+  // ]);
 }
 
 export default main;
