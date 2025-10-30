@@ -1,9 +1,8 @@
 import { Emitter, type Subscribable } from "../../../util/events";
+import { saveIcon } from "../../icons";
 import type { Component } from "../types";
 import "./dropdown.css";
 import template from "./dropdown.html?raw";
-import { saveIcon } from "../../icons";
-import { svgToUrl } from "../../util/svg";
 
 // The shallow object the dropdown works with.
 export type DropdownItem = {
