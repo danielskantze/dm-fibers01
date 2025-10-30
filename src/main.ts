@@ -248,6 +248,22 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
       type: "float",
     }),
   ]);
+
+  params.setModifiers("main", "particles", [
+    createScalarLFO({
+      curve: "triangle",
+      hz: 0.01,
+      range: 1.0,
+      offset: 0,
+      phase: 0.5,
+      domain: {
+        min: 1000,
+        max: 400000,
+        type: "int",
+      },
+      type: "int",
+    }),
+  ]);
 }
 
 export default main;
