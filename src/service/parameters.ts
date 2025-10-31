@@ -11,10 +11,16 @@ const presetFormatVersion = 1.0;
 
 export type ParameterModifierTransformFn = (
   frame: number,
-  value: UniformValue,
-  data?: ParameterData
+  value: UniformValue
 ) => UniformValue;
+
+export interface ParameterModifierMapping {
+  blendMode: "add" | "multiply";
+  range: number;
+  offset: number;
+}
 export interface ParameterModifier {
+  mapping: ParameterModifierMapping;
   transform: ParameterModifierTransformFn;
 }
 
@@ -221,16 +227,24 @@ class ParameterService<G extends string> {
     this.notify(group, parameter, value);
   }
 
+  applyModifier(modifier: ParameterModifier, value: UniformValue): UniformValue {
+    return modifier.transform(this.frame, value);
+  }
+
+  computeValue(parameter: ManagedParameter) {
+    let value = parameter.baseValue;
+    for (const m of parameter.modifiers) {
+      value = this.applyModifier(m, value);
+    }
+    return value;
+  }
+
   getValue<T extends UniformValue>(group: G, parameter: string): T {
     const p = this.getManagedParameter(group, parameter);
-    let value = p.baseValue;
     if (p.updatedFrame != this.frame) {
-      for (const m of p.modifiers) {
-        value = m.transform(this.frame, value, p);
-      }
+      p.value = this.computeValue(p);
       p.updatedFrame = this.frame;
     }
-    p.value = value;
     return p.value! as T;
   }
 

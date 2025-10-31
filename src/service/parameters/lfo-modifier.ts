@@ -1,7 +1,11 @@
 import { clamp, createDomainMapping, frac, type ScalarMapFn } from "../../math/scalar";
 import type { UniformType, UniformValueDomain } from "../../types/gl/uniforms";
 import { StreamLogging } from "../../util/logging";
-import { type ParameterModifier, type ParameterModifierTransformFn } from "../parameters";
+import {
+  type ParameterModifier,
+  type ParameterModifierMapping,
+  type ParameterModifierTransformFn,
+} from "../parameters";
 import { ModifierTypeException } from "./types";
 
 const fps: number = 60;
@@ -16,7 +20,10 @@ type Props = {
   type: UniformType;
 };
 
-export function createScalarLFO(props: Props): ParameterModifier {
+export function createScalarLFO(
+  props: Props,
+  mapping: ParameterModifierMapping
+): ParameterModifier {
   const { hz, curve, domain, type } = props;
   let { range, offset, phase } = props;
   if (!(type === "float" || type === "int")) {
@@ -80,5 +87,10 @@ export function createScalarLFO(props: Props): ParameterModifier {
 
   return {
     transform,
+    mapping: {
+      blendMode: "add",
+      offset,
+      range,
+    },
   };
 }

@@ -236,21 +236,21 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   init();
   await start(audioStore);
 
-  params.setModifiers("simulate", "maxRadius", [
-    createScalarLFO({
-      curve: "sine",
-      hz: 0.01,
-      range: 0.6,
-      offset: -0.5,
-      phase: 0.0,
-      domain: {
-        min: 0.0,
-        max: 50.0,
-        type: "float",
-      },
-      type: "float",
-    }),
-  ]);
+  // params.setModifiers("simulate", "maxRadius", [
+  //   createScalarLFO({
+  //     curve: "sine",
+  //     hz: 0.01,
+  //     range: 0.6,
+  //     offset: -0.5,
+  //     phase: 0.0,
+  //     domain: {
+  //       min: 0.0,
+  //       max: 50.0,
+  //       type: "float",
+  //     },
+  //     type: "float",
+  //   }),
+  // ]);
 
   // params.setModifiers("main", "particles", [
   //   createScalarLFO({
