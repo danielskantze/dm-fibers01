@@ -307,10 +307,11 @@ void main() {
 
     float tA = pow(t, 0.33);
     color.a = mix(0.0, 1.1, tA);
-    float colorK = mix(1.005, 0.97, u_audio_level_stats.w);
-    color.xyz *= colorK;
-    color.a *= min(1.0, (u_audio_level_stats.z * 0.04));
-    // color *= max(0.0, 1.0 - u_audio_level_stats.z);
+
+    // TODO: Uncomment this to respond to audio level stats
+    // float colorK = mix(1.005, 0.97, u_audio_level_stats.w);
+    // color.xyz *= colorK;
+    // color.a *= min(1.0, (u_audio_level_stats.z * 0.04));    
   }
 
     // - x - float angle (0-1)

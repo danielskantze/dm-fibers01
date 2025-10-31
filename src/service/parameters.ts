@@ -220,7 +220,7 @@ class ParameterService<G extends string> {
       p.value = computeValue(this.frame, p);
       p.updatedFrame = this.frame;
     }
-    this.notify(group, parameter, p.value);
+    this.notify(group, parameter, p.baseValue);
   }
 
   getValue<T extends UniformValue>(group: G, parameter: string): T {

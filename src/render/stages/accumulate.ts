@@ -75,12 +75,14 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         accumulate: {
           location: accumulateLocation,
           domain: {
-            name: "Accumulate",
             min: 0,
             max: 1,
             step: 1,
             type: "enum",
             options: ["no", "yes"],
+          },
+          ui: {
+            name: "Accumulate",
           },
           value: 1,
           type: "int",

@@ -170,7 +170,6 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
 
     const initAudio = async () => {
       const audioId = params.getValue("main", "audio");
-      console.log("audioId", audioId);
       if (audioId && (await audioStore.has(audioId as string))) {
         return onSelectAudio(await audioStore.get(audioId as string));
       } else {
