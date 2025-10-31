@@ -8,7 +8,6 @@ import {
   isPublicUniform,
   type PublicUniform,
   type TextureUniform,
-  type Uniform,
 } from "../../types/gl/uniforms";
 import type {
   BufferedStageOutput,
@@ -18,7 +17,7 @@ import type {
 } from "../../types/stage";
 import fShaderSource from "../shaders/accumulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
-import { filter, filterType } from "../util/dict";
+import { filterType } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
   return {
