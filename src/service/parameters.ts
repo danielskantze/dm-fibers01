@@ -1,10 +1,10 @@
 import * as uniforms from "../gl/uniforms";
 import { orderedValues } from "../render/util/dict";
-import { type PublicUniform, type UniformValue } from "../types/gl/uniforms";
+import { type ParameterUniform, type UniformValue } from "../types/gl/uniforms";
 import type { StageName } from "../types/stage";
 import { migrate } from "./parameters/migrations";
 
-export type ParameterData = PublicUniform;
+export type ParameterData = ParameterUniform;
 export type ParameterPresetKey = "presets";
 export type ParameterGroupKey = "main" | "bloom" | StageName;
 
@@ -117,8 +117,16 @@ class ParameterService<G extends string> {
     return instance;
   }
 
-  subscribe(group: string, parameter: string, update: (value: UniformValue) => void) {
-    const subscriber: Subscriber = { group, parameter, update };
+  subscribe<T extends ParameterUniform>(
+    group: string,
+    parameter: string,
+    update: (value: T["value"]) => void
+  ) {
+    const subscriber: Subscriber = {
+      group,
+      parameter,
+      update: update as (value: UniformValue) => void,
+    };
     this.subscribers.push(subscriber);
 
     return () => {
@@ -130,15 +138,6 @@ class ParameterService<G extends string> {
   lookup(param: ParameterData): [G, string] | undefined {
     const p = this.list().find(([, , data]) => param === data);
     return p ? [p[0], p[1]] : undefined;
-  }
-
-  subscribeParam(param: ParameterData, update: (value: UniformValue) => void) {
-    const result = this.lookup(param);
-    if (!result) {
-      throw new Error("ParameterData is not found in registry");
-    }
-    const [group, parameter] = result;
-    return this.subscribe(group, parameter, update);
   }
 
   private notify(group: G, parameter: string, value: UniformValue) {

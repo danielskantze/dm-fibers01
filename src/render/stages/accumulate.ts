@@ -6,7 +6,7 @@ import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
 import {
   isParameterUniform,
-  type PublicUniform,
+  type ParameterUniform,
   type TextureUniform,
 } from "../../types/gl/uniforms";
 import type {
@@ -70,7 +70,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
           },
           value: 5.0,
           type: "float",
-        } as PublicUniform,
+        } as ParameterUniform,
         accumulate: {
           location: accumulateLocation,
           domain: {
@@ -83,7 +83,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
           },
           value: 1,
           type: "int",
-        } as PublicUniform,
+        } as ParameterUniform,
       };
       return { program, attributes, uniforms } as ShaderProgram;
     }),
