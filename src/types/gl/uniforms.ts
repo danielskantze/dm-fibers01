@@ -1,3 +1,5 @@
+import type { Vec3, Matrix3x3, Matrix4x4, Matrix4x3, Vec4 } from "../../math/types";
+
 type UniformType =
   | "vec4"
   | "vec3"
@@ -66,13 +68,75 @@ interface Uniform {
   value?: UniformValue;
   type?: UniformType;
 }
-interface PublicUniform extends Uniform {
+interface ParameterUniform extends Uniform {
   domain: UniformValueDomain;
   ui?: UniformUI;
 }
 
-export function isPublicUniform(uniform: Uniform): uniform is PublicUniform {
-  return (uniform as PublicUniform).domain !== undefined;
+export interface FloatUniform extends ParameterUniform {
+  type: "float";
+  value: number;
+}
+
+export function isFloatUniform(uniform: Uniform): uniform is FloatUniform {
+  return uniform.type === "float";
+}
+
+export interface IntUniform extends ParameterUniform {
+  type: "int";
+  value: number;
+}
+
+export function isIntUniform(uniform: Uniform): uniform is IntUniform {
+  return uniform.type === "int";
+}
+
+export interface Vec3Uniform extends ParameterUniform {
+  type: "vec3";
+  value: Vec3;
+}
+
+export function isVec3Uniform(uniform: Uniform): uniform is Vec3Uniform {
+  return uniform.type === "vec3";
+}
+
+export interface Vec4Uniform extends ParameterUniform {
+  type: "vec4";
+}
+
+export function isVec4Uniform(uniform: Uniform): uniform is Vec4Uniform {
+  return uniform.type === "vec4";
+}
+
+export interface Mat4Uniform extends ParameterUniform {
+  type: "mat4";
+  value: Matrix4x4;
+}
+
+export function isMat4Uniform(uniform: Uniform): uniform is Mat4Uniform {
+  return uniform.type === "mat4";
+}
+
+export interface Mat3Uniform extends ParameterUniform {
+  type: "mat3";
+  value: Matrix3x3;
+}
+
+export function isMat3Uniform(uniform: Uniform): uniform is Mat3Uniform {
+  return uniform.type === "mat3";
+}
+
+export interface Mat43Uniform extends ParameterUniform {
+  type: "mat43";
+  value: Matrix4x3;
+}
+
+export function isMat43Uniform(uniform: Uniform): uniform is Mat43Uniform {
+  return uniform.type === "mat43";
+}
+
+export function isParameterUniform(uniform: Uniform): uniform is ParameterUniform {
+  return (uniform as ParameterUniform).domain !== undefined;
 }
 
 export interface TextureUniform extends Uniform {
@@ -82,4 +146,4 @@ export interface TextureUniform extends Uniform {
 
 type Uniforms = Record<string, Uniform>;
 
-export type { Uniform, PublicUniform, UniformType, Uniforms };
+export type { Uniform, ParameterUniform as PublicUniform, UniformType, Uniforms };

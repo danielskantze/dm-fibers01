@@ -5,7 +5,7 @@ import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
 import {
-  isPublicUniform,
+  isParameterUniform,
   type PublicUniform,
   type TextureUniform,
 } from "../../types/gl/uniforms";
@@ -122,7 +122,7 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
   ] as BufferedStageOutput;
 
   const uniforms = shaders.shader!.uniforms;
-  const parameters = filterType(isPublicUniform, uniforms);
+  const parameters = filterType(isParameterUniform, uniforms);
   return {
     name: "accumulate",
     resources: {

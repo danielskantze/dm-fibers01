@@ -5,7 +5,7 @@ import { createTexture } from "../../gl/textures";
 import * as mat43 from "../../math/mat43";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import {
-  isPublicUniform,
+  isParameterUniform,
   type TextureUniform,
   type Uniform,
 } from "../../types/gl/uniforms";
@@ -82,7 +82,7 @@ function create(
   const { width, height } = input.targets[0];
   const output = bufferOutput ? createOutput(gl, width, height, "output") : undefined;
   const uniforms = shaders.shader.uniforms;
-  const parameters = filterType(isPublicUniform, uniforms);
+  const parameters = filterType(isParameterUniform, uniforms);
   return {
     name: "debug",
     resources: {

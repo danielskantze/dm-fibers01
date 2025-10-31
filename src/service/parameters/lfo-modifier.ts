@@ -1,5 +1,11 @@
+import { fps } from "../../config/constants";
 import { clamp, createDomainMapping, frac, type ScalarMapFn } from "../../math/scalar";
-import type { UniformType, UniformValueDomain } from "../../types/gl/uniforms";
+import {
+  UniformFloatTypes,
+  UniformIntTypes,
+  type UniformType,
+  type UniformValueDomain,
+} from "../../types/gl/uniforms";
 import { StreamLogging } from "../../util/logging";
 import {
   type ParameterModifier,
@@ -7,8 +13,6 @@ import {
   type ParameterModifierTransformFn,
 } from "../parameters";
 import { ModifierTypeException } from "./types";
-
-const fps: number = 60;
 
 type Props = {
   hz: number;
@@ -26,7 +30,7 @@ export function createScalarLFO(
 ): ParameterModifier {
   const { hz, curve, domain, type } = props;
   let { range, offset, phase } = props;
-  if (!(type === "float" || type === "int")) {
+  if (!UniformFloatTypes.includes(type) && !UniformIntTypes.includes(type)) {
     throw new ModifierTypeException("Unsupported type (only float supported right now)");
   }
   const distance = domain.max - domain.min;
@@ -42,13 +46,12 @@ export function createScalarLFO(
       max: delta * 0.5 * (1 + offset),
     }
   );
-  const finalize: ScalarMapFn =
-    type === "int"
-      ? Math.round
-      : x => {
-          //StreamLogging.addOrlog("simulate.maxRadius", 10, [x.toFixed(2)]);
-          return x;
-        };
+  const finalize: ScalarMapFn = UniformIntTypes.includes(type)
+    ? Math.round
+    : x => {
+        //StreamLogging.addOrlog("simulate.maxRadius", 10, [x.toFixed(2)]);
+        return x;
+      };
   let transform: ParameterModifierTransformFn;
   switch (curve) {
     case "sine":

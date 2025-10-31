@@ -15,7 +15,7 @@ import { defaultRenderConfig } from "../config/parameters";
 import * as screenshot from "./util/screenshot";
 import type { IVideoRecorder } from "./util/recorder";
 import { StreamLogging } from "../util/logging";
-import { isPublicUniform, type UniformValue } from "../types/gl/uniforms";
+import { isParameterUniform, type UniformValue } from "../types/gl/uniforms";
 import { filterType } from "./util/dict";
 
 // import fdebugShaderSource from "./shaders/debug.fs.glsl?raw";
@@ -187,9 +187,6 @@ export class WebGLRenderer {
     for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
       // TODO: Fix this - not sure we should update the params inside the renderer
       const numParticles = this._params.getValue<number>("main", "particles");
-      StreamLogging.addOrlog("accumulate", 60, [
-        this._params.getValue("accumulate", "accumulate"),
-      ]);
       this._updateParamsCallback(this._frame);
       this._updateUniforms();
       this._updateSimulationStages(numParticles);
@@ -301,14 +298,14 @@ export class WebGLRenderer {
     const screenshot = stage_output.create(this._gl, combine, true);
     let debug: Stage | undefined = undefined; //stage_debug.create(this._gl, combine, false, fdebugShaderSource);
 
-    Object.entries(filterType(isPublicUniform, simulate.parameters)).forEach(([k, v]) =>
-      this._params.register(simulate.name, k, v)
+    Object.entries(filterType(isParameterUniform, simulate.parameters)).forEach(
+      ([k, v]) => this._params.register(simulate.name, k, v)
     );
-    Object.entries(filterType(isPublicUniform, accumulate.parameters)).forEach(([k, v]) =>
-      this._params.register(accumulate.name, k, v)
+    Object.entries(filterType(isParameterUniform, accumulate.parameters)).forEach(
+      ([k, v]) => this._params.register(accumulate.name, k, v)
     );
     if (debug) {
-      Object.entries(filterType(isPublicUniform, (debug as Stage).parameters)).forEach(
+      Object.entries(filterType(isParameterUniform, (debug as Stage).parameters)).forEach(
         ([k, v]) => this._params.register((debug as Stage).name, k, v)
       );
     }
