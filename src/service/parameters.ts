@@ -158,7 +158,7 @@ class ParameterService<G extends string> {
     Object.entries(data).forEach(([group, parameters]) => {
       Object.entries(parameters).forEach(([id, data]) => {
         const desc = this.getParameter(group as G, id);
-        this.setValue(group as G, id, uniforms.createFromJson(data, desc.type));
+        this.setValue(group as G, id, uniforms.createFromJson(data, desc.type), true);
       });
     });
   }
@@ -228,9 +228,14 @@ class ParameterService<G extends string> {
     return this.registry[group].parameters[parameter];
   }
 
-  setValue(group: G, parameter: string, value: UniformValue) {
-    this.getManagedParameter(group, parameter).baseValue = value;
-    this.notify(group, parameter, value);
+  setValue(group: G, parameter: string, value: UniformValue, recompute: boolean = false) {
+    const p = this.getManagedParameter(group, parameter);
+    p.baseValue = value;
+    if (recompute) {
+      p.value = this.computeValue(p);
+      p.updatedFrame = this.frame;
+    }
+    this.notify(group, parameter, p.value);
   }
 
   applyModifier(modifier: ParameterModifier, value: UniformValue): UniformValue {
