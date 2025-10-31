@@ -3,27 +3,13 @@ import { orderedValues } from "../render/util/dict";
 import { type ParameterUniform, type UniformValue } from "../types/gl/uniforms";
 import type { StageName } from "../types/stage";
 import { migrate } from "./parameters/migrations";
+import { computeValue, type ParameterModifier } from "./parameters/modifiers";
 
 export type ParameterData = ParameterUniform;
 export type ParameterPresetKey = "presets";
 export type ParameterGroupKey = "main" | "bloom" | StageName;
 
 const presetFormatVersion = 1;
-
-export type ParameterModifierTransformFn = (
-  frame: number,
-  value: UniformValue
-) => UniformValue;
-
-export interface ParameterModifierMapping {
-  blendMode: "add" | "multiply";
-  range: number;
-  offset: number;
-}
-export interface ParameterModifier {
-  mapping: ParameterModifierMapping;
-  transform: ParameterModifierTransformFn;
-}
 
 export type ManagedParameter = {
   data: ParameterData;
@@ -231,28 +217,16 @@ class ParameterService<G extends string> {
     const p = this.getManagedParameter(group, parameter);
     p.baseValue = value;
     if (recompute) {
-      p.value = this.computeValue(p);
+      p.value = computeValue(this.frame, p);
       p.updatedFrame = this.frame;
     }
     this.notify(group, parameter, p.value);
   }
 
-  applyModifier(modifier: ParameterModifier, value: UniformValue): UniformValue {
-    return modifier.transform(this.frame, value);
-  }
-
-  computeValue(parameter: ManagedParameter) {
-    let value = parameter.baseValue;
-    for (const m of parameter.modifiers) {
-      value = this.applyModifier(m, value);
-    }
-    return value;
-  }
-
   getValue<T extends UniformValue>(group: G, parameter: string): T {
     const p = this.getManagedParameter(group, parameter);
     if (p.updatedFrame != this.frame) {
-      p.value = this.computeValue(p);
+      p.value = computeValue(this.frame, p);
       p.updatedFrame = this.frame;
     }
     return p.value! as T;

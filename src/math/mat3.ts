@@ -1,5 +1,6 @@
 import type { Matrix3x3, Vec3 } from "./types";
 import * as vec3 from "./vec3";
+import { clamp as clampScalar } from "./scalar";
 
 export function create(
   a: [number, number, number, number, number, number, number, number, number]
@@ -108,4 +109,32 @@ export function getVectorRotationMat(from: Vec3, to: Vec3): Matrix3x3 {
   const KK = multiplyMat(K, K);
   const oneMinusCKK = multiplyScalar(1.0 - cos, KK);
   return addMats(I, sK, oneMinusCKK);
+}
+
+export function clamp(value: Matrix3x3, min: Matrix3x3, max: Matrix3x3): Matrix3x3 {
+  return create([
+    clampScalar(value[0], min[0], max[0]),
+    clampScalar(value[1], min[1], max[1]),
+    clampScalar(value[2], min[2], max[2]),
+    clampScalar(value[3], min[3], max[3]),
+    clampScalar(value[4], min[4], max[4]),
+    clampScalar(value[5], min[5], max[5]),
+    clampScalar(value[6], min[6], max[6]),
+    clampScalar(value[7], min[7], max[7]),
+    clampScalar(value[8], min[8], max[8]),
+  ]);
+}
+
+export function clampS(value: Matrix3x3, min: number, max: number): Matrix3x3 {
+  return create([
+    clampScalar(value[0], min, max),
+    clampScalar(value[1], min, max),
+    clampScalar(value[2], min, max),
+    clampScalar(value[3], min, max),
+    clampScalar(value[4], min, max),
+    clampScalar(value[5], min, max),
+    clampScalar(value[6], min, max),
+    clampScalar(value[7], min, max),
+    clampScalar(value[8], min, max),
+  ]);
 }
