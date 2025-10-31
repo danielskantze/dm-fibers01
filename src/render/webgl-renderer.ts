@@ -303,7 +303,6 @@ export class WebGLRenderer {
     Object.keys(simulate.parameters).forEach(k =>
       this._params.register(simulate.name, k, simulate.parameters[k])
     );
-
     Object.keys(accumulate.parameters).forEach(k =>
       this._params.register(accumulate.name, k, accumulate.parameters[k])
     );

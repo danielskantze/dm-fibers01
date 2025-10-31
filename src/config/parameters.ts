@@ -28,7 +28,7 @@ export const defaultParameters = {
           seed: {
             type: "custom",
             value: "fibers01",
-            ui: {
+            domain: {
               name: "Seed",
               component: "seed",
             },
@@ -40,7 +40,7 @@ export const defaultParameters = {
           particles: {
             type: "int",
             value: 1000,
-            ui: {
+            domain: {
               name: "Particles",
               min: 10,
               max: constants.maxNumParticles,
@@ -49,7 +49,7 @@ export const defaultParameters = {
           updatesPerDraw: {
             type: "int",
             value: 4,
-            ui: {
+            domain: {
               name: "Steps/draw",
               min: 1,
               max: 10,
@@ -64,7 +64,7 @@ export const defaultParameters = {
           quality: {
             type: "int",
             value: 0,
-            ui: {
+            domain: {
               name: "Quality",
               min: 0,
               max: 2,
@@ -76,7 +76,7 @@ export const defaultParameters = {
           steps: {
             type: "int",
             value: 3,
-            ui: {
+            domain: {
               name: "Blur steps",
               min: 3,
               max: constants.maxBlurSteps,
@@ -86,7 +86,7 @@ export const defaultParameters = {
           luma: {
             type: "float",
             value: 0.25,
-            ui: {
+            domain: {
               name: "Luma",
               min: 0,
               max: 1.0,
@@ -96,7 +96,7 @@ export const defaultParameters = {
           intensity: {
             type: "float",
             value: 0.5,
-            ui: {
+            domain: {
               name: "Intensity",
               min: 0,
               max: 1.0,

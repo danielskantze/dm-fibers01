@@ -75,7 +75,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         },
         randomSeed: {
           location: randomSeedLocation,
-          ui: {
+          domain: {
             name: "Seed",
             type: "hidden",
           },
@@ -84,7 +84,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         },
         strokeNoise: {
           location: strokeNoisePLocation,
-          ui: {
+          domain: {
             name: "Stroke Noise",
             min: -5.0,
             max: 5.0,
@@ -94,7 +94,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         },
         strokeDrift: {
           location: strokeDriftPLocation,
-          ui: {
+          domain: {
             name: "Stroke Drift",
             min: -1.0,
             max: 1.0,
@@ -104,7 +104,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         },
         colorNoise: {
           location: colorNoisePLocation,
-          ui: {
+          domain: {
             name: "Color Noise & Drift",
             min: 0.0,
             max: 1.0,
@@ -121,7 +121,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             [1.0, 1.0, 1.0],
             [0.0, 0.9, 0.9],
           ]),
-          ui: {
+          domain: {
             name: "Palette",
             min: 0.0,
             max: 1.0,
@@ -130,7 +130,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         },
         maxRadius: {
           location: maxRadiusPLocation,
-          ui: {
+          domain: {
             name: "Radius",
             min: 0.5,
             max: 50.0,
@@ -141,7 +141,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         audioLevelStats: {
           location: audioLevelStatsLocation,
           value: vec4.createZero(),
-          ui: {
+          domain: {
             name: "Audio level stats",
             type: "hidden",
           },
@@ -220,7 +220,7 @@ function create(gl: WebGL2RenderingContext, numParticles: number): Stage {
     createOutput(gl, width, height, "simulate_output_2"),
   ] as BufferedStageOutput;
   const uniforms = shader!.uniforms;
-  const parameters = filter<Uniform>((_, v) => !!v.ui, uniforms);
+  const parameters = filter<Uniform>((_, v) => !!v.domain, uniforms);
   return {
     name: "simulate",
     resources: {

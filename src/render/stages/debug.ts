@@ -30,7 +30,7 @@ function loadShaders(gl: WebGL2RenderingContext, fShaderSource: string): ShaderP
             [1.0, 1.0, 1.0],
             [0.0, 0.9, 0.9],
           ]),
-          ui: {
+          domain: {
             name: "DPalette",
             min: 0.0,
             max: 1.0,
@@ -76,7 +76,7 @@ function create(
   const { width, height } = input.targets[0];
   const output = bufferOutput ? createOutput(gl, width, height, "output") : undefined;
   const uniforms = shaders.shader.uniforms;
-  const parameters = filter<Uniform>((_, v) => !!v.ui, uniforms);
+  const parameters = filter<Uniform>((_, v) => !!v.domain, uniforms);
   return {
     name: "debug",
     resources: {
