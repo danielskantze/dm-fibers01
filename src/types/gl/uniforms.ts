@@ -102,6 +102,7 @@ export function isVec3Uniform(uniform: Uniform): uniform is Vec3Uniform {
 
 export interface Vec4Uniform extends ParameterUniform {
   type: "vec4";
+  value: Vec4;
 }
 
 export function isVec4Uniform(uniform: Uniform): uniform is Vec4Uniform {
