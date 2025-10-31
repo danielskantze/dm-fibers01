@@ -10,8 +10,11 @@ import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
 import {
   isParameterUniform,
+  type FloatUniform,
+  type Mat43Uniform,
   type TextureUniform,
   type Uniform,
+  type Vec4Uniform,
 } from "../../types/gl/uniforms";
 import type {
   BufferedStageOutput,
@@ -97,7 +100,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
           },
           value: vec4.create([0.5, 0.1, 1.55, 0.33]),
           type: "vec4",
-        } as Uniform,
+        } as Vec4Uniform,
         strokeDrift: {
           location: strokeDriftPLocation,
           domain: {
@@ -109,7 +112,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
           },
           value: vec4.create([0.03, 0.01, 0.1, 0.1]),
           type: "vec4",
-        } as Uniform,
+        } as Vec4Uniform,
         colorNoise: {
           location: colorNoisePLocation,
           domain: {
@@ -121,7 +124,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
           },
           value: vec4.create([0.1, 0.1, 0.001, 0.05]),
           type: "vec4",
-        } as Uniform,
+        } as Vec4Uniform,
         cosPalette: {
           location: cosPaletteLocation,
           type: "mat43",
@@ -139,7 +142,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             name: "Palette",
             component: "cos-palette",
           },
-        } as Uniform,
+        } as Mat43Uniform,
         maxRadius: {
           location: maxRadiusPLocation,
           domain: {
@@ -151,7 +154,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
           },
           value: 2.0,
           type: "float",
-        } as Uniform,
+        } as FloatUniform,
         audioLevelStats: {
           location: audioLevelStatsLocation,
           value: vec4.createZero(),
@@ -159,12 +162,8 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             min: Number.NEGATIVE_INFINITY,
             max: Number.POSITIVE_INFINITY,
           },
-          ui: {
-            name: "Audio level stats",
-            type: "hidden",
-          },
           type: "vec4",
-        } as Uniform,
+        } as Vec4Uniform,
       };
       return { program, attributes, uniforms } as ShaderProgram;
     }),

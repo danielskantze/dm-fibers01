@@ -6,8 +6,8 @@ import * as mat43 from "../../math/mat43";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import {
   isParameterUniform,
+  type Mat43Uniform,
   type TextureUniform,
-  type Uniform,
 } from "../../types/gl/uniforms";
 import type { Resources, Stage, StageOutput } from "../../types/stage";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
@@ -42,7 +42,7 @@ function loadShaders(gl: WebGL2RenderingContext, fShaderSource: string): ShaderP
             name: "Palette",
             component: "cos-palette",
           },
-        } as Uniform,
+        } as Mat43Uniform,
       };
       return { program, attributes, uniforms } as ShaderProgram;
     }),
