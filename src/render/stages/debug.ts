@@ -3,11 +3,16 @@ import { createFrameBuffer } from "../../gl/framebuffers";
 import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
-import type { TextureUniform, Uniform } from "../../types/gl/uniforms";
+import {
+  isPublicUniform,
+  type PublicUniform,
+  type TextureUniform,
+  type Uniform,
+} from "../../types/gl/uniforms";
 import type { Resources, Stage, StageOutput } from "../../types/stage";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
 import * as mat43 from "../../math/mat43";
-import { filter } from "../util/dict";
+import { filter, filterType } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext, fShaderSource: string): ShaderPrograms {
   return {
@@ -31,12 +36,14 @@ function loadShaders(gl: WebGL2RenderingContext, fShaderSource: string): ShaderP
             [0.0, 0.9, 0.9],
           ]),
           domain: {
-            name: "DPalette",
             min: 0.0,
             max: 1.0,
+          },
+          ui: {
+            name: "Palette",
             component: "cos-palette",
           },
-        },
+        } as Uniform,
       };
       return { program, attributes, uniforms } as ShaderProgram;
     }),
@@ -76,7 +83,7 @@ function create(
   const { width, height } = input.targets[0];
   const output = bufferOutput ? createOutput(gl, width, height, "output") : undefined;
   const uniforms = shaders.shader.uniforms;
-  const parameters = filter<Uniform>((_, v) => !!v.domain, uniforms);
+  const parameters = filterType(isPublicUniform, uniforms);
   return {
     name: "debug",
     resources: {

@@ -13,12 +13,10 @@ export function createUniformControls(
 ): Component[] {
   const children: Component[] = [];
   for (const u of uniforms) {
-    const { domain: ui } = u;
-    if (ui) {
-      const { name, min, max, step, component, type } = u.domain!;
-      if (type === "hidden") {
-        continue;
-      }
+    const { domain, ui } = u;
+    if (!!ui) {
+      const { name, component } = ui;
+      const { min, max, step } = u.domain!;
 
       const numComponents = UniformComponents[u.type!]!;
       const factory = getFactoryFor(
@@ -51,7 +49,7 @@ export function createUniformControls(
         },
         onSeed: (seed: string) => eventSource.emit("seed", { seed }),
         type: u.domain?.type ?? (u.type === "int" ? "int" : "float"),
-        enumValues: ui.options,
+        enumValues: domain.options,
         buttonTitle: "Update",
         title: "Seed",
       };

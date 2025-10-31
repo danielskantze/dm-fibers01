@@ -8,7 +8,12 @@ import * as vec3 from "../../math/vec3";
 import * as vec4 from "../../math/vec4";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
-import type { TextureUniform, Uniform } from "../../types/gl/uniforms";
+import {
+  isPublicUniform,
+  type PublicUniform,
+  type TextureUniform,
+  type Uniform,
+} from "../../types/gl/uniforms";
 import type {
   BufferedStageOutput,
   Resources,
@@ -17,7 +22,7 @@ import type {
 } from "../../types/stage";
 import fShaderSource from "../shaders/simulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
-import { filter } from "../util/dict";
+import { filter, filterType } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
   return {
@@ -76,42 +81,48 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         randomSeed: {
           location: randomSeedLocation,
           domain: {
-            name: "Seed",
-            type: "hidden",
+            min: Number.NEGATIVE_INFINITY,
+            max: Number.POSITIVE_INFINITY,
           },
           value: vec3.create([0, 0, 0]),
           type: "vec3",
-        },
+        } as Uniform,
         strokeNoise: {
           location: strokeNoisePLocation,
           domain: {
-            name: "Stroke Noise",
             min: -5.0,
             max: 5.0,
           },
+          ui: {
+            name: "Stroke Noise",
+          },
           value: vec4.create([0.5, 0.1, 1.55, 0.33]),
           type: "vec4",
-        },
+        } as Uniform,
         strokeDrift: {
           location: strokeDriftPLocation,
           domain: {
-            name: "Stroke Drift",
             min: -1.0,
             max: 1.0,
           },
+          ui: {
+            name: "Stroke Drift",
+          },
           value: vec4.create([0.03, 0.01, 0.1, 0.1]),
           type: "vec4",
-        },
+        } as Uniform,
         colorNoise: {
           location: colorNoisePLocation,
           domain: {
-            name: "Color Noise & Drift",
             min: 0.0,
             max: 1.0,
           },
+          ui: {
+            name: "Color Noise & Drift",
+          },
           value: vec4.create([0.1, 0.1, 0.001, 0.05]),
           type: "vec4",
-        },
+        } as Uniform,
         cosPalette: {
           location: cosPaletteLocation,
           type: "mat43",
@@ -122,26 +133,34 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
             [0.0, 0.9, 0.9],
           ]),
           domain: {
-            name: "Palette",
             min: 0.0,
             max: 1.0,
+          },
+          ui: {
+            name: "Palette",
             component: "cos-palette",
           },
-        },
+        } as Uniform,
         maxRadius: {
           location: maxRadiusPLocation,
           domain: {
-            name: "Radius",
             min: 0.5,
             max: 50.0,
           },
+          ui: {
+            name: "Radius",
+          },
           value: 2.0,
           type: "float",
-        },
+        } as Uniform,
         audioLevelStats: {
           location: audioLevelStatsLocation,
           value: vec4.createZero(),
           domain: {
+            min: Number.NEGATIVE_INFINITY,
+            max: Number.POSITIVE_INFINITY,
+          },
+          ui: {
             name: "Audio level stats",
             type: "hidden",
           },
@@ -220,7 +239,7 @@ function create(gl: WebGL2RenderingContext, numParticles: number): Stage {
     createOutput(gl, width, height, "simulate_output_2"),
   ] as BufferedStageOutput;
   const uniforms = shader!.uniforms;
-  const parameters = filter<Uniform>((_, v) => !!v.domain, uniforms);
+  const parameters = filterType(isPublicUniform, uniforms);
   return {
     name: "simulate",
     resources: {

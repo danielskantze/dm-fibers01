@@ -1,4 +1,5 @@
 import type {
+  ParameterConfigGroup,
   ParameterGroup,
   ParameterGroupDescriptor,
   ParameterGroupKey,
@@ -29,6 +30,11 @@ export const defaultParameters = {
             type: "custom",
             value: "fibers01",
             domain: {
+              min: 0,
+              max: 0,
+              type: "custom",
+            },
+            ui: {
               name: "Seed",
               component: "seed",
             },
@@ -41,19 +47,25 @@ export const defaultParameters = {
             type: "int",
             value: 1000,
             domain: {
-              name: "Particles",
               min: 10,
               max: constants.maxNumParticles,
+              type: "int",
+            },
+            ui: {
+              name: "Particles",
             },
           },
           updatesPerDraw: {
             type: "int",
             value: 4,
             domain: {
-              name: "Steps/draw",
               min: 1,
               max: 10,
               step: 1,
+              type: "int",
+            },
+            ui: {
+              name: "Steps/draw",
             },
           },
         },
@@ -65,47 +77,58 @@ export const defaultParameters = {
             type: "int",
             value: 0,
             domain: {
-              name: "Quality",
               min: 0,
               max: 2,
               step: 1,
               type: "enum",
               options: ["off", "low", "high"],
             },
+            ui: {
+              name: "Quality",
+            },
           },
           steps: {
             type: "int",
             value: 3,
             domain: {
-              name: "Blur steps",
               min: 3,
               max: constants.maxBlurSteps,
               step: 1,
+              type: "int",
+            },
+            ui: {
+              name: "Blur steps",
             },
           },
           luma: {
             type: "float",
             value: 0.25,
             domain: {
-              name: "Luma",
               min: 0,
               max: 1.0,
               step: 0.0001,
+              type: "float",
+            },
+            ui: {
+              name: "Luma",
             },
           },
           intensity: {
             type: "float",
             value: 0.5,
             domain: {
-              name: "Intensity",
               min: 0,
               max: 1.0,
               step: 0.0001,
+              type: "float",
+            },
+            ui: {
+              name: "Intensity",
             },
           },
         },
       },
-    ] as ParameterGroup<ParameterGroupKey>[],
+    ] as ParameterConfigGroup<ParameterGroupKey>[],
   },
 };
 
