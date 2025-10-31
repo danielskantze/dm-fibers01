@@ -1,5 +1,5 @@
 import type { ParameterData, ParameterRegistry } from "../../service/parameters";
-import { UniformComponents } from "../../types/gl/uniforms";
+import { UniformComponents, isParameterUniform } from "../../types/gl/uniforms";
 import type { Emitter } from "../../util/events";
 import { getFactoryFor } from "../component-registry";
 import type { Component } from "../components/types";
@@ -14,7 +14,7 @@ export function createUniformControls(
   const children: Component[] = [];
   for (const u of uniforms) {
     const { domain, ui } = u;
-    if (!!ui) {
+    if (isParameterUniform(u) && ui) {
       const { name, component } = ui;
       const { min, max, step } = u.domain!;
 
@@ -48,7 +48,7 @@ export function createUniformControls(
           }
         },
         onSeed: (seed: string) => eventSource.emit("seed", { seed }),
-        type: u.domain?.type ?? (u.type === "int" ? "int" : "float"),
+        type: u.domain.type,
         enumValues: domain.options,
         buttonTitle: "Update",
         title: "Seed",

@@ -9,7 +9,7 @@ import * as vec4 from "../../math/vec4";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
 import {
-  isPublicUniform,
+  isParameterUniform,
   type TextureUniform,
   type Uniform,
 } from "../../types/gl/uniforms";
@@ -238,7 +238,7 @@ function create(gl: WebGL2RenderingContext, numParticles: number): Stage {
     createOutput(gl, width, height, "simulate_output_2"),
   ] as BufferedStageOutput;
   const uniforms = shader!.uniforms;
-  const parameters = filterType(isPublicUniform, uniforms);
+  const parameters = filterType(isParameterUniform, uniforms);
   return {
     name: "simulate",
     resources: {
