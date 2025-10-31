@@ -2,12 +2,13 @@ import * as uniforms from "../gl/uniforms";
 import { orderedValues } from "../render/util/dict";
 import { type Uniform, type UniformValue } from "../types/gl/uniforms";
 import type { StageName } from "../types/stage";
+import { migrate } from "./parameters/migrations";
 
 export type ParameterData = Omit<Uniform, "location" | "slot">;
 export type ParameterPresetKey = "presets";
 export type ParameterGroupKey = "main" | "bloom" | StageName;
 
-const presetFormatVersion = 1.0;
+const presetFormatVersion = 1;
 
 export type ParameterModifierTransformFn = (
   frame: number,
@@ -145,10 +146,10 @@ class ParameterService<G extends string> {
     if (Object.entries(this.groups).length === 0) {
       throw new Error("Cannot load values without config");
     }
-    const { version, data } = preset;
-    if (version !== presetFormatVersion) {
-      throw new Error("Wrong preset version - migration not supported yet");
+    if (preset.version !== presetFormatVersion) {
+      preset = migrate(preset.version, presetFormatVersion, preset);
     }
+    const { data } = preset;
     Object.entries(data).forEach(([group, parameters]) => {
       Object.entries(parameters).forEach(([id, data]) => {
         const desc = this.getParameter(group as G, id);

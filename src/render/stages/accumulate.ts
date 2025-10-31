@@ -57,7 +57,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         },
         fadeTime: {
           location: fadeTimeLocation,
-          ui: {
+          domain: {
             name: "Fade time",
             min: 0.1,
             max: 30.0,
@@ -67,7 +67,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         },
         accumulate: {
           location: accumulateLocation,
-          ui: {
+          domain: {
             name: "Accumulate",
             min: 0,
             max: 1,
@@ -116,7 +116,7 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
   ] as BufferedStageOutput;
 
   const uniforms = shaders.shader!.uniforms;
-  const parameters = filter<Uniform>((_, v) => !!v.ui, uniforms);
+  const parameters = filter<Uniform>((_, v) => !!v.domain, uniforms);
   return {
     name: "accumulate",
     resources: {

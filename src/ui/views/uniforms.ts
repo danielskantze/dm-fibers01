@@ -13,9 +13,9 @@ export function createUniformControls(
 ): Component[] {
   const children: Component[] = [];
   for (const u of uniforms) {
-    const { ui } = u;
+    const { domain: ui } = u;
     if (ui) {
-      const { name, min, max, step, component, type } = u.ui!;
+      const { name, min, max, step, component, type } = u.domain!;
       if (type === "hidden") {
         continue;
       }
@@ -50,7 +50,7 @@ export function createUniformControls(
           }
         },
         onSeed: (seed: string) => eventSource.emit("seed", { seed }),
-        type: u.ui?.type ?? (u.type === "int" ? "int" : "float"),
+        type: u.domain?.type ?? (u.type === "int" ? "int" : "float"),
         enumValues: ui.options,
         buttonTitle: "Update",
         title: "Seed",

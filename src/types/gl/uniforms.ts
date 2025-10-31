@@ -62,7 +62,7 @@ export interface UniformUI extends Partial<UniformValueDomain> {
 }
 
 type Uniform = {
-  ui?: UniformUI;
+  domain?: UniformUI;
   type?: UniformType;
   value?: UniformValue;
   location: WebGLUniformLocation;
