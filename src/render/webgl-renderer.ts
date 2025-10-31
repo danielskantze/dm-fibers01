@@ -14,13 +14,11 @@ import { WebGLTextureError } from "../types/error";
 import { defaultRenderConfig } from "../config/parameters";
 import * as screenshot from "./util/screenshot";
 import type { IVideoRecorder } from "./util/recorder";
-import { StreamLogging } from "../util/logging";
 import {
   isParameterUniform,
   type FloatUniform,
   type IntUniform,
   type ParameterUniform,
-  type UniformValue,
 } from "../types/gl/uniforms";
 import { filterType } from "./util/dict";
 
