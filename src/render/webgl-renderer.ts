@@ -165,10 +165,6 @@ export class WebGLRenderer {
   }
 
   private _configureSubscriptions() {
-    const listener = (v: number) => (this._renderConfig.updatesPerDraw = v);
-    this._paramListeners.push(listener);
-    this._params.subscribe<IntUniform>("main", "updatesPerDraw", listener);
-
     const qualityListener = (v: number) => {
       this._renderConfig.bloomQuality = v;
       this._configureStages();
@@ -185,16 +181,18 @@ export class WebGLRenderer {
   }
 
   private _render(isScreenshot: boolean = false): void {
+    this._updateParamsCallback(this._frame);
+    this._updateUniforms();
+
     const bloomState: BloomStageParams = {
       lumaThreshold: this._params.getValue<number>("bloom", "luma"),
       bloomIntensity: this._params.getValue<number>("bloom", "intensity"),
     };
 
-    for (let i = 0; i < this._renderConfig.updatesPerDraw; i++) {
+    const updatesPerDraw = this._params.getValue<number>("main", "updatesPerDraw");
+    for (let i = 0; i < updatesPerDraw; i++) {
       // TODO: Fix this - not sure we should update the params inside the renderer
       const numParticles = this._params.getValue<number>("main", "particles");
-      this._updateParamsCallback(this._frame);
-      this._updateUniforms();
       this._updateSimulationStages(numParticles);
       this._frame++;
     }
