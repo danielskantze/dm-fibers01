@@ -1,5 +1,6 @@
 import { clamp, createDomainMapping, frac, type ScalarMapFn } from "../../math/scalar";
 import type { UniformType, UniformValueDomain } from "../../types/gl/uniforms";
+import { StreamLogging } from "../../util/logging";
 import { type ParameterModifier, type ParameterModifierTransformFn } from "../parameters";
 import { ModifierTypeException } from "./types";
 
@@ -30,17 +31,24 @@ export function createScalarLFO(props: Props): ParameterModifier {
   let { map } = createDomainMapping(
     { min: -1.0, max: 1.0 },
     {
-      min: -delta * range * (1 - offset),
-      max: delta * range * (1 + offset),
+      min: -delta * 0.5 * (1 - offset),
+      max: delta * 0.5 * (1 + offset),
     }
   );
-  const finalize: ScalarMapFn = type === "int" ? Math.round : x => x;
+  const finalize: ScalarMapFn =
+    type === "int"
+      ? Math.round
+      : x => {
+          //StreamLogging.addOrlog("simulate.maxRadius", 10, [x.toFixed(2)]);
+          return x;
+        };
   let transform: ParameterModifierTransformFn;
   switch (curve) {
     case "sine":
       transform = (frame, value) => {
         const t = frame / fps;
         const y = Math.sin((hz * t + phase) * Math.PI * 2.0);
+        StreamLogging.addOrlog("simulate.maxRadius(sine)", 10, [map(y).toFixed(2)]);
         return finalize(clamp((value as number) + map(y), domain.min, domain.max));
       };
       break;
@@ -49,6 +57,7 @@ export function createScalarLFO(props: Props): ParameterModifier {
       const shift = phase * divider;
       transform = (frame, value) => {
         const y = frac((frame + shift) / (fps / hz)) > 0.5 ? 1 : -1;
+        StreamLogging.addOrlog("simulate.maxRadius(square)", 10, [map(y).toFixed(2)]);
         return finalize(clamp((value as number) + map(y), domain.min, domain.max));
       };
       break;
@@ -63,6 +72,7 @@ export function createScalarLFO(props: Props): ParameterModifier {
         } else {
           y = -1.0 + (p - 0.75) / 0.25;
         }
+        StreamLogging.addOrlog("simulate.maxRadius(triangle)", 10, [map(y).toFixed(2)]);
         return finalize(clamp((value as number) + map(y), domain.min, domain.max));
       };
       break;

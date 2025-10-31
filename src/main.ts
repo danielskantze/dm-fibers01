@@ -18,6 +18,7 @@ import { createRoot } from "./ui/root";
 import { timestamp } from "./ui/util/date";
 import { strToVec3 } from "./ui/util/seed";
 import { Emitter, type EventMap } from "./util/events";
+import { StreamLogging } from "./util/logging";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -235,21 +236,21 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   init();
   await start(audioStore);
 
-  // params.setModifiers("simulate", "maxRadius", [
-  //   createScalarLFO({
-  //     curve: "triangle",
-  //     hz: 0.01,
-  //     range: 1.0,
-  //     offset: 0,
-  //     phase: 0.5,
-  //     domain: {
-  //       min: 1,
-  //       max: 50,
-  //       type: "float",
-  //     },
-  //     type: "float",
-  //   }),
-  // ]);
+  params.setModifiers("simulate", "maxRadius", [
+    createScalarLFO({
+      curve: "sine",
+      hz: 0.01,
+      range: 0.6,
+      offset: -0.5,
+      phase: 0.0,
+      domain: {
+        min: 0.0,
+        max: 50.0,
+        type: "float",
+      },
+      type: "float",
+    }),
+  ]);
 
   // params.setModifiers("main", "particles", [
   //   createScalarLFO({
