@@ -1,4 +1,5 @@
 import type { Vec3, Matrix3x3Vec, Vec4 } from "./types";
+import { clamp as clampScalar } from "./scalar";
 
 export function create(a: [number, number, number] | Float32Array): Vec3 {
   return new Float32Array(a);
@@ -133,4 +134,20 @@ export function max(a: Vec3, b: Vec3): Vec3 {
 
 export function min(a: Vec3, b: Vec3): Vec3 {
   return [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])] as Vec3;
+}
+
+export function clamp(value: Vec3, min: Vec3, max: Vec3): Vec3 {
+  return create([
+    clampScalar(value[0], min[0], max[0]),
+    clampScalar(value[1], min[1], max[1]),
+    clampScalar(value[2], min[2], max[2]),
+  ]);
+}
+
+export function clampS(value: Vec3, min: number, max: number): Vec3 {
+  return create([
+    clampScalar(value[0], min, max),
+    clampScalar(value[1], min, max),
+    clampScalar(value[2], min, max),
+  ]);
 }

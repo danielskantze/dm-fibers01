@@ -11,7 +11,7 @@ import {
   type ParameterModifier,
   type ParameterModifierMapping,
   type ParameterModifierTransformFn,
-} from "../parameters";
+} from "./modifiers";
 import { ModifierTypeException } from "./types";
 
 type Props = {
@@ -46,12 +46,6 @@ export function createScalarLFO(
       max: delta * 0.5 * (1 + offset),
     }
   );
-  const finalize: ScalarMapFn = UniformIntTypes.includes(type)
-    ? Math.round
-    : x => {
-        //StreamLogging.addOrlog("simulate.maxRadius", 10, [x.toFixed(2)]);
-        return x;
-      };
   let transform: ParameterModifierTransformFn;
   switch (curve) {
     case "sine":
@@ -59,7 +53,7 @@ export function createScalarLFO(
         const t = frame / fps;
         const y = Math.sin((hz * t + phase) * Math.PI * 2.0);
         StreamLogging.addOrlog("simulate.maxRadius(sine)", 10, [map(y).toFixed(2)]);
-        return finalize(clamp((value as number) + map(y), domain.min, domain.max));
+        return (value as number) + map(y);
       };
       break;
     case "square":
@@ -68,7 +62,7 @@ export function createScalarLFO(
       transform = (frame, value) => {
         const y = frac((frame + shift) / (fps / hz)) > 0.5 ? 1 : -1;
         StreamLogging.addOrlog("simulate.maxRadius(square)", 10, [map(y).toFixed(2)]);
-        return finalize(clamp((value as number) + map(y), domain.min, domain.max));
+        return (value as number) + map(y);
       };
       break;
     case "triangle":
@@ -83,7 +77,7 @@ export function createScalarLFO(
           y = -1.0 + (p - 0.75) / 0.25;
         }
         StreamLogging.addOrlog("simulate.maxRadius(triangle)", 10, [map(y).toFixed(2)]);
-        return finalize(clamp((value as number) + map(y), domain.min, domain.max));
+        return (value as number) + map(y);
       };
       break;
   }

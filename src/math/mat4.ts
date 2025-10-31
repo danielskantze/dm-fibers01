@@ -1,5 +1,6 @@
 import type { Matrix3x3, Matrix4x4, Vec3, Vec4 } from "./types";
 import * as mat3 from "./mat3";
+import { clamp as clampScalar } from "./scalar";
 
 export function create(
   a: [
@@ -201,4 +202,46 @@ export function scaleVec3(s: Vec3): Matrix4x4 {
 
 export function getVectorRotationMat(from: Vec3, to: Vec3): Matrix4x4 {
   return fromMat3(mat3.getVectorRotationMat(from, to), true);
+}
+
+export function clamp(value: Matrix4x4, min: Matrix4x4, max: Matrix4x4): Matrix4x4 {
+  return create([
+    clampScalar(value[0], min[0], max[0]),
+    clampScalar(value[1], min[1], max[1]),
+    clampScalar(value[2], min[2], max[2]),
+    clampScalar(value[3], min[3], max[3]),
+    clampScalar(value[4], min[4], max[4]),
+    clampScalar(value[5], min[5], max[5]),
+    clampScalar(value[6], min[6], max[6]),
+    clampScalar(value[7], min[7], max[7]),
+    clampScalar(value[8], min[8], max[8]),
+    clampScalar(value[9], min[9], max[9]),
+    clampScalar(value[10], min[10], max[10]),
+    clampScalar(value[11], min[11], max[11]),
+    clampScalar(value[12], min[12], max[12]),
+    clampScalar(value[13], min[13], max[13]),
+    clampScalar(value[14], min[14], max[14]),
+    clampScalar(value[15], min[15], max[15]),
+  ]);
+}
+
+export function clampS(value: Matrix4x4, min: number, max: number): Matrix4x4 {
+  return create([
+    clampScalar(value[0], min, max),
+    clampScalar(value[1], min, max),
+    clampScalar(value[2], min, max),
+    clampScalar(value[3], min, max),
+    clampScalar(value[4], min, max),
+    clampScalar(value[5], min, max),
+    clampScalar(value[6], min, max),
+    clampScalar(value[7], min, max),
+    clampScalar(value[8], min, max),
+    clampScalar(value[9], min, max),
+    clampScalar(value[10], min, max),
+    clampScalar(value[11], min, max),
+    clampScalar(value[12], min, max),
+    clampScalar(value[13], min, max),
+    clampScalar(value[14], min, max),
+    clampScalar(value[15], min, max),
+  ]);
 }
