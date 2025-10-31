@@ -1,6 +1,5 @@
 import type {
   ParameterConfigGroup,
-  ParameterGroup,
   ParameterGroupDescriptor,
   ParameterGroupKey,
   ParameterPreset,

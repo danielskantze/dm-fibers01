@@ -10,7 +10,6 @@ import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
 import {
   isPublicUniform,
-  type PublicUniform,
   type TextureUniform,
   type Uniform,
 } from "../../types/gl/uniforms";
@@ -22,7 +21,7 @@ import type {
 } from "../../types/stage";
 import fShaderSource from "../shaders/simulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
-import { filter, filterType } from "../util/dict";
+import { filterType } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
   return {

@@ -2,17 +2,16 @@ import { createQuad } from "../../gl/buffers";
 import { createFrameBuffer } from "../../gl/framebuffers";
 import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
+import * as mat43 from "../../math/mat43";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import {
   isPublicUniform,
-  type PublicUniform,
   type TextureUniform,
   type Uniform,
 } from "../../types/gl/uniforms";
 import type { Resources, Stage, StageOutput } from "../../types/stage";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
-import * as mat43 from "../../math/mat43";
-import { filter, filterType } from "../util/dict";
+import { filterType } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext, fShaderSource: string): ShaderPrograms {
   return {
