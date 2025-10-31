@@ -1,5 +1,9 @@
 import type { ParameterData, ParameterRegistry } from "../../service/parameters";
-import { UniformComponents, isParameterUniform } from "../../types/gl/uniforms";
+import {
+  UniformComponents,
+  isParameterUniform,
+  type ParameterUniform,
+} from "../../types/gl/uniforms";
 import type { Emitter } from "../../util/events";
 import { getFactoryFor } from "../component-registry";
 import type { Component } from "../components/types";
@@ -57,7 +61,15 @@ export function createUniformControls(
       const child = factory(props);
       if (child) {
         controlsContainer.appendChild(child.element);
-        registry.subscribeParam(u, child.update!);
+        const uniformId = registry.lookup(u);
+        if (uniformId) {
+          const [group, parameter] = uniformId;
+          registry.subscribe<ParameterUniform>(group, parameter, value => {
+            if (value !== undefined && child.update) {
+              child.update(value);
+            }
+          });
+        }
         children.push(child);
       }
     }

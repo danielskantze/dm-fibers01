@@ -146,4 +146,4 @@ export interface TextureUniform extends Uniform {
 
 type Uniforms = Record<string, Uniform>;
 
-export type { Uniform, ParameterUniform as PublicUniform, UniformType, Uniforms };
+export type { Uniform, ParameterUniform, UniformType, Uniforms };

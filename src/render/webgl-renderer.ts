@@ -15,7 +15,13 @@ import { defaultRenderConfig } from "../config/parameters";
 import * as screenshot from "./util/screenshot";
 import type { IVideoRecorder } from "./util/recorder";
 import { StreamLogging } from "../util/logging";
-import { isParameterUniform, type UniformValue } from "../types/gl/uniforms";
+import {
+  isParameterUniform,
+  type FloatUniform,
+  type IntUniform,
+  type ParameterUniform,
+  type UniformValue,
+} from "../types/gl/uniforms";
 import { filterType } from "./util/dict";
 
 // import fdebugShaderSource from "./shaders/debug.fs.glsl?raw";
@@ -55,13 +61,16 @@ type RenderingStagesState = {
   bloom: BloomStageParams;
 };
 
+type TypedListener<T extends ParameterUniform> = (v: T["value"]) => void;
+
+type AnyTypedUniformListener = TypedListener<IntUniform> | TypedListener<FloatUniform>;
 export class WebGLRenderer {
   private _isRunning: boolean = false;
   private _frame: number = 0;
   private _renderWidth: number;
   private _renderHeight: number;
   private _recorder?: IVideoRecorder | null;
-  private _paramListeners: ((v: UniformValue) => void)[] = [];
+  private _paramListeners: AnyTypedUniformListener[] = [];
 
   private readonly _canvas: HTMLCanvasElement;
   private readonly _gl: WebGL2RenderingContext;
@@ -158,24 +167,23 @@ export class WebGLRenderer {
   }
 
   private _configureSubscriptions() {
-    let listener: (v: UniformValue) => void = v =>
-      (this._renderConfig.updatesPerDraw = v as number);
+    const listener = (v: number) => (this._renderConfig.updatesPerDraw = v);
     this._paramListeners.push(listener);
-    this._params.subscribe("main", "updatesPerDraw", listener);
+    this._params.subscribe<IntUniform>("main", "updatesPerDraw", listener);
 
-    listener = v => {
-      this._renderConfig.bloomQuality = v as number;
+    const qualityListener = (v: number) => {
+      this._renderConfig.bloomQuality = v;
       this._configureStages();
     };
-    this._paramListeners.push(listener);
-    this._params.subscribe("bloom", "quality", listener);
+    this._paramListeners.push(qualityListener);
+    this._params.subscribe<IntUniform>("bloom", "quality", qualityListener);
 
-    listener = v => {
-      this._renderConfig.bloomSteps = v as number;
+    const stepsListener = (v: number) => {
+      this._renderConfig.bloomSteps = v;
       this._configureStages();
     };
-    this._paramListeners.push(listener);
-    this._params.subscribe("bloom", "steps", listener);
+    this._paramListeners.push(stepsListener);
+    this._params.subscribe<IntUniform>("bloom", "steps", stepsListener);
   }
 
   private _render(isScreenshot: boolean = false): void {
