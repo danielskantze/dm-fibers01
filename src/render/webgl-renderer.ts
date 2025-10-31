@@ -15,7 +15,8 @@ import { defaultRenderConfig } from "../config/parameters";
 import * as screenshot from "./util/screenshot";
 import type { IVideoRecorder } from "./util/recorder";
 import { StreamLogging } from "../util/logging";
-import type { UniformValue } from "../types/gl/uniforms";
+import { isPublicUniform, type UniformValue } from "../types/gl/uniforms";
+import { filterType } from "./util/dict";
 
 // import fdebugShaderSource from "./shaders/debug.fs.glsl?raw";
 
@@ -300,15 +301,15 @@ export class WebGLRenderer {
     const screenshot = stage_output.create(this._gl, combine, true);
     let debug: Stage | undefined = undefined; //stage_debug.create(this._gl, combine, false, fdebugShaderSource);
 
-    Object.keys(simulate.parameters).forEach(k =>
-      this._params.register(simulate.name, k, simulate.parameters[k])
+    Object.entries(filterType(isPublicUniform, simulate.parameters)).forEach(([k, v]) =>
+      this._params.register(simulate.name, k, v)
     );
-    Object.keys(accumulate.parameters).forEach(k =>
-      this._params.register(accumulate.name, k, accumulate.parameters[k])
+    Object.entries(filterType(isPublicUniform, accumulate.parameters)).forEach(([k, v]) =>
+      this._params.register(accumulate.name, k, v)
     );
     if (debug) {
-      Object.keys((debug as Stage).parameters).forEach(k =>
-        this._params.register((debug as Stage).name, k, (debug as Stage).parameters[k])
+      Object.entries(filterType(isPublicUniform, (debug as Stage).parameters)).forEach(
+        ([k, v]) => this._params.register((debug as Stage).name, k, v)
       );
     }
 

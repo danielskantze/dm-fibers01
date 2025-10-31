@@ -4,7 +4,12 @@ import { assembleProgram } from "../../gl/shaders";
 import { createTexture } from "../../gl/textures";
 import type { ShaderProgram, ShaderPrograms } from "../../types/gl/shaders";
 import type { Texture } from "../../types/gl/textures";
-import type { TextureUniform, Uniform } from "../../types/gl/uniforms";
+import {
+  isPublicUniform,
+  type PublicUniform,
+  type TextureUniform,
+  type Uniform,
+} from "../../types/gl/uniforms";
 import type {
   BufferedStageOutput,
   Resources,
@@ -13,7 +18,7 @@ import type {
 } from "../../types/stage";
 import fShaderSource from "../shaders/accumulate.fs.glsl?raw";
 import vShaderSource from "../shaders/texture_quad.vs.glsl?raw";
-import { filter } from "../util/dict";
+import { filter, filterType } from "../util/dict";
 
 function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
   return {
@@ -58,13 +63,15 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         fadeTime: {
           location: fadeTimeLocation,
           domain: {
-            name: "Fade time",
             min: 0.1,
             max: 30.0,
           },
+          ui: {
+            name: "Fade time",
+          },
           value: 5.0,
           type: "float",
-        },
+        } as PublicUniform,
         accumulate: {
           location: accumulateLocation,
           domain: {
@@ -77,7 +84,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
           },
           value: 1,
           type: "int",
-        },
+        } as PublicUniform,
       };
       return { program, attributes, uniforms } as ShaderProgram;
     }),
@@ -116,7 +123,7 @@ function create(gl: WebGL2RenderingContext, input: Stage): Stage {
   ] as BufferedStageOutput;
 
   const uniforms = shaders.shader!.uniforms;
-  const parameters = filter<Uniform>((_, v) => !!v.domain, uniforms);
+  const parameters = filterType(isPublicUniform, uniforms);
   return {
     name: "accumulate",
     resources: {

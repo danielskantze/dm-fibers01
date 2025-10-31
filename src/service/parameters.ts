@@ -1,10 +1,10 @@
 import * as uniforms from "../gl/uniforms";
 import { orderedValues } from "../render/util/dict";
-import { type Uniform, type UniformValue } from "../types/gl/uniforms";
+import { type PublicUniform, type UniformValue } from "../types/gl/uniforms";
 import type { StageName } from "../types/stage";
 import { migrate } from "./parameters/migrations";
 
-export type ParameterData = Omit<Uniform, "location" | "slot">;
+export type ParameterData = PublicUniform;
 export type ParameterPresetKey = "presets";
 export type ParameterGroupKey = "main" | "bloom" | StageName;
 
@@ -38,6 +38,11 @@ export type ParameterGroup<G extends string> = {
   parameters: Record<string, ManagedParameter>;
 };
 
+export type ParameterConfigGroup<G extends string> = {
+  group: G;
+  parameters: Record<string, Omit<ParameterData, "location">>;
+};
+
 export type ParameterGroupDescriptor<G extends string> = {
   id: G;
   order: number;
@@ -47,7 +52,7 @@ export type ParameterGroupDescriptor<G extends string> = {
 export type ParameterConfig<G extends string> = {
   groups: {
     descriptors: ParameterGroupDescriptor<G>[];
-    parameters: ParameterGroup<G>[];
+    parameters: ParameterConfigGroup<G>[];
   };
 };
 

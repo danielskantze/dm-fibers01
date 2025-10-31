@@ -44,7 +44,7 @@ export const UniformComponents: Record<UniformType, number> = {
   custom: -1,
 };
 
-export type ScalarValueType = "int" | "float" | "enum" | "custom" | "hidden";
+export type ScalarValueType = "int" | "float" | "enum" | "custom";
 
 export type UniformValue = number | number[] | Float32Array | string;
 
@@ -61,12 +61,19 @@ export interface UniformUI extends Partial<UniformValueDomain> {
   component?: string;
 }
 
-type Uniform = {
-  domain?: UniformUI;
-  type?: UniformType;
-  value?: UniformValue;
+interface Uniform {
   location: WebGLUniformLocation;
-};
+  value?: UniformValue;
+  type?: UniformType;
+}
+interface PublicUniform extends Uniform {
+  domain: UniformValueDomain;
+  ui?: UniformUI;
+}
+
+export function isPublicUniform(uniform: Uniform): uniform is PublicUniform {
+  return (uniform as PublicUniform).domain !== undefined;
+}
 
 export interface TextureUniform extends Uniform {
   type: "tex2d";
@@ -75,4 +82,4 @@ export interface TextureUniform extends Uniform {
 
 type Uniforms = Record<string, Uniform>;
 
-export type { Uniform, UniformType, Uniforms };
+export type { Uniform, PublicUniform, UniformType, Uniforms };

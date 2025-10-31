@@ -11,6 +11,19 @@ export function filter<T>(
   return result;
 }
 
+export function filterType<T, S extends T>(
+  include: (v: T) => v is S,
+  dict: Record<string, T>
+): Record<string, S> {
+  const result: Record<string, S> = {};
+  Object.entries(dict).forEach(([k, v]) => {
+    if (include(v)) {
+      result[k] = v as S;
+    }
+  });
+  return result;
+}
+
 export function orderedValues<T>(
   compare: (a: T, b: T) => number,
   dict: Record<string, T>
