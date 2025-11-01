@@ -7,26 +7,25 @@ import {
   type UniformValueDomain,
 } from "../../../types/gl/uniforms";
 import type { Parameter } from "../../parameters";
-import { BaseModifier } from "../modifiers";
+import { BaseModifier, type BaseModifierConfig } from "../modifiers";
 
 export type LFOCurve = "sine" | "square" | "triangle";
 
 type GenerateFn<T extends UniformType> = (frame: number) => MappedUniformValue<T>;
 
-type LFOProps = {
+interface LFOConfig extends BaseModifierConfig {
   curve: LFOCurve;
   hz: number;
   phase: number;
-  offset: number;
-  range: number;
-};
+}
 
-const defaultConfig: LFOProps = {
+const defaultConfig: LFOConfig = {
   curve: "sine",
   hz: 1.0,
   phase: 0.0,
   offset: 0.0,
   range: 0.25,
+  blendMode: "add",
 };
 
 export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
@@ -35,22 +34,14 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
   public phase: number;
   private _generateFn: GenerateFn<T>;
 
-  constructor(
-    type: T,
-    domain: UniformValueDomain,
-    curve: LFOCurve,
-    hz: number,
-    phase: number,
-    offset: number,
-    range: number
-  ) {
-    super(type, domain.max - domain.min);
-    this.offset = offset; // expect this to be inside domain
-    this.range = range; // 0 - 1
-    this._curve = curve;
-    this.hz = hz;
-    this.phase = phase;
-    this._generateFn = this._createGenerateFn(curve);
+  constructor(type: T, domain: UniformValueDomain, config: LFOConfig) {
+    super(type, domain.max - domain.min, config);
+    this.offset = config.offset; // expect this to be inside domain
+    this.range = config.range; // 0 - 1
+    this._curve = config.curve;
+    this.hz = config.hz;
+    this.phase = config.phase;
+    this._generateFn = this._createGenerateFn(config.curve);
   }
 
   private _createGenerateFn(curve: LFOCurve): GenerateFn<T> {
@@ -106,10 +97,15 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
 
   static fromParameter(
     p: Parameter,
-    config: Partial<LFOProps>
+    config: Partial<LFOConfig>
   ): LFOModifier<UniformType> {
     const { type, domain } = p.data;
-    const { curve, hz, phase, range, offset } = { ...defaultConfig, ...config };
-    return new LFOModifier<UniformType>(type!, domain, curve, hz, phase, offset, range);
+    const lfoConfig = { ...defaultConfig, ...config };
+    return new LFOModifier<UniformType>(type!, domain, lfoConfig);
+  }
+  static addTo(p: Parameter, config: Partial<LFOConfig>) {
+    const { type, domain } = p.data;
+    const lfoConfig = { ...defaultConfig, ...config };
+    p.modifiers.push(new LFOModifier<UniformType>(type!, domain, lfoConfig));
   }
 }

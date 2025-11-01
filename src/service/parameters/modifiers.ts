@@ -23,6 +23,12 @@ export interface ParameterModifier<T extends UniformType> {
   transform: ParameterModifierTransformFn<T>;
 }
 
+export interface BaseModifierConfig {
+  offset: number;
+  range: number;
+  blendMode: BlendMode;
+}
+
 class ModifierError extends Error {
   constructor(message: string) {
     super(message);
@@ -37,8 +43,11 @@ export class BaseModifier<T extends UniformType> implements ParameterModifier<T>
   public offset: number = 0;
   public range: number = 1.0;
 
-  constructor(type: T, domainScale: number) {
+  constructor(type: T, domainScale: number, config: BaseModifierConfig) {
     this._type = type;
+    this._blendMode = config.blendMode;
+    this.offset = config.offset;
+    this.range = config.range;
     this._domainScale = domainScale;
     this._blendFn = blenderFactory[this._type]!(this._blendMode, domainScale);
   }
