@@ -252,11 +252,6 @@ class ParameterService<G extends string> {
     return p.baseValue! as T;
   }
 
-  setModifiers(group: G, parameter: string, modifiers: ParameterModifier<UniformType>[]) {
-    const p = this.getManagedParameter(group, parameter);
-    p.modifiers = modifiers;
-  }
-
   listParameters(): [G, string, ManagedParameter][] {
     const result: [G, string, ManagedParameter][] = [];
     const orderedGroups = orderedValues<ParameterGroupDescriptor<G>>((a, b) => {

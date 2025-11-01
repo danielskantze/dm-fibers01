@@ -234,51 +234,40 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   emitter.emit("status", { type: "loading", message: "Loading" });
   init();
   await start(audioStore);
-  const pRadius = params.getParameter("simulate", "maxRadius");
-  pRadius.modifiers = [
-    LFOModifier.fromParameter(pRadius, {
-      curve: "triangle",
-      hz: 0.01,
-      offset: 0.5,
-      range: 0.5,
-      phase: -0.25,
-    }),
-  ];
-  const pParticles = params.getParameter("main", "particles");
-  pParticles.modifiers = [
-    LFOModifier.fromParameter(pParticles, {
-      hz: 0.01,
-      range: 0.125,
-      offset: 0.0,
-      phase: 0.25,
-    }),
-  ];
+  LFOModifier.addTo(params.getParameter("simulate", "maxRadius"), {
+    curve: "triangle",
+    hz: 0.01,
+    offset: 0.5,
+    range: 0.5,
+    phase: -0.25,
+  });
+  LFOModifier.addTo(params.getParameter("main", "particles"), {
+    hz: 0.01,
+    range: 0.125,
+    offset: 0.0,
+    phase: 0.25,
+  });
   const pStrokeNoise = params.getParameter("simulate", "strokeNoise");
-  const lfo1 = LFOModifier.fromParameter(pStrokeNoise, {
+  LFOModifier.addTo(pStrokeNoise, {
     curve: "sine",
     hz: 0.0025,
     offset: 0.0,
     range: 0.5,
   });
-  lfo1.blendMode = "multiply";
-  const lfo2 = LFOModifier.fromParameter(pStrokeNoise, {
+  LFOModifier.addTo(pStrokeNoise, {
     curve: "triangle",
     hz: 0.0125,
     offset: -1.0,
     range: 1.5,
     phase: 0.25,
   });
-  lfo2.blendMode = "add";
-  pStrokeNoise.modifiers = [lfo2, lfo1];
-  const pColorNoise = params.getParameter("simulate", "colorNoise");
-  const lfo3 = LFOModifier.fromParameter(pColorNoise, {
+  LFOModifier.addTo(params.getParameter("simulate", "colorNoise"), {
     curve: "triangle",
     hz: 0.0125,
     offset: 0.0,
     range: 0.5,
     phase: -0.25,
   });
-  //pColorNoise.modifiers = [lfo3];
 }
 
 export default main;
