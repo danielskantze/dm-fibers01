@@ -1,16 +1,28 @@
-import type { Vec3, Matrix3x3Vec, Vec4 } from "./types";
+import type {
+  Vec3,
+  Range,
+  Matrix3x3Vec,
+  Vec4,
+  BlendMode,
+  BlendFunction,
+  DomainFunction,
+} from "./types";
 import { clamp as clampScalar } from "./scalar";
 
 export function create(a: [number, number, number] | Float32Array): Vec3 {
   return new Float32Array(a);
 }
 
+export function fromScalar(a: number): Vec3 {
+  return Float32Array.of(a, a, a);
+}
+
 export function fromValues(x: number, y: number, z: number): Vec3 {
-  return new Float32Array([x, y, z]);
+  return Float32Array.of(x, y, z);
 }
 
 export function createZero(): Vec3 {
-  return new Float32Array([0, 0, 0]);
+  return Float32Array.of(0, 0, 0);
 }
 
 export function createRandom(min: Vec3, max: Vec3): Vec3 {
@@ -112,6 +124,10 @@ export function add(a: Vec3, b: Vec3): Vec3 {
   return [a[0] + b[0], a[1] + b[1], a[2] + b[2]] as Vec3;
 }
 
+export function addScaleB(a: Vec3, b: Vec3, s: number): Vec3 {
+  return fromValues(a[0] + s * b[0], a[1] + s * b[1], a[2] + s * b[2]);
+}
+
 export function sub(a: Vec3, b: Vec3): Vec3 {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]] as Vec3;
 }
@@ -150,4 +166,24 @@ export function clampS(value: Vec3, min: number, max: number): Vec3 {
     clampScalar(value[1], min, max),
     clampScalar(value[2], min, max),
   ]);
+}
+
+export function createBlendFn(blendMode: BlendMode, s: number): BlendFunction<Vec3> {
+  switch (blendMode) {
+    case "add":
+      return (a, b) => addScaleB(a, b, s);
+    case "multiply":
+      return mul;
+  }
+}
+
+function hasZero(v: Vec3): boolean {
+  return v[0] === 0 || v[1] === 0 || v[2] === 0;
+}
+
+export function createDomainFn(a: Range<Vec3>, b: Range<Vec3>): DomainFunction<Vec3> {
+  const rangeA = sub(a.max, a.min);
+  const rangeB = sub(b.max, b.min);
+  const scale = hasZero(rangeA) ? createZero() : div(rangeB, rangeA);
+  return (x: Vec3) => add(b.min, mul(scale, sub(x, a.min)));
 }

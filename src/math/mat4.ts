@@ -25,6 +25,31 @@ export function create(
   return new Float32Array(a);
 }
 
+export function fromScalar(a: number): Matrix4x4 {
+  return Float32Array.of(a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a);
+}
+
+export function fromValues(
+  x1: number,
+  y1: number,
+  z1: number,
+  w1: number,
+  x2: number,
+  y2: number,
+  z2: number,
+  w2: number,
+  x3: number,
+  y3: number,
+  z3: number,
+  w3: number,
+  x4: number,
+  y4: number,
+  z4: number,
+  w4: number
+): Matrix4x4 {
+  return Float32Array.of(x1, y1, z1, w1, x2, y2, z2, w2, x3, y3, z3, w3, x4, y4, z4, w4);
+}
+
 export function fromMat3(m: Matrix3x3, affine: boolean = false): Matrix4x4 {
   return create([
     m[0],

@@ -9,7 +9,7 @@ class PresetMigrationError extends Error {
 export function migrate(
   fromVersion: number,
   toVersion: number,
-  presets: any
+  _presets: any
 ): ParameterPreset {
   throw new PresetMigrationError(
     `Migration from ${fromVersion} to ${toVersion} not supported`

@@ -50,6 +50,24 @@ export type ScalarValueType = "int" | "float" | "enum" | "custom";
 
 export type UniformValue = number | number[] | Float32Array | string;
 
+export type UniformValueMap = {
+  float: number;
+  int: number;
+  vec4: Vec4;
+  vec3: Vec3;
+  vec2: Float32Array;
+  ivec4: Int32Array;
+  ivec3: Int32Array;
+  ivec2: Int32Array;
+  mat4: Matrix4x4;
+  mat3: Matrix3x3;
+  mat43: Matrix4x3;
+  tex2d: unknown;
+  custom: unknown; // 'unknown' is safer than 'any'
+};
+
+export type MappedUniformValue<T extends UniformType> = UniformValueMap[T];
+
 export interface UniformValueDomain {
   min: number;
   max: number;

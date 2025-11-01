@@ -42,7 +42,7 @@ export function createUniformControls(
             // Vector component: valOrIndex is index, val is value
             const index = valOrIndex;
             const value = val;
-            const currentValue = registry.getValue<number[]>(group, parameter);
+            const currentValue = registry.getBaseValue<number[]>(group, parameter);
             const newValue = [...currentValue];
             newValue[index] = value;
             registry.setValue(group, parameter, newValue);
