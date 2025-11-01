@@ -8,6 +8,24 @@ export function create(
   return new Float32Array(a);
 }
 
+export function fromScalar(a: number): Matrix3x3 {
+  return Float32Array.of(a, a, a, a, a, a, a, a, a);
+}
+
+export function fromValues(
+  x1: number,
+  y1: number,
+  z1: number,
+  x2: number,
+  y2: number,
+  z2: number,
+  x3: number,
+  y3: number,
+  z3: number
+): Matrix3x3 {
+  return Float32Array.of(x1, y1, z1, x2, y2, z2, x3, y3, z3);
+}
+
 export function identity(): Matrix3x3 {
   return new Float32Array([1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]);
 }

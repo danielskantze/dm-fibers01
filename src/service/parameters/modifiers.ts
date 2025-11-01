@@ -1,60 +1,92 @@
-import { clamp as clampScalar } from "../../math/scalar";
-import { clamp as clampIScalar } from "../../math/iscalar";
-import { clampS as clampVec3S } from "../../math/vec3";
-import { clampS as clampVec4S } from "../../math/vec4";
-import { clampS as clampMat3S } from "../../math/mat3";
-import { clampS as clampMat4S } from "../../math/mat4";
-import { clampS as clampMat43S } from "../../math/mat43";
-
-import type { UniformType, UniformValue } from "../../types/gl/uniforms";
+import { blenderFactory } from "../../math/generic/blending";
+import { clamperFactory } from "../../math/generic/clamping";
+import type { BlendFunction, BlendMode } from "../../math/types";
+import type {
+  MappedUniformValue,
+  UniformType,
+  UniformValue,
+  UniformValueDomain,
+} from "../../types/gl/uniforms";
 import type { ManagedParameter } from "../parameters";
 
-export type ParameterModifierTransformFn = (
+export type ParameterModifierTransformFn<T extends UniformType> = (
   frame: number,
-  value: UniformValue
-) => UniformValue;
+  value: MappedUniformValue<T>
+) => MappedUniformValue<T>;
 
 export interface ParameterModifierMapping {
-  blendMode: "add" | "multiply";
+  blendMode: BlendMode;
   range: number;
   offset: number;
 }
-export interface ParameterModifier {
-  mapping: ParameterModifierMapping;
-  transform: ParameterModifierTransformFn;
+export interface ParameterModifier<T extends UniformType> {
+  transform: ParameterModifierTransformFn<T>;
 }
 
-type ClampFn = (value: any, min: number, max: number) => any;
+class ModifierError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
 
-const clampers: Partial<Record<UniformType, ClampFn>> = {
-  float: clampScalar,
-  int: clampIScalar,
-  vec3: clampVec3S,
-  vec4: clampVec4S,
-  mat3: clampMat3S,
-  mat4: clampMat4S,
-  mat43: clampMat43S,
-};
+export class BaseModifier<T extends UniformType> implements ParameterModifier<T> {
+  private _type: T;
+  private _blendMode: BlendMode = "add";
+  private _blendFn: BlendFunction<MappedUniformValue<T>>;
+  private _domainScale: number;
+  public offset: number = 0;
+  public range: number = 1.0;
 
-export function applyModifier(
+  constructor(type: T, domainScale: number) {
+    this._type = type;
+    this._domainScale = domainScale;
+    this._blendFn = blenderFactory[this._type]!(this._blendMode, domainScale);
+  }
+  public get type(): T {
+    return this._type;
+  }
+  public set blendMode(newValue: BlendMode) {
+    this._blendMode = newValue;
+    this._blendFn = blenderFactory[this._type]!(newValue, this._domainScale);
+  }
+  generate(_frame: number): MappedUniformValue<T> {
+    throw new ModifierError("Not implemented");
+  }
+  transform(frame: number, value: MappedUniformValue<T>): MappedUniformValue<T> {
+    const signal = this.generate(frame);
+    const blended = this._blendFn(value, signal);
+    return blended;
+  }
+}
+
+function _computeValue<T extends UniformType>(
+  type: T,
   frame: number,
-  modifier: ParameterModifier,
-  value: UniformValue
-): UniformValue {
-  return modifier.transform(frame, value);
-}
-
-export function computeValue(frame: number, parameter: ManagedParameter) {
-  let value = parameter.baseValue;
-  if (parameter.modifiers.length === 0) {
+  baseValue: MappedUniformValue<T>,
+  modifiers: ParameterModifier<T>[],
+  domain: UniformValueDomain
+) {
+  let value = baseValue;
+  if (modifiers.length === 0) {
     return value;
   }
-  for (const m of parameter.modifiers) {
-    value = applyModifier(frame, m, value);
+  // FIXME: Check for INT type -> Convert to float type (for internal processing)
+  for (const modifier of modifiers) {
+    value = modifier.transform(frame, value);
   }
-  const clamper = clampers[parameter.data.type!];
+  // FIXME: Check for INT type -> Convert to int type (for target)
+  const clamper = clamperFactory[type];
   if (clamper) {
-    value = clamper(value, parameter.data.domain.min, parameter.data.domain.max);
+    value = clamper(value, domain.min, domain.max);
   }
   return value;
+}
+export function computeValue(frame: number, parameter: ManagedParameter): UniformValue {
+  return _computeValue(
+    parameter.data.type ?? "float",
+    frame,
+    parameter.baseValue,
+    parameter.modifiers,
+    parameter.data.domain
+  ) as UniformValue;
 }

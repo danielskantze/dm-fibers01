@@ -8,7 +8,7 @@ import { WebGLRenderer } from "./render/webgl-renderer";
 import { createAudioStatsCollector } from "./service/audio/audio-stats";
 import { AudioPlayer } from "./service/audioplayer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
-import { createScalarLFO } from "./service/parameters/lfo-modifier";
+import { LFOModifier } from "./service/parameters/modifiers/lfo-modifier";
 import type { BlobItemData, BlobStore } from "./service/storage";
 import { IndexedDBBlobStore } from "./service/storage/localblob";
 import { presetStore, userSettingsStore } from "./service/stores";
@@ -18,7 +18,6 @@ import { createRoot } from "./ui/root";
 import { timestamp } from "./ui/util/date";
 import { strToVec3 } from "./ui/util/seed";
 import { Emitter, type EventMap } from "./util/events";
-import { StreamLogging } from "./util/logging";
 
 const settings: Settings = {
   width: window.screen.width,
@@ -83,7 +82,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   });
 
   function init() {
-    const seed = params.getValue("main", "seed") as string;
+    const seed = params.getBaseValue("main", "seed") as string;
     onRandomSeed(seed);
   }
 
@@ -169,7 +168,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     };
 
     const initAudio = async () => {
-      const audioId = params.getValue("main", "audio");
+      const audioId = params.getBaseValue("main", "audio");
       if (audioId && (await audioStore.has(audioId as string))) {
         return onSelectAudio(await audioStore.get(audioId as string));
       } else {
@@ -235,38 +234,51 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   emitter.emit("status", { type: "loading", message: "Loading" });
   init();
   await start(audioStore);
-
-  // params.setModifiers("simulate", "maxRadius", [
-  //   createScalarLFO({
-  //     curve: "sine",
-  //     hz: 0.01,
-  //     range: 0.6,
-  //     offset: -0.5,
-  //     phase: 0.0,
-  //     domain: {
-  //       min: 0.0,
-  //       max: 50.0,
-  //       type: "float",
-  //     },
-  //     type: "float",
-  //   }),
-  // ]);
-
-  // params.setModifiers("main", "particles", [
-  //   createScalarLFO({
-  //     curve: "sine",
-  //     hz: 0.0025,
-  //     range: 0.67,
-  //     offset: 0,
-  //     phase: 0.5,
-  //     domain: {
-  //       min: 1000,
-  //       max: 400000,
-  //       type: "int",
-  //     },
-  //     type: "int",
-  //   }),
-  // ]);
+  const pRadius = params.getParameter("simulate", "maxRadius");
+  pRadius.modifiers = [
+    LFOModifier.fromParameter(pRadius, {
+      curve: "triangle",
+      hz: 0.01,
+      offset: 0.5,
+      range: 0.5,
+      phase: -0.25,
+    }),
+  ];
+  const pParticles = params.getParameter("main", "particles");
+  pParticles.modifiers = [
+    LFOModifier.fromParameter(pParticles, {
+      hz: 0.01,
+      range: 0.125,
+      offset: 0.0,
+      phase: 0.25,
+    }),
+  ];
+  const pStrokeNoise = params.getParameter("simulate", "strokeNoise");
+  const lfo1 = LFOModifier.fromParameter(pStrokeNoise, {
+    curve: "sine",
+    hz: 0.0025,
+    offset: 0.0,
+    range: 0.5,
+  });
+  lfo1.blendMode = "multiply";
+  const lfo2 = LFOModifier.fromParameter(pStrokeNoise, {
+    curve: "triangle",
+    hz: 0.0125,
+    offset: -1.0,
+    range: 1.5,
+    phase: 0.25,
+  });
+  lfo2.blendMode = "add";
+  pStrokeNoise.modifiers = [lfo2, lfo1];
+  const pColorNoise = params.getParameter("simulate", "colorNoise");
+  const lfo3 = LFOModifier.fromParameter(pColorNoise, {
+    curve: "triangle",
+    hz: 0.0125,
+    offset: 0.0,
+    range: 0.5,
+    phase: -0.25,
+  });
+  //pColorNoise.modifiers = [lfo3];
 }
 
 export default main;

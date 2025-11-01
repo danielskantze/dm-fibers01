@@ -1,6 +1,10 @@
 import * as uniforms from "../gl/uniforms";
 import { orderedValues } from "../render/util/dict";
-import { type ParameterUniform, type UniformValue } from "../types/gl/uniforms";
+import {
+  type ParameterUniform,
+  type UniformType,
+  type UniformValue,
+} from "../types/gl/uniforms";
 import type { StageName } from "../types/stage";
 import { migrate } from "./parameters/migrations";
 import { computeValue, type ParameterModifier } from "./parameters/modifiers";
@@ -11,13 +15,20 @@ export type ParameterGroupKey = "main" | "bloom" | StageName;
 
 const presetFormatVersion = 1;
 
-export type ManagedParameter = {
+export interface Parameter {
+  data: ParameterData;
+  modifiers: ParameterModifier<UniformType>[];
+  readonly baseValue: UniformValue;
+  readonly value: UniformValue;
+}
+
+export interface ManagedParameter extends Parameter {
   data: ParameterData;
   baseValue: UniformValue;
-  modifiers: ParameterModifier[];
+  modifiers: ParameterModifier<UniformType>[];
   value: UniformValue;
   updatedFrame: number;
-};
+}
 
 export type ParameterGroup<G extends string> = {
   group: G;
@@ -142,7 +153,7 @@ class ParameterService<G extends string> {
     const { data } = preset;
     Object.entries(data).forEach(([group, parameters]) => {
       Object.entries(parameters).forEach(([id, data]) => {
-        const desc = this.getParameter(group as G, id);
+        const desc = this.getParameterData(group as G, id);
         this.setValue(group as G, id, uniforms.createFromJson(data, desc.type), true);
       });
     });
@@ -162,7 +173,7 @@ class ParameterService<G extends string> {
       }
       Object.entries(parameters).forEach(([id, { data }]) => {
         result.data[group][id] = uniforms.valueToJson(
-          this.getValue(group, id),
+          this.getBaseValue(group, id),
           data.type
         );
       });
@@ -201,8 +212,12 @@ class ParameterService<G extends string> {
     }
   }
 
-  private getParameter(group: G, parameter: string): ParameterData {
+  private getParameterData(group: G, parameter: string): ParameterData {
     return this.getManagedParameter(group, parameter).data;
+  }
+
+  public getParameter(group: G, parameter: string): Parameter {
+    return this.getManagedParameter(group, parameter);
   }
 
   private getManagedParameter(group: G, parameter: string): ManagedParameter {
@@ -232,7 +247,12 @@ class ParameterService<G extends string> {
     return p.value! as T;
   }
 
-  setModifiers(group: G, parameter: string, modifiers: ParameterModifier[]) {
+  getBaseValue<T extends UniformValue>(group: G, parameter: string): T {
+    const p = this.getManagedParameter(group, parameter);
+    return p.baseValue! as T;
+  }
+
+  setModifiers(group: G, parameter: string, modifiers: ParameterModifier<UniformType>[]) {
     const p = this.getManagedParameter(group, parameter);
     p.modifiers = modifiers;
   }
