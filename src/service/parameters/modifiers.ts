@@ -7,6 +7,7 @@ import type {
   UniformValue,
   UniformValueDomain,
 } from "../../types/gl/uniforms";
+import { StreamLogging } from "../../util/logging";
 import type { ManagedParameter } from "../parameters";
 
 export type ParameterModifierTransformFn<T extends UniformType> = (

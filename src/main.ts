@@ -8,6 +8,7 @@ import { WebGLRenderer } from "./render/webgl-renderer";
 import { createAudioStatsCollector } from "./service/audio/audio-stats";
 import { AudioPlayer } from "./service/audioplayer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
+import { AudioAnalysisModifier } from "./service/parameters/modifiers/audio-analysis-modifier";
 import { LFOModifier } from "./service/parameters/modifiers/lfo-modifier";
 import type { BlobItemData, BlobStore } from "./service/storage";
 import { IndexedDBBlobStore } from "./service/storage/localblob";
@@ -234,19 +235,32 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   emitter.emit("status", { type: "loading", message: "Loading" });
   init();
   await start(audioStore);
-  LFOModifier.addTo(params.getParameter("simulate", "maxRadius"), {
-    curve: "triangle",
-    hz: 0.01,
-    offset: 0.5,
-    range: 0.5,
-    phase: -0.25,
-  });
+  // LFOModifier.addTo(params.getParameter("simulate", "maxRadius"), {
+  //   curve: "triangle",
+  //   hz: 0.01,
+  //   offset: 0.5,
+  //   range: 0.5,
+  //   phase: -0.25,
+  // });
+  AudioAnalysisModifier.addTo(
+    params.getParameter("simulate", "strokeNoise"),
+    audioStats,
+    {
+      analysis: {
+        type: "levels",
+        property: "avgPeak",
+      },
+      range: 0.5,
+      offset: -0.25,
+    }
+  );
   LFOModifier.addTo(params.getParameter("main", "particles"), {
     hz: 0.01,
     range: 0.125,
     offset: 0.0,
     phase: 0.25,
   });
+  /*
   const pStrokeNoise = params.getParameter("simulate", "strokeNoise");
   LFOModifier.addTo(pStrokeNoise, {
     curve: "sine",
@@ -268,6 +282,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     range: 0.5,
     phase: -0.25,
   });
+  */
 }
 
 export default main;

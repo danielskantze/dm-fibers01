@@ -37,7 +37,7 @@ function createEmptyState(): State {
   };
 }
 
-type AudioAnalysisEvents = {
+export type AudioAnalysisEvents = {
   update: {
     stats: AudioStats;
   };
