@@ -1,3 +1,4 @@
+import type { PublicAudioStatsCollector } from "../service/audio/audio-stats";
 import type { ParameterPreset, ParameterRegistry } from "../service/parameters";
 import type { BlobItemData, BlobStore } from "../service/storage";
 import type { ApplicationEvents } from "../types/application-events";
@@ -5,6 +6,7 @@ import { Emitter, type Subscribable } from "../util/events";
 import ControlFactory from "./components/controls";
 import type { DropdownUIComponent } from "./components/dropdown";
 import { createModal } from "./components/modal/modal";
+import { createSpectrum } from "./components/spectrum";
 import type { Component } from "./components/types";
 import { createFileSelector } from "./views/file-selector";
 import { createPresetControls } from "./views/presets";
@@ -28,6 +30,7 @@ export type UIRootProps = {
   element: HTMLElement;
   audioStore: BlobStore;
   params: ParameterRegistry;
+  analyzer: PublicAudioStatsCollector;
   appEvents: Subscribable<ApplicationEvents>;
   initialPresetId: string;
   loadPresets: () => ParameterPreset[];
@@ -43,6 +46,7 @@ export function createRoot({
   element,
   audioStore,
   params,
+  analyzer,
   initialPresetId,
   loadPresets,
   savePresets,
@@ -60,12 +64,14 @@ export function createRoot({
   ) as DropdownUIComponent;
   const statusBar = createStatusBar(appEvents);
   const modal = createModal();
+  const spectrum = createSpectrum(analyzer, 320, 75, 32);
   let isEditing = false;
   let hasStarted = false;
   const children: Component[] = [presetControls, audioControl, statusBar, modal];
 
   element.appendChild(presetControls.element);
   element.appendChild(audioControl.element);
+  element.appendChild(spectrum.element);
 
   const uniformControls = createUniformControls(
     element,
@@ -155,10 +161,16 @@ export function createRoot({
       onUserStart();
       if (menuKey) {
         controlFactory.visible = true;
+        spectrum.enable();
       }
     } else {
       if (menuKey) {
         controlFactory.visible = !controlFactory.visible;
+        if (controlFactory.visible) {
+          spectrum.enable();
+        } else {
+          spectrum.disable();
+        }
       } else if (spaceKey) {
         if (!isEditing) {
           emitter.emit("play", {});

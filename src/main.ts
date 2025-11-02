@@ -75,6 +75,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     element: controls,
     audioStore: audioStore,
     params,
+    analyzer: audioStats,
     initialPresetId: userSettings.presetId,
     loadPresets: presetStore.load,
     savePresets: items => {
@@ -248,17 +249,29 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     {
       analysis: {
         type: "levels",
-        property: "avgPeak",
+        property: "avgRms3",
+        declineFalloff: 0.97,
       },
       range: 0.5,
       offset: -0.25,
     }
   );
+  /*
   LFOModifier.addTo(params.getParameter("main", "particles"), {
     hz: 0.01,
     range: 0.125,
     offset: 0.0,
     phase: 0.25,
+  });
+  */
+  AudioAnalysisModifier.addTo(params.getParameter("main", "particles"), audioStats, {
+    analysis: {
+      type: "levels",
+      property: "avgRms3",
+      declineFalloff: 0.97,
+    },
+    range: 0.75,
+    //offset: -0.25,
   });
   /*
   const pStrokeNoise = params.getParameter("simulate", "strokeNoise");

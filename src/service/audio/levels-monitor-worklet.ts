@@ -1,5 +1,5 @@
 const webAudioBlockSize = 128;
-const windowSizeSeconds = 2.0;
+const windowSizeSeconds = 0.5;
 const numMetrics = 2; // peak & rms
 const fps = 60.0;
 
