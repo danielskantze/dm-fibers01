@@ -8,6 +8,22 @@ export function frac(value: number): number {
   return value - Math.floor(value);
 }
 
+export function smoothstep_u(x: number) {
+  return x * x * (3.0 - 2.0 * x);
+}
+
+export function smootherstep_u(x: number) {
+  return x * x * x * (x * (6.0 * x - 15.0) + 10.0);
+}
+
+export function smoothstep_7u(x: number) {
+  return x * x * x * x * (x * (x * (-20 * x + 70) - 84) + 35);
+}
+
+export function smoothstep_9u(x: number) {
+  return x * x * x * x * x * (x * (x * (x * (70 * x - 315) + 540) - 420) + 126);
+}
+
 export type ScalarMapFn = (x: number) => number;
 
 export function createDomainMapping(
