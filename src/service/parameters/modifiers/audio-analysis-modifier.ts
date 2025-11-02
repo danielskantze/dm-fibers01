@@ -5,7 +5,6 @@ import type {
   UniformValueDomain,
 } from "../../../types/gl/uniforms";
 import type { Handler } from "../../../util/events";
-import { StreamLogging } from "../../../util/logging";
 import type {
   AudioAnalysisEvents,
   AudioAnalysisType,
