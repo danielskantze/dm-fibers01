@@ -8,6 +8,10 @@ export function frac(value: number): number {
   return value - Math.floor(value);
 }
 
+export function mix(a: number, b: number, t: number) {
+  return (b - a) * clamp(t, 0, 1.0) + a;
+}
+
 export function smoothstep_u(x: number) {
   return x * x * (3.0 - 2.0 * x);
 }

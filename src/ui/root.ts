@@ -6,7 +6,7 @@ import { Emitter, type Subscribable } from "../util/events";
 import ControlFactory from "./components/controls";
 import type { DropdownUIComponent } from "./components/dropdown";
 import { createModal } from "./components/modal/modal";
-import { createSpectrum } from "./components/spectrum";
+import { createAudioVisualizer } from "./components/audio";
 import type { Component } from "./components/types";
 import { createFileSelector } from "./views/file-selector";
 import { createPresetControls } from "./views/presets";
@@ -64,14 +64,14 @@ export function createRoot({
   ) as DropdownUIComponent;
   const statusBar = createStatusBar(appEvents);
   const modal = createModal();
-  const spectrum = createSpectrum(analyzer, 320, 75, 32);
+  const audioVisualizer = createAudioVisualizer(analyzer, 320, 75, 32);
   let isEditing = false;
   let hasStarted = false;
   const children: Component[] = [presetControls, audioControl, statusBar, modal];
 
   element.appendChild(presetControls.element);
   element.appendChild(audioControl.element);
-  element.appendChild(spectrum.element);
+  element.appendChild(audioVisualizer.element);
 
   const uniformControls = createUniformControls(
     element,
@@ -161,15 +161,15 @@ export function createRoot({
       onUserStart();
       if (menuKey) {
         controlFactory.visible = true;
-        spectrum.enable();
+        audioVisualizer.enable();
       }
     } else {
       if (menuKey) {
         controlFactory.visible = !controlFactory.visible;
         if (controlFactory.visible) {
-          spectrum.enable();
+          audioVisualizer.enable();
         } else {
-          spectrum.disable();
+          audioVisualizer.disable();
         }
       } else if (spaceKey) {
         if (!isEditing) {

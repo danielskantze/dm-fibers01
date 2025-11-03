@@ -9,7 +9,6 @@ import { createAudioStatsCollector } from "./service/audio/audio-stats";
 import { AudioPlayer } from "./service/audioplayer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
 import { AudioAnalysisModifier } from "./service/parameters/modifiers/audio-analysis-modifier";
-import { LFOModifier } from "./service/parameters/modifiers/lfo-modifier";
 import type { BlobItemData, BlobStore } from "./service/storage";
 import { IndexedDBBlobStore } from "./service/storage/localblob";
 import { presetStore, userSettingsStore } from "./service/stores";

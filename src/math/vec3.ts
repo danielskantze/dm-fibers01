@@ -7,7 +7,7 @@ import type {
   BlendFunction,
   DomainFunction,
 } from "./types";
-import { clamp as clampScalar } from "./scalar";
+import { clamp as clampScalar, mix as mixScalar } from "./scalar";
 
 export function create(a: [number, number, number] | Float32Array): Vec3 {
   return new Float32Array(a);
@@ -158,6 +158,30 @@ export function clamp(value: Vec3, min: Vec3, max: Vec3): Vec3 {
     clampScalar(value[1], min[1], max[1]),
     clampScalar(value[2], min[2], max[2]),
   ]);
+}
+
+export function mix(a: Vec3, b: Vec3, t: number): Vec3 {
+  if (t < 0) {
+    return a;
+  } else if (t > 1.0) {
+    return b;
+  }
+  return fromValues(
+    mixScalar(a[0], b[0], t),
+    mixScalar(a[1], b[1], t),
+    mixScalar(a[2], b[2], t)
+  );
+}
+
+export function mixO(a: Vec3, b: Vec3, out: Vec3, t: number) {
+  if (t < 0) {
+    return a;
+  } else if (t > 1.0) {
+    return b;
+  }
+  out[0] = mixScalar(a[0], b[0], t);
+  out[1] = mixScalar(a[1], b[1], t);
+  out[2] = mixScalar(a[2], b[2], t);
 }
 
 export function clampS(value: Vec3, min: number, max: number): Vec3 {
