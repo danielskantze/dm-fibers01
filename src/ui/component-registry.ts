@@ -12,7 +12,13 @@ const registry: Record<string, ComponentFactory> = {
   seed: props => createSeed(props),
   vector: props => createVector(props),
   vec3: props => createVec3(props),
-  scalar: props => createScalar(props),
+  scalar: props =>
+    createScalar({
+      ...props,
+      onClickAccessory: () => {
+        console.log("");
+      },
+    }),
 };
 
 export function getFactoryFor(type: string): ComponentFactory {
