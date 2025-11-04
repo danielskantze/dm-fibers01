@@ -15,25 +15,29 @@
   display: flex;
   flex-direction: row;
   width: 100%;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .buttons button.color-1 {
   border-color: var(--color-1);
   color: var(--color-1);
 }
+
 .buttons button.color-2 {
   border-color: var(--color-2);
   color: var(--color-2);
 }
+
 .buttons button.color-3 {
   border-color: var(--color-3);
   color: var(--color-3);
 }
+
 .buttons button.color-4 {
   border-color: var(--color-4);
   color: var(--color-4);
 }
+
 .buttons button {
   background: var(--component-color-background);
   color: var(--component-color-accent-1);

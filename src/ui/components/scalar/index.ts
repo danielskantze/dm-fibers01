@@ -1,9 +1,10 @@
 import type { ScalarValueType } from "../../../types/gl/uniforms";
 import { createIconToggleButton } from "../buttons/icon-button";
-import type { Component } from "../types";
+import type { Component, ComponentEventMap } from "../types";
 import "./scalar.css";
 import expandIcon from "../../icons/expand.svg?raw";
 import collapseIcon from "../../icons/collapse.svg?raw";
+import { Emitter } from "../../../util/events";
 
 let idSeq = 1;
 
@@ -32,7 +33,7 @@ export type ScalarProps = {
   name: string;
   value: number;
   onChange: (value: number) => void;
-  onClickAccessory?: () => void;
+  hasAccessory?: boolean;
   min?: number;
   max?: number;
   step?: number;
@@ -44,7 +45,7 @@ export function createScalar({
   name,
   value,
   onChange,
-  onClickAccessory,
+  hasAccessory,
   min,
   max,
   step,
@@ -52,6 +53,7 @@ export function createScalar({
   enumValues,
 }: ScalarProps): Component {
   const container: HTMLDivElement = document.createElement("div");
+  const emitter = new Emitter<ComponentEventMap>();
   container.classList.add("scalar");
   container.classList.add("ui-control");
 
@@ -107,7 +109,20 @@ export function createScalar({
   text.classList.add("digits");
   wrapper.classList.add("parameter");
 
-  if (!!onClickAccessory) {
+  const component = {
+    element: container,
+    update: (value: number) => {
+      input.value = value.toString();
+      text.value = getValue(value as number, valueConfig);
+    },
+    destroy: () => {
+      input.removeEventListener("input", onInputChange);
+      emitter.destroy();
+    },
+    events: emitter,
+  };
+
+  if (hasAccessory) {
     let isAccessoryCollapsed = true;
     const accessoryButton = createIconToggleButton({
       svgIcons: [expandIcon, collapseIcon],
@@ -116,6 +131,12 @@ export function createScalar({
       onClick: function (): void {
         isAccessoryCollapsed = !isAccessoryCollapsed;
         accessoryButton.update!(isAccessoryCollapsed);
+        emitter.emit("accessory", {
+          open: {
+            sender: component,
+            isOpen: !isAccessoryCollapsed,
+          },
+        });
       },
     });
     wrapper.appendChild(accessoryButton.element);
@@ -123,14 +144,5 @@ export function createScalar({
 
   container.appendChild(wrapper);
 
-  return {
-    element: container,
-    update: (value: number) => {
-      input.value = value.toString();
-      text.value = getValue(value as number, valueConfig);
-    },
-    destroy: () => {
-      input.removeEventListener("input", onInputChange);
-    },
-  };
+  return component;
 }

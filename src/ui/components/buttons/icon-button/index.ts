@@ -48,7 +48,6 @@ export function createIconButton(props: ButtonProps): ButtonComponent {
   return {
     element: container,
     updateButton: (svgIcon, title) => {
-      console.log(svgIcon);
       if (svgIcon) {
         button.innerHTML = svgIcon;
         if (title) {
