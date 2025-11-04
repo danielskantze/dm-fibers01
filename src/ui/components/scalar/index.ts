@@ -1,6 +1,9 @@
 import type { ScalarValueType } from "../../../types/gl/uniforms";
+import { createIconToggleButton } from "../buttons/icon-button";
 import type { Component } from "../types";
 import "./scalar.css";
+import expandIcon from "../../icons/expand.svg?raw";
+import collapseIcon from "../../icons/collapse.svg?raw";
 
 let idSeq = 1;
 
@@ -29,6 +32,7 @@ export type ScalarProps = {
   name: string;
   value: number;
   onChange: (value: number) => void;
+  onClickAccessory?: () => void;
   min?: number;
   max?: number;
   step?: number;
@@ -40,6 +44,7 @@ export function createScalar({
   name,
   value,
   onChange,
+  onClickAccessory,
   min,
   max,
   step,
@@ -55,6 +60,20 @@ export function createScalar({
   const label: HTMLLabelElement = document.createElement("label");
   const input: HTMLInputElement = document.createElement("input");
   const text: HTMLInputElement = document.createElement("input");
+
+  if (!!onClickAccessory) {
+    let isAccessoryCollapsed = true;
+    const accessoryButton = createIconToggleButton({
+      svgIcons: [expandIcon, collapseIcon],
+      size: "small",
+      circular: true,
+      onClick: function (): void {
+        isAccessoryCollapsed = !isAccessoryCollapsed;
+        accessoryButton.update!(isAccessoryCollapsed);
+      },
+    });
+    wrapper.appendChild(accessoryButton.element);
+  }
   const id: string = sanitizeName(name);
   const valueConfig: ValueConfig = { type, enumValues };
 

@@ -10,21 +10,24 @@
   align-items: center;
   justify-content: space-between;
 }
-.scalar .parameter > label {
+
+.scalar .parameter>label {
   display: block;
   white-space: nowrap;
   margin-top: 2px;
   width: 4.5rem;
 }
-.scalar.auto-label .parameter > label {
+
+.scalar.auto-label .parameter>label {
   width: auto;
 }
-.scalar .parameter > input {
+
+.scalar .parameter>input {
   display: block;
   height: var(--component-range-height);
 }
 
-.scalar .parameter > input[type="range"] {
+.scalar .parameter>input[type="range"] {
   flex: 1;
 }
 
@@ -36,12 +39,16 @@
   background-color: var(--component-color-background);
 }
 
-.scalar > .parameter {
-  padding: 2px 10px;
+.scalar>.parameter {
+  padding: 2px 8px 2px 10px;
   margin-left: 0;
   margin-right: 0;
 }
 
-.scalar > .parameter > label {
+.scalar>.parameter>label {
   margin-right: 8px;
+}
+
+.scalar .icon-button {
+  margin-left: 6px;
 }

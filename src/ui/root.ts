@@ -69,9 +69,10 @@ export function createRoot({
   let hasStarted = false;
   const children: Component[] = [presetControls, audioControl, statusBar, modal];
 
+  // PANEL
+
   element.appendChild(presetControls.element);
   element.appendChild(audioControl.element);
-  element.appendChild(audioVisualizer.element);
 
   const uniformControls = createUniformControls(
     element,
@@ -82,6 +83,14 @@ export function createRoot({
   children.push(...uniformControls);
 
   element.append(statusBar.element);
+
+  // OTHER
+
+  element.appendChild(audioVisualizer.element);
+
+  // ---------------------------------------
+  // HANDLERS
+  // ---------------------------------------
 
   const onStatus = ({
     type,
