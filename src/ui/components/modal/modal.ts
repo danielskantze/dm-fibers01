@@ -1,15 +1,15 @@
-import template from "./modal.html?raw";
+import { Emitter, type Subscribable } from "../../../util/events";
+import type { Component, ComponentEventMap } from "../types";
 import "./modal.css";
-import type { Component } from "../types";
-import { Emitter, type EventMap, type Subscribable } from "../../../util/events";
+import template from "./modal.html?raw";
 
-export interface ModalComponent extends Component {
+export interface ModalComponent extends Component<ModalEvents> {
   show: (text?: string) => void;
   hide: () => void;
   events: Subscribable<ModalEvents>;
 }
 
-export interface ModalEvents extends EventMap {
+export interface ModalEvents extends ComponentEventMap {
   click: "click";
 }
 

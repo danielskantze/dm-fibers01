@@ -1,6 +1,9 @@
-import type { Component } from "../../types";
+import type { AccessoryOwnerComponent } from "../../types";
 
-export function attachAccessoryView(owner: Component, accessory: Component): void {
+export function attachAccessoryView(
+  owner: AccessoryOwnerComponent,
+  accessory: AccessoryOwnerComponent
+): void {
   const parentNode = owner.element.parentNode;
   if (!parentNode) {
     return;
@@ -17,7 +20,7 @@ export function attachAccessoryView(owner: Component, accessory: Component): voi
   container.dataset.owner = owner.element.id;
 }
 
-export function removeAccessoryView(owner: Component): void {
+export function removeAccessoryView(owner: AccessoryOwnerComponent): void {
   const element = owner.element.parentNode?.querySelector(
     `div[data-owner="${owner.element.id}"`
   );

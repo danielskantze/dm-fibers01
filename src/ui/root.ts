@@ -3,11 +3,11 @@ import type { ParameterPreset, ParameterRegistry } from "../service/parameters";
 import type { BlobItemData, BlobStore } from "../service/storage";
 import type { ApplicationEvents } from "../types/application-events";
 import { Emitter, type Subscribable } from "../util/events";
+import { createAudioVisualizer } from "./components/audio";
 import ControlFactory from "./components/controls";
 import type { DropdownUIComponent } from "./components/dropdown";
 import { createModal } from "./components/modal/modal";
-import { createAudioVisualizer } from "./components/audio";
-import type { Component } from "./components/types";
+import type { ComponentWithoutEvents } from "./components/types";
 import { createFileSelector } from "./views/file-selector";
 import { createPresetControls } from "./views/presets";
 import { createStatusBar } from "./views/statusbar";
@@ -67,7 +67,12 @@ export function createRoot({
   const audioVisualizer = createAudioVisualizer(analyzer, 320, 75, 32);
   let isEditing = false;
   let hasStarted = false;
-  const children: Component[] = [presetControls, audioControl, statusBar, modal];
+  const children: ComponentWithoutEvents[] = [
+    presetControls,
+    audioControl,
+    statusBar,
+    modal,
+  ];
 
   // PANEL
 

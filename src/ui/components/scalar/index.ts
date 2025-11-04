@@ -1,10 +1,10 @@
 import type { ScalarValueType } from "../../../types/gl/uniforms";
-import { createIconToggleButton } from "../buttons/icon-button";
-import type { Component, ComponentEventMap } from "../types";
-import "./scalar.css";
-import expandIcon from "../../icons/expand.svg?raw";
-import collapseIcon from "../../icons/collapse.svg?raw";
 import { Emitter } from "../../../util/events";
+import collapseIcon from "../../icons/collapse.svg?raw";
+import expandIcon from "../../icons/expand.svg?raw";
+import { createIconToggleButton } from "../buttons/icon-button";
+import type { AccessoryOwnerComponent, ComponentEventMap } from "../types";
+import "./scalar.css";
 
 let idSeq = 1;
 
@@ -51,7 +51,7 @@ export function createScalar({
   step,
   type = "float",
   enumValues,
-}: ScalarProps): Component {
+}: ScalarProps): AccessoryOwnerComponent {
   const container: HTMLDivElement = document.createElement("div");
   const emitter = new Emitter<ComponentEventMap>();
   container.classList.add("scalar");

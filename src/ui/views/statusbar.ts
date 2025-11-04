@@ -1,7 +1,7 @@
 import type { ApplicationEvents } from "../../types/application-events";
-import { Emitter, type EventMap, type Subscribable } from "../../util/events";
+import { Emitter, type Subscribable } from "../../util/events";
 import { createButtons } from "../components/buttons";
-import type { Component } from "../components/types";
+import type { Component, ComponentEventMap } from "../components/types";
 import {
   clearIcon,
   pauseIcon,
@@ -12,11 +12,11 @@ import {
   stopIcon,
 } from "../icons";
 
-export interface StatusBarEvents extends EventMap {
+export interface StatusBarEvents extends ComponentEventMap {
   click: "screenshot" | "record" | "reset" | "play" | "stop";
 }
 
-export interface StatusBarComponent extends Component {
+export interface StatusBarComponent extends Component<StatusBarEvents> {
   events: Subscribable<StatusBarEvents>;
 }
 
