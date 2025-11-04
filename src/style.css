@@ -5,6 +5,7 @@
   /* Need to be defined in pixels! */
   --ui-width: 320px;
   --component-color-background: #222;
+  --component-color-background-modifier: #222244;
   --component-color-background-1: #444;
   --component-color-background-down: #1e1e1e;
   --component-color-accent-1: #ddd;

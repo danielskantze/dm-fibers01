@@ -2,8 +2,8 @@ import * as mat4 from "../../../math/mat4";
 import type { Matrix4x4, Vec3 } from "../../../math/types";
 import * as vec3 from "../../../math/vec3";
 import * as vec4 from "../../../math/vec4";
+import type { ComponentWithoutEvents } from "../types";
 import { createVec3GimbalView } from "./3d/vec3-gimbal";
-import type { Component, ComponentWithoutEvents } from "../types";
 import "./vec3.css";
 import template from "./vec3.html?raw";
 class Vec3State {

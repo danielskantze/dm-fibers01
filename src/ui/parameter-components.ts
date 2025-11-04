@@ -1,9 +1,9 @@
 import { createCosPalette } from "./components/cos-palette";
 import { createScalar } from "./components/scalar";
 import { createSeed } from "./components/seed";
-import { createVector } from "./components/vector";
+import type { AccessoryOwnerComponent } from "./components/types";
 import { createVec3 } from "./components/vec3";
-import type { AccessoryOwnerComponent, Component } from "./components/types";
+import { createVector } from "./components/vector";
 
 export type ComponentFactory = (props: any) => AccessoryOwnerComponent;
 
