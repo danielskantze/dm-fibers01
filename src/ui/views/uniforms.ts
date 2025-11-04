@@ -5,16 +5,16 @@ import {
   type ParameterUniform,
 } from "../../types/gl/uniforms";
 import type { Emitter, Handler } from "../../util/events";
-import { getFactoryFor } from "../parameter-components";
-import type { Component, ComponentEventMap } from "../components/types";
-import type { UIRootEvents } from "../root";
 import {
   attachAccessoryView,
   removeAccessoryView,
 } from "../components/decorators/accessory-view";
 import { createModifiers, type ModifierType } from "../components/modifiers";
-import type { LFOModifierProps } from "../components/modifiers/lfo";
 import type { AudioModifierProps } from "../components/modifiers/audio";
+import type { LFOModifierProps } from "../components/modifiers/lfo";
+import type { AccessoryOwnerComponent, ComponentEventMap } from "../components/types";
+import { getFactoryFor } from "../parameter-components";
+import type { UIRootEvents } from "../root";
 
 function uniformElementId(group: string, id: string): string {
   return `__param-u-${group}-${id}`;
@@ -28,12 +28,28 @@ const handleAccessoryEvent: Handler<ComponentEventMap, "accessory"> = props => {
         modifiers: [
           {
             type: "lfo",
+            config: {
+              hz: 0.5,
+              curve: "triangle",
+              offset: 0,
+              range: 0.5,
+              blendMode: "add",
+              phase: 0,
+            },
           } as LFOModifierProps,
           {
             type: "audio",
           } as AudioModifierProps,
           {
             type: "lfo",
+            config: {
+              hz: 1.5,
+              curve: "sine",
+              offset: -0.25,
+              range: 0.5,
+              blendMode: "multiply",
+              phase: 0.2,
+            },
           } as LFOModifierProps,
         ],
         onAdd: function (type: ModifierType): void {
@@ -52,8 +68,8 @@ export function createUniformControls(
   uniforms: ParameterData[],
   registry: ParameterRegistry,
   eventSource: Emitter<UIRootEvents>
-): Component[] {
-  const children: Component[] = [];
+): AccessoryOwnerComponent[] {
+  const children: AccessoryOwnerComponent[] = [];
   for (const u of uniforms) {
     const { domain, ui } = u;
     if (isParameterUniform(u) && ui) {

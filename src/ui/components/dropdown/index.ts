@@ -1,6 +1,6 @@
 import { Emitter, type Subscribable } from "../../../util/events";
 import { saveIcon } from "../../icons";
-import type { Component } from "../types";
+import type { Component, ComponentEventMap } from "../types";
 import "./dropdown.css";
 import template from "./dropdown.html?raw";
 
@@ -11,13 +11,13 @@ export type DropdownItem = {
 };
 
 // Events emit IDs, not full objects.
-export type DropdownEvents = {
+export interface DropdownEvents extends ComponentEventMap {
   select: { id: string | undefined };
   add: { name: string };
   save: { id: string; newName: string };
   delete: { id: string };
   edit: { type: "begin" | "end" };
-};
+}
 
 export type DropdownProps = {
   id: string;
@@ -29,7 +29,7 @@ export type DropdownProps = {
   saveButtonAlwaysVisible?: boolean;
 };
 
-export interface DropdownUIComponent extends Component {
+export interface DropdownUIComponent extends Component<DropdownEvents> {
   element: HTMLElement;
   events: Subscribable<DropdownEvents>;
 

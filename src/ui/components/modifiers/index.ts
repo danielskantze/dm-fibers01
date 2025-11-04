@@ -1,8 +1,5 @@
-import { createIconButton } from "../buttons/icon-button";
-import type { Component } from "../types";
-import addIcon from "../../icons/add.svg?raw";
 import { createButtons } from "../buttons";
-import type { LFOModifier } from "../../../service/parameters/modifiers/lfo-modifier";
+import type { ComponentWithoutEvents } from "../types";
 import { createAudioModifier, type AudioModifierProps } from "./audio";
 import { createLFOModifier, type LFOModifierProps } from "./lfo";
 
@@ -24,14 +21,14 @@ export type Props = {
   onAdd: (type: ModifierType) => void;
 };
 
-type CreateModifierFn<T> = (props: T) => Component;
+type CreateModifierFn<T> = (props: T) => ComponentWithoutEvents;
 
 const modifierFactory: { [K in ModifierType]: CreateModifierFn<ModifierPropsMap[K]> } = {
   lfo: createLFOModifier,
   audio: createAudioModifier,
 };
 
-export function createModifiers(props: Props): Component {
+export function createModifiers(props: Props): ComponentWithoutEvents {
   const container = document.createElement("div");
   const modifiersList = document.createElement("div");
   const addItem = document.createElement("div");

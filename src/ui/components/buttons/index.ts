@@ -1,7 +1,7 @@
-import type { Component } from "../types";
+import type { ComponentWithoutEvents } from "../types";
 import "./buttons.css";
 
-interface ButtonsComponent extends Component {
+interface ButtonsComponent extends ComponentWithoutEvents {
   updateButton: (id: string, title: string, svgIcon?: string) => void;
   setDisabled: (id: string, isDisabled: boolean) => void;
 }

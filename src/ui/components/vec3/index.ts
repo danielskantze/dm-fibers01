@@ -3,7 +3,7 @@ import type { Matrix4x4, Vec3 } from "../../../math/types";
 import * as vec3 from "../../../math/vec3";
 import * as vec4 from "../../../math/vec4";
 import { createVec3GimbalView } from "./3d/vec3-gimbal";
-import type { Component } from "../types";
+import type { Component, ComponentWithoutEvents } from "../types";
 import "./vec3.css";
 import template from "./vec3.html?raw";
 class Vec3State {
@@ -128,7 +128,7 @@ export type Vec3Params = {
   expandable: boolean;
 };
 
-export interface Vec3Component extends Component {
+export interface Vec3Component extends ComponentWithoutEvents {
   update: (value: Vec3) => void;
 }
 

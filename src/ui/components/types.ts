@@ -1,17 +1,21 @@
-import type { Subscribable } from "../../util/events";
+import type { EventMap, Subscribable } from "../../util/events";
 
-export type ComponentEventMap = {
+export interface ComponentEventMap extends EventMap {
   accessory: {
     open: {
-      sender: Component;
+      sender: Component<ComponentEventMap>;
       isOpen: boolean;
     };
   };
-};
+}
 
-export interface Component {
+export interface Component<T extends ComponentEventMap> {
   element: HTMLElement;
-  events?: Subscribable<ComponentEventMap>;
+  events?: Subscribable<T>;
   update?: (props: any) => void;
   destroy?: () => void;
 }
+
+export type ComponentWithoutEvents = Component<ComponentEventMap>;
+
+export type AccessoryOwnerComponent = Component<ComponentEventMap>;

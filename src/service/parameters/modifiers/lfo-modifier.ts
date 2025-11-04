@@ -13,7 +13,7 @@ export type LFOCurve = "sine" | "square" | "triangle";
 
 type GenerateFn<T extends UniformType> = (frame: number) => MappedUniformValue<T>;
 
-interface LFOConfig extends BaseModifierConfig {
+export interface LFOConfig extends BaseModifierConfig {
   curve: LFOCurve;
   hz: number;
   phase: number;
@@ -66,6 +66,7 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
         break;
       case "triangle":
         generate = (frame: number) => {
+          // TODO: FIX!
           const p = ((this.hz * (this.phase + frame)) / fps) % 1;
           let y = 0;
           if (p < 0.25) {
