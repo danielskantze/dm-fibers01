@@ -1,6 +1,7 @@
 .ui-component.modifier {
   padding-left: 1.0rem;
   --ui-width: calc(var(--ui-width) - 1.0rem);
+  --component-color-background: var(--component-color-background-modifier);
 }
 
 .ui-component.modifier .container {
