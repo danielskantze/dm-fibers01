@@ -61,19 +61,6 @@ export function createScalar({
   const input: HTMLInputElement = document.createElement("input");
   const text: HTMLInputElement = document.createElement("input");
 
-  if (!!onClickAccessory) {
-    let isAccessoryCollapsed = true;
-    const accessoryButton = createIconToggleButton({
-      svgIcons: [expandIcon, collapseIcon],
-      size: "small",
-      circular: true,
-      onClick: function (): void {
-        isAccessoryCollapsed = !isAccessoryCollapsed;
-        accessoryButton.update!(isAccessoryCollapsed);
-      },
-    });
-    wrapper.appendChild(accessoryButton.element);
-  }
   const id: string = sanitizeName(name);
   const valueConfig: ValueConfig = { type, enumValues };
 
@@ -119,6 +106,20 @@ export function createScalar({
   wrapper.appendChild(text);
   text.classList.add("digits");
   wrapper.classList.add("parameter");
+
+  if (!!onClickAccessory) {
+    let isAccessoryCollapsed = true;
+    const accessoryButton = createIconToggleButton({
+      svgIcons: [expandIcon, collapseIcon],
+      size: "small",
+      circular: true,
+      onClick: function (): void {
+        isAccessoryCollapsed = !isAccessoryCollapsed;
+        accessoryButton.update!(isAccessoryCollapsed);
+      },
+    });
+    wrapper.appendChild(accessoryButton.element);
+  }
 
   container.appendChild(wrapper);
 
