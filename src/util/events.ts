@@ -17,6 +17,10 @@ export class Emitter<E extends EventMap> implements Subscribable<E> {
 
   constructor() {}
 
+  destroy() {
+    this.subscribers = [];
+  }
+
   subscribe<K extends keyof E>(event: K, listener: Handler<E, K>) {
     this.subscribers.push({ event, listener });
   }
