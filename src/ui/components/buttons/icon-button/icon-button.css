@@ -1,0 +1,58 @@
+.ui-component.icon-button {
+  background: transparent;
+  color: var(--component-color-accent-1);
+  border-radius: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.033rem;
+  height: var(--component-collapsed-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  margin: 0;
+  transition: background-color 0.125s ease;
+}
+
+.ui-component.icon-button.size-small {
+  --button-size: 20px;
+}
+
+.ui-component.icon-button button[disabled] {
+  opacity: 0.5;
+}
+
+.ui-component.icon-button button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  appearance: none;
+  border: none;
+  margin: 0;
+  background-color: transparent;
+  color: inherit;
+  width: var(--button-size);
+  height: var(--button-size);
+  border-radius: 1000px;
+  outline: 0;
+  border: 1px solid var(--component-color-accent-2);
+  margin: 0;
+  padding: 0;
+
+}
+
+.ui-component.icon-button.size-small button>svg {
+  width: calc(var(--button-size) - 7px);
+  height: calc(var(--button-size) - 7px);
+}
+
+.ui-component.icon-button.circular button {
+  padding: 0;
+}
+
+.ui-component.icon-button button:hover {
+  background: var(--component-color-background-1);
+}
+
+.ui-component.icon-button button:active {
+  background: var(--component-color-background-down);
+}

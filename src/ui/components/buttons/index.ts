@@ -61,10 +61,6 @@ export function createButtons(
     setDisabled: (id, isDisabled) => {
       buttonElements.find(b => b.id === id)!.button.disabled = isDisabled;
     },
-    destroy: () => {
-      for (const { button } of buttonElements) {
-        button.replaceWith(button.cloneNode(true));
-      }
-    },
+    destroy: () => {},
   };
 }
