@@ -1,9 +1,8 @@
+import type { ModifierType } from "../../../service/parameters/modifiers";
 import { createButtons } from "../buttons";
 import type { ComponentWithoutEvents } from "../types";
 import { createAudioModifier, type AudioModifierProps } from "./audio";
 import { createLFOModifier, type LFOModifierProps } from "./lfo";
-
-export type ModifierType = "lfo" | "audio";
 
 export interface ModifierProps {
   type: ModifierType;

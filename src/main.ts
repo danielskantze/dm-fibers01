@@ -9,6 +9,7 @@ import { createAudioStatsCollector } from "./service/audio/audio-stats";
 import { AudioPlayer } from "./service/audioplayer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
 import { AudioAnalysisModifier } from "./service/parameters/modifiers/audio-analysis-modifier";
+import { LFOModifier } from "./service/parameters/modifiers/lfo-modifier";
 import type { BlobItemData, BlobStore } from "./service/storage";
 import { IndexedDBBlobStore } from "./service/storage/localblob";
 import { presetStore, userSettingsStore } from "./service/stores";
@@ -235,13 +236,13 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   emitter.emit("status", { type: "loading", message: "Loading" });
   init();
   await start(audioStore);
-  // LFOModifier.addTo(params.getParameter("simulate", "maxRadius"), {
-  //   curve: "triangle",
-  //   hz: 0.01,
-  //   offset: 0.5,
-  //   range: 0.5,
-  //   phase: -0.25,
-  // });
+  LFOModifier.addTo(params.getParameter("simulate", "maxRadius"), {
+    curve: "triangle",
+    hz: 0.01,
+    offset: 0.5,
+    range: 0.5,
+    phase: -0.25,
+  });
   AudioAnalysisModifier.addTo(
     params.getParameter("simulate", "strokeNoise"),
     audioStats,

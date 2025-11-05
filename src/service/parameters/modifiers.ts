@@ -14,16 +14,20 @@ export type ParameterModifierTransformFn<T extends UniformType> = (
   value: MappedUniformValue<T>
 ) => MappedUniformValue<T>;
 
+export type ModifierType = "lfo" | "audio";
+
 export interface ParameterModifierMapping {
   blendMode: BlendMode;
   range: number;
   offset: number;
 }
 export interface ParameterModifier<T extends UniformType> {
+  readonly config: BaseModifierConfig;
   transform: ParameterModifierTransformFn<T>;
 }
 
 export interface BaseModifierConfig {
+  type: ModifierType;
   offset: number;
   range: number;
   blendMode: BlendMode;
@@ -42,6 +46,7 @@ export class BaseModifier<T extends UniformType> implements ParameterModifier<T>
   private _domainScale: number;
   public offset: number = 0;
   public range: number = 1.0;
+  public readonly config: BaseModifierConfig; // TODO: We need to update the config too
 
   constructor(type: T, domainScale: number, config: BaseModifierConfig) {
     this._type = type;
@@ -49,6 +54,7 @@ export class BaseModifier<T extends UniformType> implements ParameterModifier<T>
     this.offset = config.offset;
     this.range = config.range;
     this._domainScale = domainScale;
+    this.config = config;
     this._blendFn = blenderFactory[this._type]!(this._blendMode, domainScale);
   }
   public get type(): T {
