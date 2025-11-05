@@ -14,12 +14,14 @@ export type LFOCurve = "sine" | "square" | "triangle";
 type GenerateFn<T extends UniformType> = (frame: number) => MappedUniformValue<T>;
 
 export interface LFOConfig extends BaseModifierConfig {
+  type: "lfo";
   curve: LFOCurve;
   hz: number;
   phase: number;
 }
 
 const defaultConfig: LFOConfig = {
+  type: "lfo",
   curve: "sine",
   hz: 1.0,
   phase: 0.0,

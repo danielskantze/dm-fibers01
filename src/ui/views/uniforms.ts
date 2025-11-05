@@ -1,15 +1,22 @@
-import type { ParameterData, ParameterRegistry } from "../../service/parameters";
+import { create } from "../../math/vec3";
+import type {
+  ParameterData,
+  ParameterGroupKey,
+  ParameterRegistry,
+} from "../../service/parameters";
+import type { ModifierType, ParameterModifier } from "../../service/parameters/modifiers";
 import {
   UniformComponents,
   isParameterUniform,
   type ParameterUniform,
+  type UniformType,
 } from "../../types/gl/uniforms";
 import type { Emitter, Handler } from "../../util/events";
 import {
   attachAccessoryView,
   removeAccessoryView,
 } from "../components/decorators/accessory-view";
-import { createModifiers, type ModifierType } from "../components/modifiers";
+import { createModifiers } from "../components/modifiers";
 import type { AudioModifierProps } from "../components/modifiers/audio";
 import type { LFOModifierProps } from "../components/modifiers/lfo";
 import type { AccessoryOwnerComponent, ComponentEventMap } from "../components/types";
@@ -20,39 +27,22 @@ function uniformElementId(group: string, id: string): string {
   return `__param-u-${group}-${id}`;
 }
 
-const handleAccessoryEvent: Handler<ComponentEventMap, "accessory"> = props => {
-  if (props.open) {
+function createAccessoryEventHandler(
+  registry: ParameterRegistry,
+  group: ParameterGroupKey,
+  parameter: string
+): Handler<ComponentEventMap, "accessory"> {
+  return props => {
     const { isOpen, sender } = props.open;
     if (isOpen) {
       const modifiers = createModifiers({
-        modifiers: [
-          {
-            type: "lfo",
-            config: {
-              hz: 0.5,
-              curve: "triangle",
-              offset: 0,
-              range: 0.5,
-              blendMode: "add",
-              phase: 0,
-            },
-          } as LFOModifierProps,
-          {
-            type: "audio",
-          } as AudioModifierProps,
-          {
-            type: "lfo",
-            config: {
-              hz: 1.5,
-              curve: "sine",
-              offset: -0.25,
-              range: 0.5,
-              blendMode: "multiply",
-              phase: 0.2,
-            },
-          } as LFOModifierProps,
-        ],
-        onAdd: function (type: ModifierType): void {
+        modifiers: registry
+          .getParameter(group, parameter)
+          .modifiers.map((modifier: ParameterModifier<UniformType>) => ({
+            type: modifier.config.type,
+            config: modifier.config as any,
+          })),
+        onAdd: (type: ModifierType) => {
           console.log("add", type);
         },
       });
@@ -60,8 +50,8 @@ const handleAccessoryEvent: Handler<ComponentEventMap, "accessory"> = props => {
     } else {
       removeAccessoryView(sender);
     }
-  }
-};
+  };
+}
 
 export function createUniformControls(
   controlsContainer: HTMLElement,
@@ -81,6 +71,11 @@ export function createUniformControls(
         component ?? (numComponents > 1 ? "vector" : "scalar")
       );
       const registryKeys = registry.lookup(u);
+      if (!registryKeys) {
+        console.warn(`Uniform ${name} not found in registry`);
+        continue;
+      }
+      const [group, parameter] = registryKeys!;
       const props = {
         registryKeys,
         hasAccessory: true,
@@ -91,10 +86,6 @@ export function createUniformControls(
         value: u.value,
         values: u.value,
         onChange: (valOrIndex: any, val?: number) => {
-          const uniformId = registry.lookup(u);
-          if (!uniformId) return;
-          const [group, parameter] = uniformId;
-
           if (val !== undefined) {
             // Vector component: valOrIndex is index, val is value
             const index = valOrIndex;
@@ -116,7 +107,10 @@ export function createUniformControls(
       };
 
       const child = factory(props);
-      child.events?.subscribe("accessory", handleAccessoryEvent);
+      child.events?.subscribe(
+        "accessory",
+        createAccessoryEventHandler(registry, group, parameter)
+      );
       if (child) {
         controlsContainer.appendChild(child.element);
         if (registryKeys) {

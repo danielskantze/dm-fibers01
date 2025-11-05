@@ -20,6 +20,7 @@ type ScalarAnalysisType = Omit<AudioAnalysisType, "fft">;
 type ScalarAnalysisProperty = keyof BeatDetectorState | keyof LevelsMonitorState;
 
 interface Config extends BaseModifierConfig {
+  type: "audio";
   analysis: {
     type: ScalarAnalysisType;
     property: ScalarAnalysisProperty;
@@ -28,6 +29,7 @@ interface Config extends BaseModifierConfig {
 }
 
 const defaultConfig: Config = {
+  type: "audio",
   analysis: {
     type: "levels",
     property: "avgRms",
