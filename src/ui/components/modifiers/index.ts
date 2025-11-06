@@ -16,19 +16,28 @@ type ModifierPropsMap = {
 type AnyModifierProps = LFOModifierProps | AudioModifierProps;
 
 export type Props = {
-  modifiers: AnyModifierProps[];
+  modifiers: { id: string; props: AnyModifierProps }[];
   onAdd: (type: ModifierType) => void;
+  onUpdate: (id: string, props: AnyModifierProps) => void;
+  onRemove: (id: string) => void;
 };
 
 type CreateModifierFn<T> = (props: T) => ComponentWithoutEvents;
+
+export interface ModifiersComponent extends ComponentWithoutEvents {
+  addModifier: (id: string, props: AnyModifierProps) => void;
+  removeModifier: (id: string) => void;
+  updateModifier: (id: string, props: AnyModifierProps) => void;
+}
 
 const modifierFactory: { [K in ModifierType]: CreateModifierFn<ModifierPropsMap[K]> } = {
   lfo: createLFOModifier,
   audio: createAudioModifier,
 };
 
-export function createModifiers(props: Props): ComponentWithoutEvents {
+export function createModifiers(props: Props): ModifiersComponent {
   const container = document.createElement("div");
+  const modifiers: { id: string; component: ComponentWithoutEvents }[] = [];
   const modifiersList = document.createElement("div");
   const addItem = document.createElement("div");
   const buttons = createButtons([
@@ -36,25 +45,53 @@ export function createModifiers(props: Props): ComponentWithoutEvents {
       id: "lfo",
       title: "+ LFO",
       onClick: function (): void {
-        console.log("Add LFO");
+        props.onAdd("lfo");
       },
     },
     {
       id: "audio",
       title: "+ Audio",
       onClick: () => {
-        console.log("Add audio stats monitor");
+        props.onAdd("audio");
       },
     },
   ]);
-  props.modifiers.forEach(m => {
-    const createFn = modifierFactory[m.type];
-    modifiersList.appendChild(createFn(m as any).element);
+
+  function addModifier(id: string, props: AnyModifierProps) {
+    const createFn = modifierFactory[props.type];
+    const component = createFn(props as any);
+    component.element.dataset.modifierID = id;
+    modifiersList.appendChild(component.element);
+    modifiers.push({ id, component });
+  }
+
+  function updateModifier(id: string, props: AnyModifierProps) {
+    const component = modifiers.find(c => c.id === id)?.component;
+    if (component) {
+      console.log("update component here", props);
+    }
+  }
+
+  function removeModifier(id: string) {
+    const childNode = modifiersList.querySelector(`*[data-modifierId="${id}"]`);
+    if (childNode) {
+      modifiersList.removeChild(childNode as Node);
+    }
+  }
+
+  props.modifiers.forEach(({ id, props }) => {
+    const createFn = modifierFactory[props.type];
+    const component = createFn(props as any);
+    modifiersList.appendChild(component.element);
+    modifiers.push({ id, component });
   });
   addItem.appendChild(buttons.element);
   container.appendChild(modifiersList);
   container.appendChild(addItem);
   return {
     element: container,
+    addModifier,
+    updateModifier,
+    removeModifier,
   };
 }

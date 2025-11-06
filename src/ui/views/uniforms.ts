@@ -1,22 +1,21 @@
-import { create } from "../../math/vec3";
 import type {
   ParameterData,
   ParameterGroupKey,
   ParameterRegistry,
 } from "../../service/parameters";
-import type { ModifierType, ParameterModifier } from "../../service/parameters/modifiers";
+import type { ModifierType } from "../../service/parameters/modifiers";
+import { LFOModifier } from "../../service/parameters/modifiers/lfo-modifier";
 import {
   UniformComponents,
   isParameterUniform,
   type ParameterUniform,
-  type UniformType,
 } from "../../types/gl/uniforms";
 import type { Emitter, Handler } from "../../util/events";
 import {
   attachAccessoryView,
   removeAccessoryView,
 } from "../components/decorators/accessory-view";
-import { createModifiers } from "../components/modifiers";
+import { createModifiers, type ModifiersComponent } from "../components/modifiers";
 import type { AudioModifierProps } from "../components/modifiers/audio";
 import type { LFOModifierProps } from "../components/modifiers/lfo";
 import type { AccessoryOwnerComponent, ComponentEventMap } from "../components/types";
@@ -27,26 +26,59 @@ function uniformElementId(group: string, id: string): string {
   return `__param-u-${group}-${id}`;
 }
 
+type AnyModifierProps = LFOModifierProps | AudioModifierProps;
+
 function createAccessoryEventHandler(
   registry: ParameterRegistry,
   group: ParameterGroupKey,
   parameter: string
 ): Handler<ComponentEventMap, "accessory"> {
+  let unsubscribe: (() => void)[] = [];
+  let components: ModifiersComponent | null = null;
   return props => {
     const { isOpen, sender } = props.open;
+    while (unsubscribe.length > 0) {
+      unsubscribe.shift()!();
+    }
     if (isOpen) {
-      const modifiers = createModifiers({
-        modifiers: registry
-          .getParameter(group, parameter)
-          .modifiers.map((modifier: ParameterModifier<UniformType>) => ({
-            type: modifier.config.type,
-            config: modifier.config as any,
-          })),
-        onAdd: (type: ModifierType) => {
-          console.log("add", type);
-        },
-      });
-      attachAccessoryView(sender, modifiers);
+      const param = registry.getParameter(group, parameter);
+      unsubscribe.push(
+        param.events.subscribe("modifierUpdate", ({ id, type, config }) => {
+          const props = { type: config.type, config } as AnyModifierProps;
+          switch (type) {
+            case "add":
+              components!.addModifier(id, props);
+              break;
+            case "change":
+              components!.updateModifier(id, props);
+              break;
+            case "delete":
+              components!.removeModifier(id);
+              break;
+          }
+        })
+      );
+      unsubscribe.push(
+        param.events.subscribe("modifierInit", event => {
+          const modifiers = event.modifiers.map(m => {
+            const props = {
+              type: m.config.type,
+              config: m.config,
+            } as AnyModifierProps;
+            return { id: m.id, props };
+          });
+          components = createModifiers({
+            modifiers,
+            onAdd: (type: ModifierType) => {
+              switch (type) {
+                case "lfo":
+                  LFOModifier.addTo(param, {});
+              }
+            },
+          });
+          attachAccessoryView(sender, components);
+        })
+      );
     } else {
       removeAccessoryView(sender);
     }

@@ -5,7 +5,6 @@ import type {
   UniformValueDomain,
 } from "../../../types/gl/uniforms";
 import type { Handler } from "../../../util/events";
-import { StreamLogging } from "../../../util/logging";
 import type {
   AudioAnalysisEvents,
   AudioAnalysisType,
@@ -19,7 +18,7 @@ import { BaseModifier, type BaseModifierConfig } from "../modifiers";
 type ScalarAnalysisType = Omit<AudioAnalysisType, "fft">;
 type ScalarAnalysisProperty = keyof BeatDetectorState | keyof LevelsMonitorState;
 
-interface Config extends BaseModifierConfig {
+export interface AudioAnalysisModifierConfig extends BaseModifierConfig {
   type: "audio";
   analysis: {
     type: ScalarAnalysisType;
@@ -28,7 +27,7 @@ interface Config extends BaseModifierConfig {
   };
 }
 
-const defaultConfig: Config = {
+const defaultConfig: AudioAnalysisModifierConfig = {
   type: "audio",
   analysis: {
     type: "levels",
@@ -43,7 +42,7 @@ const defaultConfig: Config = {
 export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<T> {
   private _handler: Handler<AudioAnalysisEvents, "update"> | null = null;
   private _analyser: PublicAudioStatsCollector;
-  private _analysisType: AudioAnalysisType;
+  private _analysisType: ScalarAnalysisType;
   private _analysisProperty: ScalarAnalysisProperty;
   private _declineFalloff: number = 0.0;
   private _value: number = 0;
@@ -54,10 +53,10 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<T
     type: T,
     domain: UniformValueDomain,
     analyzer: PublicAudioStatsCollector,
-    config: Config
+    config: AudioAnalysisModifierConfig
   ) {
     super(type, domain.max - domain.min, config);
-    this._analysisType = config.analysis.type as AudioAnalysisType;
+    this._analysisType = config.analysis.type as ScalarAnalysisType;
     this._analysisProperty = config.analysis.property;
     this._analyser = analyzer;
     this._declineFalloff = config.analysis.declineFalloff;
@@ -67,9 +66,31 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<T
     }
     this._subscribe();
   }
+  public get config(): BaseModifierConfig {
+    let config = super.config as Omit<BaseModifierConfig, "type">;
+    let newConf: AudioAnalysisModifierConfig = {
+      ...config,
+      type: "audio",
+      analysis: {
+        type: this._analysisType,
+        property: this._analysisProperty,
+        declineFalloff: this._declineFalloff,
+      },
+    };
+    return newConf;
+  }
+  public set config(value: BaseModifierConfig) {
+    super.config = value;
+    const typedConfig = value as AudioAnalysisModifierConfig;
+    this._analysisProperty = typedConfig.analysis.property;
+    this._analysisType = typedConfig.analysis.type;
+    this._declineFalloff = typedConfig.analysis.declineFalloff;
+  }
   _subscribe() {
     this._handler = ({ stats }) => {
-      this._value = (stats[this._analysisType] as any)[this._analysisProperty];
+      this._value = (stats[this._analysisType as AudioAnalysisType] as any)[
+        this._analysisProperty
+      ];
     };
     this._analyser.events.subscribe("update", this._handler);
   }
@@ -93,11 +114,11 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<T
   static addTo(
     p: Parameter,
     analyzer: PublicAudioStatsCollector,
-    config: Partial<Config>
+    config: Partial<AudioAnalysisModifierConfig>
   ) {
     const { type, domain } = p.data;
     const fullConfig = { ...defaultConfig, ...config };
-    p.modifiers.push(
+    p.addModifier(
       new AudioAnalysisModifier<UniformType>(type!, domain, analyzer, fullConfig)
     );
   }
