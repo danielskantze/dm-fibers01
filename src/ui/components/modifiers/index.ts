@@ -1,6 +1,10 @@
-import type { ModifierType } from "../../../service/parameters/modifiers";
+import type {
+  BaseModifierConfig,
+  ModifierType,
+} from "../../../service/parameters/modifiers";
+import type { EventMap } from "../../../util/events";
 import { createButtons } from "../buttons";
-import type { ComponentWithoutEvents } from "../types";
+import type { AccessoryOwnerComponent, Component } from "../types";
 import { createAudioModifier, type AudioModifierProps } from "./audio";
 import { createLFOModifier, type LFOModifierProps } from "./lfo";
 
@@ -13,7 +17,10 @@ type ModifierPropsMap = {
   audio: AudioModifierProps;
 };
 
-type AnyModifierProps = LFOModifierProps | AudioModifierProps;
+export type AnyModifierProps = LFOModifierProps | AudioModifierProps;
+export interface BaseConfigModifierProps extends ModifierProps {
+  config: BaseModifierConfig;
+}
 
 export type Props = {
   modifiers: { id: string; props: AnyModifierProps }[];
@@ -22,9 +29,17 @@ export type Props = {
   onRemove: (id: string) => void;
 };
 
-type CreateModifierFn<T> = (props: T) => ComponentWithoutEvents;
+export interface ModifierComponentEventMap extends EventMap {
+  change: {
+    config: BaseModifierConfig;
+  };
+}
 
-export interface ModifiersComponent extends ComponentWithoutEvents {
+export interface ModifierComponent extends Component<ModifierComponentEventMap> {}
+
+type CreateModifierFn<T> = (props: T) => ModifierComponent;
+
+export interface ModifiersComponent extends AccessoryOwnerComponent {
   addModifier: (id: string, props: AnyModifierProps) => void;
   removeModifier: (id: string) => void;
   updateModifier: (id: string, props: AnyModifierProps) => void;
@@ -37,7 +52,7 @@ const modifierFactory: { [K in ModifierType]: CreateModifierFn<ModifierPropsMap[
 
 export function createModifiers(props: Props): ModifiersComponent {
   const container = document.createElement("div");
-  const modifiers: { id: string; component: ComponentWithoutEvents }[] = [];
+  const modifiers: { id: string; component: ModifierComponent; unsubscribe: any }[] = [];
   const modifiersList = document.createElement("div");
   const addItem = document.createElement("div");
   const buttons = createButtons([
@@ -57,12 +72,22 @@ export function createModifiers(props: Props): ModifiersComponent {
     },
   ]);
 
+  function onModifierChange(id: string, type: ModifierType, config: BaseModifierConfig) {
+    props.onUpdate(id, { type, config } as AnyModifierProps);
+  }
+
   function addModifier(id: string, props: AnyModifierProps) {
     const createFn = modifierFactory[props.type];
     const component = createFn(props as any);
     component.element.dataset.modifierID = id;
     modifiersList.appendChild(component.element);
-    modifiers.push({ id, component });
+    const unsubscribe = component.events!.subscribe(
+      "change",
+      ({ config }: { config: BaseModifierConfig }) => {
+        onModifierChange(id, props.type, config);
+      }
+    );
+    modifiers.push({ id, component, unsubscribe });
   }
 
   function updateModifier(id: string, props: AnyModifierProps) {
@@ -82,14 +107,25 @@ export function createModifiers(props: Props): ModifiersComponent {
   props.modifiers.forEach(({ id, props }) => {
     const createFn = modifierFactory[props.type];
     const component = createFn(props as any);
+    const unsubscribe = component.events!.subscribe(
+      "change",
+      ({ config }: { config: BaseModifierConfig }) =>
+        onModifierChange(id, props.type, config)
+    );
     modifiersList.appendChild(component.element);
-    modifiers.push({ id, component });
+    modifiers.push({ id, component, unsubscribe });
   });
   addItem.appendChild(buttons.element);
   container.appendChild(modifiersList);
   container.appendChild(addItem);
   return {
     element: container,
+    destroy: () => {
+      modifiers.forEach(m => {
+        m.unsubscribe();
+        m.component.destroy?.();
+      });
+    },
     addModifier,
     updateModifier,
     removeModifier,

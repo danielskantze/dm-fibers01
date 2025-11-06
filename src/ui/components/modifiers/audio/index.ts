@@ -1,11 +1,13 @@
+import type { ModifierComponent, ModifierComponentEventMap } from "..";
+import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
-import type { ComponentWithoutEvents } from "../../types";
 
 export interface AudioModifierProps {
   type: "audio";
 }
 
-export function createAudioModifier(props: AudioModifierProps): ComponentWithoutEvents {
+export function createAudioModifier(props: AudioModifierProps): ModifierComponent {
+  const emitter = new Emitter<ModifierComponentEventMap>();
   const outerContainer = document.createElement("div");
   const container = document.createElement("div");
   outerContainer.classList.add("ui-component");
@@ -19,5 +21,6 @@ export function createAudioModifier(props: AudioModifierProps): ComponentWithout
   container.appendChild(hzControl.element);
   return {
     element: outerContainer,
+    events: emitter,
   };
 }
