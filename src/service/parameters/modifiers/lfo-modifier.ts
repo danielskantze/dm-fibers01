@@ -6,6 +6,7 @@ import {
   type UniformType,
   type UniformValueDomain,
 } from "../../../types/gl/uniforms";
+import { StreamLogging } from "../../../util/logging";
 import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
 
@@ -23,7 +24,7 @@ export interface LFOConfig extends BaseModifierConfig {
 const defaultConfig: LFOConfig = {
   type: "lfo",
   curve: "sine",
-  hz: 1.0,
+  hz: 0.1,
   phase: 0.0,
   offset: 0.0,
   range: 0.25,
@@ -72,6 +73,7 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
     switch (curve) {
       case "sine":
         generate = (frame: number) => {
+          StreamLogging.addOrlog("sine", 30, [this.hz]);
           const v =
             this.offset +
             this.range * Math.sin((this.hz * (frame / fps) + this.phase) * Math.PI * 2.0);

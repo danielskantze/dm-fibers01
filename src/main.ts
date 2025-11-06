@@ -236,26 +236,26 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   emitter.emit("status", { type: "loading", message: "Loading" });
   init();
   await start(audioStore);
-  LFOModifier.addTo(params.getParameter("simulate", "maxRadius"), {
-    curve: "triangle",
-    hz: 0.01,
-    offset: 0.5,
-    range: 0.5,
-    phase: -0.25,
-  });
-  AudioAnalysisModifier.addTo(
-    params.getParameter("simulate", "strokeNoise"),
-    audioStats,
-    {
-      analysis: {
-        type: "levels",
-        property: "avgRms3",
-        declineFalloff: 0.97,
-      },
-      range: 0.5,
-      offset: -0.25,
-    }
-  );
+  // LFOModifier.addTo(params.getParameter("simulate", "maxRadius"), {
+  //   curve: "triangle",
+  //   hz: 0.01,
+  //   offset: 0.5,
+  //   range: 0.5,
+  //   phase: -0.25,
+  // });
+  // AudioAnalysisModifier.addTo(
+  //   params.getParameter("simulate", "strokeNoise"),
+  //   audioStats,
+  //   {
+  //     analysis: {
+  //       type: "levels",
+  //       property: "avgRms3",
+  //       declineFalloff: 0.97,
+  //     },
+  //     range: 0.5,
+  //     offset: -0.25,
+  //   }
+  // );
   /*
   LFOModifier.addTo(params.getParameter("main", "particles"), {
     hz: 0.01,
@@ -264,15 +264,15 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     phase: 0.25,
   });
   */
-  AudioAnalysisModifier.addTo(params.getParameter("main", "particles"), audioStats, {
-    analysis: {
-      type: "levels",
-      property: "avgRms3",
-      declineFalloff: 0.97,
-    },
-    range: 0.75,
-    //offset: -0.25,
-  });
+  // AudioAnalysisModifier.addTo(params.getParameter("main", "particles"), audioStats, {
+  //   analysis: {
+  //     type: "levels",
+  //     property: "avgRms3",
+  //     declineFalloff: 0.97,
+  //   },
+  //   range: 0.75,
+  //   //offset: -0.25,
+  // });
   /*
   const pStrokeNoise = params.getParameter("simulate", "strokeNoise");
   LFOModifier.addTo(pStrokeNoise, {

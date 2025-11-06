@@ -9,13 +9,15 @@ export interface ComponentEventMap extends EventMap {
   };
 }
 
-export interface Component<T extends ComponentEventMap> {
+export interface EmptyEventMap extends EventMap {}
+
+export interface Component<T extends EmptyEventMap> {
   element: HTMLElement;
   events?: Subscribable<T>;
   update?: (props: any) => void;
   destroy?: () => void;
 }
 
-export type ComponentWithoutEvents = Component<ComponentEventMap>;
+export type ComponentWithoutEvents = Component<EmptyEventMap>;
 
 export type AccessoryOwnerComponent = Component<ComponentEventMap>;

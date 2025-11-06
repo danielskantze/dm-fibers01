@@ -4,7 +4,10 @@ import type {
   ParameterRegistry,
 } from "../../service/parameters";
 import type { ModifierType } from "../../service/parameters/modifiers";
-import { LFOModifier } from "../../service/parameters/modifiers/lfo-modifier";
+import {
+  LFOModifier,
+  type LFOConfig,
+} from "../../service/parameters/modifiers/lfo-modifier";
 import {
   UniformComponents,
   isParameterUniform,
@@ -15,9 +18,12 @@ import {
   attachAccessoryView,
   removeAccessoryView,
 } from "../components/decorators/accessory-view";
-import { createModifiers, type ModifiersComponent } from "../components/modifiers";
-import type { AudioModifierProps } from "../components/modifiers/audio";
-import type { LFOModifierProps } from "../components/modifiers/lfo";
+import {
+  createModifiers,
+  type AnyModifierProps,
+  type BaseConfigModifierProps,
+  type ModifiersComponent,
+} from "../components/modifiers";
 import type { AccessoryOwnerComponent, ComponentEventMap } from "../components/types";
 import { getFactoryFor } from "../parameter-components";
 import type { UIRootEvents } from "../root";
@@ -25,8 +31,6 @@ import type { UIRootEvents } from "../root";
 function uniformElementId(group: string, id: string): string {
   return `__param-u-${group}-${id}`;
 }
-
-type AnyModifierProps = LFOModifierProps | AudioModifierProps;
 
 function createAccessoryEventHandler(
   registry: ParameterRegistry,
@@ -74,6 +78,13 @@ function createAccessoryEventHandler(
                 case "lfo":
                   LFOModifier.addTo(param, {});
               }
+            },
+            onUpdate(id, props) {
+              const config = (props as BaseConfigModifierProps).config;
+              param.updateModifier(id, config);
+            },
+            onRemove(id) {
+              console.log("Remove", id);
             },
           });
           attachAccessoryView(sender, components);

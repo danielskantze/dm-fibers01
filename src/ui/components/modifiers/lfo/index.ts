@@ -1,11 +1,11 @@
-import type { ModifierProps } from "..";
+import type { ModifierComponent, ModifierComponentEventMap, ModifierProps } from "..";
 import type { BlendMode } from "../../../../math/types";
 import type {
   LFOConfig,
   LFOCurve,
 } from "../../../../service/parameters/modifiers/lfo-modifier";
+import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
-import type { ComponentWithoutEvents } from "../../types";
 import "../modifier.css";
 
 export interface LFOModifierProps extends ModifierProps {
@@ -22,6 +22,17 @@ function blendModeToInt(blendMode: BlendMode): number {
   }
 }
 
+function intToBlendMode(value: number): BlendMode {
+  switch (value) {
+    case 0:
+      return "add";
+    case 1:
+      return "multiply";
+    default:
+      return "add";
+  }
+}
+
 function curveToInt(curve: LFOCurve): number {
   switch (curve) {
     case "sine":
@@ -33,8 +44,22 @@ function curveToInt(curve: LFOCurve): number {
   }
 }
 
-export function createLFOModifier(props: LFOModifierProps): ComponentWithoutEvents {
-  const { config } = props;
+function intToCurve(value: number): LFOCurve {
+  switch (value) {
+    case 0:
+      return "sine";
+    case 1:
+      return "triangle";
+    case 2:
+      return "square";
+    default:
+      return "sine";
+  }
+}
+
+export function createLFOModifier(props: LFOModifierProps): ModifierComponent {
+  let config = { ...props.config };
+  const emitter = new Emitter<ModifierComponentEventMap>();
   const outerContainer = document.createElement("div");
   const container = document.createElement("div");
   outerContainer.classList.add("ui-component");
@@ -46,7 +71,11 @@ export function createLFOModifier(props: LFOModifierProps): ComponentWithoutEven
     name: "Hz",
     value: config.hz,
     min: 0,
-    max: 30,
+    max: 2.0,
+    onChange: (value: number) => {
+      config.hz = value;
+      emitter.emit("change", { config });
+    },
   } as ScalarProps);
 
   const rangeControl = createScalar({
@@ -54,6 +83,10 @@ export function createLFOModifier(props: LFOModifierProps): ComponentWithoutEven
     value: config.range,
     min: 0,
     max: 1,
+    onChange: (value: number) => {
+      config.range = value;
+      emitter.emit("change", { config });
+    },
   } as ScalarProps);
 
   const phaseControl = createScalar({
@@ -61,6 +94,10 @@ export function createLFOModifier(props: LFOModifierProps): ComponentWithoutEven
     value: config.phase,
     min: -1,
     max: 1,
+    onChange: (value: number) => {
+      config.phase = value;
+      emitter.emit("change", { config });
+    },
   } as ScalarProps);
 
   const offsetControl = createScalar({
@@ -68,6 +105,10 @@ export function createLFOModifier(props: LFOModifierProps): ComponentWithoutEven
     value: config.offset,
     min: -1,
     max: 1,
+    onChange: (value: number) => {
+      config.offset = value;
+      emitter.emit("change", { config });
+    },
   } as ScalarProps);
 
   const blendControl = createScalar({
@@ -77,6 +118,10 @@ export function createLFOModifier(props: LFOModifierProps): ComponentWithoutEven
     max: 1,
     type: "enum",
     enumValues: ["add", "multiply"],
+    onChange: (value: number) => {
+      config.blendMode = intToBlendMode(value);
+      emitter.emit("change", { config });
+    },
   } as ScalarProps);
 
   const curveControl = createScalar({
@@ -86,6 +131,10 @@ export function createLFOModifier(props: LFOModifierProps): ComponentWithoutEven
     max: 2,
     type: "enum",
     enumValues: ["sine", "triangle", "square"],
+    onChange: (value: number) => {
+      config.curve = intToCurve(value);
+      emitter.emit("change", { config });
+    },
   } as ScalarProps);
 
   container.appendChild(hzControl.element);
@@ -96,5 +145,6 @@ export function createLFOModifier(props: LFOModifierProps): ComponentWithoutEven
   container.appendChild(blendControl.element);
   return {
     element: outerContainer,
+    events: emitter,
   };
 }
