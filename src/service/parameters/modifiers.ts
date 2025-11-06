@@ -7,6 +7,7 @@ import type {
   UniformValue,
   UniformValueDomain,
 } from "../../types/gl/uniforms";
+import { generateId } from "../../ui/util/id";
 import type { ManagedParameter } from "../parameters";
 
 export type ParameterModifierTransformFn<T extends UniformType> = (
@@ -22,7 +23,8 @@ export interface ParameterModifierMapping {
   offset: number;
 }
 export interface ParameterModifier<T extends UniformType> {
-  readonly config: BaseModifierConfig;
+  readonly id: string;
+  config: BaseModifierConfig;
   transform: ParameterModifierTransformFn<T>;
 }
 
@@ -40,21 +42,23 @@ class ModifierError extends Error {
 }
 
 export class BaseModifier<T extends UniformType> implements ParameterModifier<T> {
+  public readonly id: string;
   private _type: T;
   private _blendMode: BlendMode = "add";
   private _blendFn: BlendFunction<MappedUniformValue<T>>;
   private _domainScale: number;
+  private _modifierType: ModifierType;
   public offset: number = 0;
   public range: number = 1.0;
-  public readonly config: BaseModifierConfig; // TODO: We need to update the config too
 
   constructor(type: T, domainScale: number, config: BaseModifierConfig) {
+    this.id = generateId();
     this._type = type;
     this._blendMode = config.blendMode;
     this.offset = config.offset;
     this.range = config.range;
     this._domainScale = domainScale;
-    this.config = config;
+    this._modifierType = config.type;
     this._blendFn = blenderFactory[this._type]!(this._blendMode, domainScale);
   }
   public get type(): T {
@@ -64,6 +68,25 @@ export class BaseModifier<T extends UniformType> implements ParameterModifier<T>
     this._blendMode = newValue;
     this._blendFn = blenderFactory[this._type]!(newValue, this._domainScale);
   }
+  public get config(): BaseModifierConfig {
+    return {
+      blendMode: this._blendMode,
+      offset: this.offset,
+      range: this.range,
+      type: this._modifierType,
+    };
+  }
+  public set config(config: BaseModifierConfig) {
+    this._applyConfig(config);
+  }
+
+  private _applyConfig(config: BaseModifierConfig) {
+    this._blendMode = config.blendMode;
+    this.offset = config.offset;
+    this.range = config.range;
+    this.offset = config.offset;
+  }
+
   generate(_frame: number): MappedUniformValue<T> {
     throw new ModifierError("Not implemented");
   }

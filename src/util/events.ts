@@ -8,21 +8,35 @@ type Subscriber<E extends EventMap, K extends keyof E> = {
 };
 
 export interface Subscribable<E extends EventMap> {
-  subscribe<K extends keyof E>(event: K, listener: Handler<E, K>): void;
+  subscribe<K extends keyof E>(event: K, listener: Handler<E, K>): () => void;
   unsubscribe<K extends keyof E>(event: K, handler: Handler<E, K>): void;
 }
 
 export class Emitter<E extends EventMap> implements Subscribable<E> {
   private subscribers: Subscriber<E, any>[] = [];
+  private states: Record<keyof E, any>;
 
-  constructor() {}
+  constructor(initialStates?: Record<keyof E, any>) {
+    this.states = initialStates ?? ({} as Record<keyof E, any>);
+  }
 
   destroy() {
     this.subscribers = [];
   }
 
-  subscribe<K extends keyof E>(event: K, listener: Handler<E, K>) {
+  subscribe<K extends keyof E>(
+    event: K,
+    listener: Handler<E, K>,
+    notifyOnAdd: boolean = true
+  ) {
     this.subscribers.push({ event, listener });
+    const payload = this.states?.[event];
+    if (notifyOnAdd && payload) {
+      listener(payload);
+    }
+    return () => {
+      this.unsubscribe(event, listener);
+    };
   }
 
   unsubscribe<K extends keyof E>(event: K, listener: Handler<E, K>) {
@@ -36,6 +50,7 @@ export class Emitter<E extends EventMap> implements Subscribable<E> {
 
   emit<K extends keyof E>(event: K, payload: E[K]) {
     const subscribers = this.subscribers.concat();
+    this.states[event] = payload;
     subscribers
       .filter(s => s.event === event)
       .forEach(s => (s.listener as Handler<E, K>)(payload));

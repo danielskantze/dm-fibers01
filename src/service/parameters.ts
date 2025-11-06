@@ -6,20 +6,43 @@ import {
   type UniformValue,
 } from "../types/gl/uniforms";
 import type { StageName } from "../types/stage";
+import { Emitter, type EventMap, type Subscribable } from "../util/events";
 import { migrate } from "./parameters/migrations";
-import { computeValue, type ParameterModifier } from "./parameters/modifiers";
-
+import {
+  computeValue,
+  type BaseModifierConfig,
+  type ParameterModifier,
+} from "./parameters/modifiers";
 export type ParameterData = ParameterUniform;
 export type ParameterPresetKey = "presets";
 export type ParameterGroupKey = "main" | "bloom" | StageName;
 
 const presetFormatVersion = 1;
 
-export interface Parameter {
+export type ModifierEventUpdateType = "add" | "change" | "delete";
+export interface ParameterEvents extends EventMap {
+  modifierInit: {
+    modifiers: { id: string; config: BaseModifierConfig }[];
+  };
+  modifierUpdate: {
+    id: string;
+    type: "add" | "change" | "delete";
+    config: BaseModifierConfig;
+  };
+  modifierClear: {};
+}
+
+interface ModifierMutations {
+  addModifier: (modifier: ParameterModifier<UniformType>) => void;
+  updateModifier: (id: string, config: BaseModifierConfig) => void;
+  removeModifier: (id: string) => void;
+  clearModifiers: () => void;
+}
+export interface Parameter extends ModifierMutations {
   data: ParameterData;
-  modifiers: ParameterModifier<UniformType>[];
   readonly baseValue: UniformValue;
   readonly value: UniformValue;
+  readonly events: Subscribable<ParameterEvents>;
 }
 
 export interface ManagedParameter extends Parameter {
@@ -28,6 +51,52 @@ export interface ManagedParameter extends Parameter {
   modifiers: ParameterModifier<UniformType>[];
   value: UniformValue;
   updatedFrame: number;
+}
+
+//export interface ManagedParameterImplProps extends
+
+class ManagedParameterImpl implements ManagedParameter {
+  data: ParameterUniform;
+  baseValue: UniformValue;
+  modifiers: ParameterModifier<UniformType>[];
+  value: UniformValue;
+  updatedFrame: number;
+  events: Emitter<ParameterEvents>;
+
+  constructor(props: Omit<ManagedParameter, keyof ModifierMutations | "events">) {
+    this.data = props.data;
+    this.baseValue = props.baseValue;
+    this.modifiers = props.modifiers;
+    this.value = props.value;
+    this.updatedFrame = props.updatedFrame;
+    this.events = new Emitter<ParameterEvents>();
+    this.events.emit("modifierInit", { modifiers: this.modifiers });
+  }
+  addModifier(modifier: ParameterModifier<UniformType>) {
+    this.modifiers.push(modifier);
+    const { id, config } = modifier;
+    this.events.emit("modifierUpdate", { id, type: "add", config });
+  }
+  updateModifier(id: string, config: BaseModifierConfig) {
+    const modifier = this.modifiers.find(
+      m => m.id === id
+    ) as ParameterModifier<UniformType>;
+    modifier.config = config;
+    this.events.emit("modifierUpdate", { id, type: "change", config });
+  }
+  removeModifier(id: string) {
+    const index = this.modifiers.findIndex(m => m.id === id);
+    if (index < 0) {
+      return;
+    }
+    const { config } = this.modifiers.splice(index, 1)?.[0]!;
+    const type = "delete";
+    this.events.emit("modifierUpdate", { id, type, config });
+  }
+  clearModifiers() {
+    this.modifiers = [];
+    this.events.emit("modifierClear", {});
+  }
 }
 
 export type ParameterGroup<G extends string> = {
@@ -195,13 +264,13 @@ class ParameterService<G extends string> {
         parameters: {},
       };
     }
-    const p: ManagedParameter = {
+    const p = new ManagedParameterImpl({
       data: descriptor,
       baseValue: descriptor.value ?? 0,
       modifiers: [],
       value: 0,
       updatedFrame: -1,
-    };
+    });
     this.registry[group].parameters[parameter] = p;
   }
 

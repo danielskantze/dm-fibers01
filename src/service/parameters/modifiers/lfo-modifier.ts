@@ -46,6 +46,27 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
     this._generateFn = this._createGenerateFn(config.curve);
   }
 
+  public set config(value: BaseModifierConfig) {
+    super.config = value;
+    const typedConfig = value as LFOConfig;
+    this._curve = typedConfig.curve;
+    this.hz = typedConfig.hz;
+    this.phase = typedConfig.phase;
+    this._generateFn = this._createGenerateFn(this._curve);
+  }
+
+  public get config(): BaseModifierConfig {
+    let config = super.config as Omit<BaseModifierConfig, "type">;
+    let newConf: LFOConfig = {
+      ...config,
+      type: "lfo",
+      curve: this._curve,
+      hz: this.hz,
+      phase: this.phase,
+    };
+    return newConf;
+  }
+
   private _createGenerateFn(curve: LFOCurve): GenerateFn<T> {
     let generate: (frame: number) => number;
     switch (curve) {
@@ -109,6 +130,6 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
   static addTo(p: Parameter, config: Partial<LFOConfig>) {
     const { type, domain } = p.data;
     const lfoConfig = { ...defaultConfig, ...config };
-    p.modifiers.push(new LFOModifier<UniformType>(type!, domain, lfoConfig));
+    p.addModifier(new LFOModifier<UniformType>(type!, domain, lfoConfig));
   }
 }
