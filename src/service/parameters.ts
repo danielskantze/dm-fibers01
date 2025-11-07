@@ -8,11 +8,7 @@ import {
 import type { StageName } from "../types/stage";
 import { Emitter, type EventMap, type Subscribable } from "../util/events";
 import { migrate } from "./parameters/migrations";
-import {
-  computeValue,
-  type BaseModifierConfig,
-  type ParameterModifier,
-} from "./parameters/modifiers";
+import { computeValue, type ParameterModifier } from "./parameters/modifiers";
 import type { AnyModifierConfig } from "./parameters/modifiers/types";
 export type ParameterData = ParameterUniform;
 export type ParameterPresetKey = "presets";
@@ -74,7 +70,7 @@ class ManagedParameterImpl implements ManagedParameter {
     this.events.emit("modifierInit", {
       modifiers: this.modifiers.map(({ id, config }) => ({
         id,
-        config: config as AnyModifierConfig,
+        config,
       })),
     });
   }
@@ -84,7 +80,7 @@ class ManagedParameterImpl implements ManagedParameter {
     this.events.emit("modifierUpdate", {
       id,
       type: "add",
-      config: config as AnyModifierConfig,
+      config,
     });
   }
   updateModifier(id: string, config: AnyModifierConfig) {
@@ -108,7 +104,7 @@ class ManagedParameterImpl implements ManagedParameter {
     }
     const { config } = this.modifiers.splice(index, 1)?.[0]!;
     const type = "delete";
-    this.events.emit("modifierUpdate", { id, type, config: config as AnyModifierConfig });
+    this.events.emit("modifierUpdate", { id, type, config });
   }
   clearModifiers() {
     this.modifiers = [];

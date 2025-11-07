@@ -25,7 +25,7 @@ export interface ParameterModifierMapping {
 }
 export interface ParameterModifier<T extends UniformType> {
   readonly id: string;
-  config: AnyModifierConfig | BaseModifierConfig;
+  config: AnyModifierConfig;
   transform: ParameterModifierTransformFn<T>;
 }
 
@@ -42,17 +42,19 @@ class ModifierError extends Error {
   }
 }
 
-export class BaseModifier<T extends UniformType> implements ParameterModifier<T> {
+export abstract class BaseModifier<T extends UniformType, C extends AnyModifierConfig>
+  implements ParameterModifier<T>
+{
   public readonly id: string;
   private _type: T;
   private _blendMode: BlendMode = "add";
   private _blendFn: BlendFunction<MappedUniformValue<T>>;
   private _domainScale: number;
-  private _modifierType: ModifierType;
+  protected _modifierType: ModifierType;
   public offset: number = 0;
   public range: number = 1.0;
 
-  constructor(type: T, domainScale: number, config: BaseModifierConfig) {
+  constructor(type: T, domainScale: number, config: C) {
     this.id = generateId();
     this._type = type;
     this._blendMode = config.blendMode;
@@ -69,17 +71,33 @@ export class BaseModifier<T extends UniformType> implements ParameterModifier<T>
     this._blendMode = newValue;
     this._blendFn = blenderFactory[this._type]!(newValue, this._domainScale);
   }
-  public get config(): BaseModifierConfig {
+  protected getBaseConfig(): Omit<BaseModifierConfig, "type"> {
     return {
       blendMode: this._blendMode,
       offset: this.offset,
       range: this.range,
-      type: this._modifierType,
     };
   }
-  public set config(config: AnyModifierConfig | BaseModifierConfig) {
-    this._applyConfig(config as BaseModifierConfig);
+
+  protected abstract _getSpecificConfig(): Omit<C, keyof BaseModifierConfig>;
+
+  public get config(): C {
+    const base = this.getBaseConfig();
+    const specific = this._getSpecificConfig();
+    return { ...base, ...specific, type: this._modifierType } as C;
   }
+
+  public set config(config: AnyModifierConfig) {
+    if (config.type !== this._modifierType) {
+      throw new Error(
+        `Invalid config type: Expected '${this._modifierType}' but got '${config.type}'.`
+      );
+    }
+    this._applyConfig(config as BaseModifierConfig);
+    this._applySpecificConfig(config as C);
+  }
+
+  protected abstract _applySpecificConfig(config: C): void;
 
   private _applyConfig(config: BaseModifierConfig) {
     this._blendMode = config.blendMode;

@@ -9,7 +9,6 @@ import {
 import { StreamLogging } from "../../../util/logging";
 import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
-import type { AnyModifierConfig } from "./types";
 
 export type LFOCurve = "sine" | "square" | "triangle";
 
@@ -32,7 +31,7 @@ const defaultConfig: LFOConfig = {
   blendMode: "add",
 };
 
-export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
+export class LFOModifier<T extends UniformType> extends BaseModifier<T, LFOConfig> {
   public _curve: LFOCurve;
   public hz: number;
   public phase: number;
@@ -48,27 +47,19 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
     this._generateFn = this._createGenerateFn(config.curve);
   }
 
-  public set config(value: AnyModifierConfig) {
-    if (value.type !== "lfo") {
-      throw new Error(`Invalid config type: Expected 'lfo' but got '${value.type}'.`);
-    }
-    super.config = value;
-    this._curve = value.curve;
-    this.hz = value.hz;
-    this.phase = value.phase;
+  protected _applySpecificConfig(config: LFOConfig): void {
+    this._curve = config.curve;
+    this.hz = config.hz;
+    this.phase = config.phase;
     this._generateFn = this._createGenerateFn(this._curve);
   }
 
-  public get config(): LFOConfig {
-    let config = super.config as Omit<BaseModifierConfig, "type">;
-    let newConf: LFOConfig = {
-      ...config,
-      type: "lfo",
+  protected _getSpecificConfig(): Omit<LFOConfig, keyof BaseModifierConfig> {
+    return {
       curve: this._curve,
       hz: this.hz,
       phase: this.phase,
     };
-    return newConf;
   }
 
   private _createGenerateFn(curve: LFOCurve): GenerateFn<T> {

@@ -14,7 +14,6 @@ import type { BeatDetectorState } from "../../audio/beat-detector";
 import type { LevelsMonitorState } from "../../audio/levels-monitor";
 import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
-import type { AnyModifierConfig } from "./types";
 
 type ScalarAnalysisType = Omit<AudioAnalysisType, "fft">;
 type ScalarAnalysisProperty = keyof BeatDetectorState | keyof LevelsMonitorState;
@@ -40,7 +39,10 @@ const defaultConfig: AudioAnalysisModifierConfig = {
   blendMode: "add",
 };
 
-export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<T> {
+export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<
+  T,
+  AudioAnalysisModifierConfig
+> {
   private _handler: Handler<AudioAnalysisEvents, "update"> | null = null;
   private _analyser: PublicAudioStatsCollector;
   private _analysisType: ScalarAnalysisType;
@@ -67,27 +69,22 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<T
     }
     this._subscribe();
   }
-  public get config(): AudioAnalysisModifierConfig {
-    let config = super.config as Omit<BaseModifierConfig, "type">;
-    let newConf: AudioAnalysisModifierConfig = {
-      ...config,
-      type: "audio",
+  protected _getSpecificConfig(): Omit<
+    AudioAnalysisModifierConfig,
+    keyof BaseModifierConfig
+  > {
+    return {
       analysis: {
         type: this._analysisType,
         property: this._analysisProperty,
         declineFalloff: this._declineFalloff,
       },
     };
-    return newConf;
   }
-  public set config(value: AnyModifierConfig) {
-    if (value.type !== "audio") {
-      throw new Error(`Invalid config type: Expected 'audio' but got '${value.type}'.`);
-    }
-    super.config = value;
-    this._analysisProperty = value.analysis.property;
-    this._analysisType = value.analysis.type;
-    this._declineFalloff = value.analysis.declineFalloff;
+  protected _applySpecificConfig(config: AudioAnalysisModifierConfig): void {
+    this._analysisProperty = config.analysis.property;
+    this._analysisType = config.analysis.type;
+    this._declineFalloff = config.analysis.declineFalloff;
   }
   _subscribe() {
     this._handler = ({ stats }) => {
