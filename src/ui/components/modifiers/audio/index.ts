@@ -4,7 +4,7 @@ import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
 
 export function createAudioModifier(
-  config: AudioAnalysisModifierConfig
+  _config: AudioAnalysisModifierConfig
 ): ModifierComponent {
   const emitter = new Emitter<ModifierComponentEventMap>();
   const outerContainer = document.createElement("div");
@@ -21,7 +21,7 @@ export function createAudioModifier(
   return {
     element: outerContainer,
     events: emitter,
-    update: (newConfig: AudioAnalysisModifierConfig) => {
+    update: (_newConfig: AudioAnalysisModifierConfig) => {
       // TODO
     },
   };
