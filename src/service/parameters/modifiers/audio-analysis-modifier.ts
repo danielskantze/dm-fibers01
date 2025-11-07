@@ -14,6 +14,7 @@ import type { BeatDetectorState } from "../../audio/beat-detector";
 import type { LevelsMonitorState } from "../../audio/levels-monitor";
 import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
+import type { AnyModifierConfig } from "./types";
 
 type ScalarAnalysisType = Omit<AudioAnalysisType, "fft">;
 type ScalarAnalysisProperty = keyof BeatDetectorState | keyof LevelsMonitorState;
@@ -66,7 +67,7 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<T
     }
     this._subscribe();
   }
-  public get config(): BaseModifierConfig {
+  public get config(): AudioAnalysisModifierConfig {
     let config = super.config as Omit<BaseModifierConfig, "type">;
     let newConf: AudioAnalysisModifierConfig = {
       ...config,
@@ -79,12 +80,14 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<T
     };
     return newConf;
   }
-  public set config(value: BaseModifierConfig) {
+  public set config(value: AnyModifierConfig) {
+    if (value.type !== "audio") {
+      throw new Error(`Invalid config type: Expected 'audio' but got '${value.type}'.`);
+    }
     super.config = value;
-    const typedConfig = value as AudioAnalysisModifierConfig;
-    this._analysisProperty = typedConfig.analysis.property;
-    this._analysisType = typedConfig.analysis.type;
-    this._declineFalloff = typedConfig.analysis.declineFalloff;
+    this._analysisProperty = value.analysis.property;
+    this._analysisType = value.analysis.type;
+    this._declineFalloff = value.analysis.declineFalloff;
   }
   _subscribe() {
     this._handler = ({ stats }) => {

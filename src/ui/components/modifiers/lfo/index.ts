@@ -1,4 +1,4 @@
-import type { ModifierComponent, ModifierComponentEventMap, ModifierProps } from "..";
+import type { ModifierComponent, ModifierComponentEventMap } from "..";
 import type { BlendMode } from "../../../../math/types";
 import type {
   LFOConfig,
@@ -7,11 +7,6 @@ import type {
 import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
 import "../modifier.css";
-
-export interface LFOModifierProps extends ModifierProps {
-  type: "lfo";
-  config: LFOConfig;
-}
 
 function blendModeToInt(blendMode: BlendMode): number {
   switch (blendMode) {
@@ -57,8 +52,8 @@ function intToCurve(value: number): LFOCurve {
   }
 }
 
-export function createLFOModifier(props: LFOModifierProps): ModifierComponent {
-  let config = { ...props.config };
+export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
+  let config = { ...initialConfig };
   const emitter = new Emitter<ModifierComponentEventMap>();
   const outerContainer = document.createElement("div");
   const container = document.createElement("div");
@@ -146,5 +141,15 @@ export function createLFOModifier(props: LFOModifierProps): ModifierComponent {
   return {
     element: outerContainer,
     events: emitter,
+    update: (newConfig: LFOConfig) => {
+      config = { ...newConfig };
+      hzControl.update?.(config.hz);
+      rangeControl.update?.(config.range);
+      phaseControl.update?.(config.phase);
+      offsetControl.update?.(config.offset);
+      blendControl.update?.(blendModeToInt(config.blendMode));
+      curveControl.update?.(curveToInt(config.curve));
+      //emitter.emit("change", { config });
+    },
   };
 }

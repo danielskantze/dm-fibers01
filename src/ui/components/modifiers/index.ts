@@ -1,54 +1,31 @@
-import type {
-  BaseModifierConfig,
-  ModifierType,
-} from "../../../service/parameters/modifiers";
+import type { ModifierType } from "../../../service/parameters/modifiers";
+import type { AnyModifierConfig } from "../../../service/parameters/modifiers/types";
 import type { EventMap } from "../../../util/events";
 import { createButtons } from "../buttons";
 import type { AccessoryOwnerComponent, Component } from "../types";
-import { createAudioModifier, type AudioModifierProps } from "./audio";
-import { createLFOModifier, type LFOModifierProps } from "./lfo";
-
-export interface ModifierProps {
-  type: ModifierType;
-}
-
-type ModifierPropsMap = {
-  lfo: LFOModifierProps;
-  audio: AudioModifierProps;
-};
-
-export type AnyModifierProps = LFOModifierProps | AudioModifierProps;
-export interface BaseConfigModifierProps extends ModifierProps {
-  config: BaseModifierConfig;
-}
+import { createAudioModifier } from "./audio";
+import { createLFOModifier } from "./lfo";
 
 export type Props = {
-  modifiers: { id: string; props: AnyModifierProps }[];
+  modifiers: { id: string; config: AnyModifierConfig }[];
   onAdd: (type: ModifierType) => void;
-  onUpdate: (id: string, props: AnyModifierProps) => void;
+  onUpdate: (id: string, config: AnyModifierConfig) => void;
   onRemove: (id: string) => void;
 };
 
 export interface ModifierComponentEventMap extends EventMap {
   change: {
-    config: BaseModifierConfig;
+    config: AnyModifierConfig;
   };
 }
 
 export interface ModifierComponent extends Component<ModifierComponentEventMap> {}
 
-type CreateModifierFn<T> = (props: T) => ModifierComponent;
-
 export interface ModifiersComponent extends AccessoryOwnerComponent {
-  addModifier: (id: string, props: AnyModifierProps) => void;
+  addModifier: (id: string, config: AnyModifierConfig) => void;
   removeModifier: (id: string) => void;
-  updateModifier: (id: string, props: AnyModifierProps) => void;
+  updateModifier: (id: string, config: AnyModifierConfig) => void;
 }
-
-const modifierFactory: { [K in ModifierType]: CreateModifierFn<ModifierPropsMap[K]> } = {
-  lfo: createLFOModifier,
-  audio: createAudioModifier,
-};
 
 export function createModifiers(props: Props): ModifiersComponent {
   const container = document.createElement("div");
@@ -72,28 +49,32 @@ export function createModifiers(props: Props): ModifiersComponent {
     },
   ]);
 
-  function onModifierChange(id: string, type: ModifierType, config: BaseModifierConfig) {
-    props.onUpdate(id, { type, config } as AnyModifierProps);
+  function createModifierComponent(config: AnyModifierConfig): ModifierComponent {
+    switch (config.type) {
+      case "lfo":
+        return createLFOModifier(config);
+      case "audio":
+        return createAudioModifier(config);
+    }
   }
 
-  function addModifier(id: string, props: AnyModifierProps) {
-    const createFn = modifierFactory[props.type];
-    const component = createFn(props as any);
+  function addModifier(id: string, config: AnyModifierConfig) {
+    const component = createModifierComponent(config);
     component.element.dataset.modifierID = id;
     modifiersList.appendChild(component.element);
     const unsubscribe = component.events!.subscribe(
       "change",
-      ({ config }: { config: BaseModifierConfig }) => {
-        onModifierChange(id, props.type, config);
+      ({ config }: { config: AnyModifierConfig }) => {
+        props.onUpdate(id, config);
       }
     );
     modifiers.push({ id, component, unsubscribe });
   }
 
-  function updateModifier(id: string, props: AnyModifierProps) {
+  function updateModifier(id: string, config: AnyModifierConfig) {
     const component = modifiers.find(c => c.id === id)?.component;
     if (component) {
-      console.log("update component here", props);
+      component.update?.(config);
     }
   }
 
@@ -104,13 +85,11 @@ export function createModifiers(props: Props): ModifiersComponent {
     }
   }
 
-  props.modifiers.forEach(({ id, props }) => {
-    const createFn = modifierFactory[props.type];
-    const component = createFn(props as any);
+  props.modifiers.forEach(({ id, config }) => {
+    const component = createModifierComponent(config);
     const unsubscribe = component.events!.subscribe(
       "change",
-      ({ config }: { config: BaseModifierConfig }) =>
-        onModifierChange(id, props.type, config)
+      ({ config }: { config: AnyModifierConfig }) => props.onUpdate(id, config)
     );
     modifiersList.appendChild(component.element);
     modifiers.push({ id, component, unsubscribe });

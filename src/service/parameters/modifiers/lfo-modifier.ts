@@ -9,6 +9,7 @@ import {
 import { StreamLogging } from "../../../util/logging";
 import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
+import type { AnyModifierConfig } from "./types";
 
 export type LFOCurve = "sine" | "square" | "triangle";
 
@@ -47,16 +48,18 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T> {
     this._generateFn = this._createGenerateFn(config.curve);
   }
 
-  public set config(value: BaseModifierConfig) {
+  public set config(value: AnyModifierConfig) {
+    if (value.type !== "lfo") {
+      throw new Error(`Invalid config type: Expected 'lfo' but got '${value.type}'.`);
+    }
     super.config = value;
-    const typedConfig = value as LFOConfig;
-    this._curve = typedConfig.curve;
-    this.hz = typedConfig.hz;
-    this.phase = typedConfig.phase;
+    this._curve = value.curve;
+    this.hz = value.hz;
+    this.phase = value.phase;
     this._generateFn = this._createGenerateFn(this._curve);
   }
 
-  public get config(): BaseModifierConfig {
+  public get config(): LFOConfig {
     let config = super.config as Omit<BaseModifierConfig, "type">;
     let newConf: LFOConfig = {
       ...config,

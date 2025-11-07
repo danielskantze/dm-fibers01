@@ -13,6 +13,7 @@ import {
   type BaseModifierConfig,
   type ParameterModifier,
 } from "./parameters/modifiers";
+import type { AnyModifierConfig } from "./parameters/modifiers/types";
 export type ParameterData = ParameterUniform;
 export type ParameterPresetKey = "presets";
 export type ParameterGroupKey = "main" | "bloom" | StageName;
@@ -22,19 +23,19 @@ const presetFormatVersion = 1;
 export type ModifierEventUpdateType = "add" | "change" | "delete";
 export interface ParameterEvents extends EventMap {
   modifierInit: {
-    modifiers: { id: string; config: BaseModifierConfig }[];
+    modifiers: { id: string; config: AnyModifierConfig }[];
   };
   modifierUpdate: {
     id: string;
     type: "add" | "change" | "delete";
-    config: BaseModifierConfig;
+    config: AnyModifierConfig;
   };
   modifierClear: {};
 }
 
 interface ModifierMutations {
   addModifier: (modifier: ParameterModifier<UniformType>) => void;
-  updateModifier: (id: string, config: BaseModifierConfig) => void;
+  updateModifier: (id: string, config: AnyModifierConfig) => void;
   removeModifier: (id: string) => void;
   clearModifiers: () => void;
 }
@@ -70,17 +71,33 @@ class ManagedParameterImpl implements ManagedParameter {
     this.value = props.value;
     this.updatedFrame = props.updatedFrame;
     this.events = new Emitter<ParameterEvents>();
-    this.events.emit("modifierInit", { modifiers: this.modifiers });
+    this.events.emit("modifierInit", {
+      modifiers: this.modifiers.map(({ id, config }) => ({
+        id,
+        config: config as AnyModifierConfig,
+      })),
+    });
   }
   addModifier(modifier: ParameterModifier<UniformType>) {
     this.modifiers.push(modifier);
     const { id, config } = modifier;
-    this.events.emit("modifierUpdate", { id, type: "add", config });
+    this.events.emit("modifierUpdate", {
+      id,
+      type: "add",
+      config: config as AnyModifierConfig,
+    });
   }
-  updateModifier(id: string, config: BaseModifierConfig) {
+  updateModifier(id: string, config: AnyModifierConfig) {
     const modifier = this.modifiers.find(
       m => m.id === id
     ) as ParameterModifier<UniformType>;
+
+    if (modifier.config.type !== config.type) {
+      throw new Error(
+        `Type mismatch: Cannot apply a config of type '${config.type}' to a modifier of type '${modifier.config.type}'.`
+      );
+    }
+
     modifier.config = config;
     this.events.emit("modifierUpdate", { id, type: "change", config });
   }
@@ -91,7 +108,7 @@ class ManagedParameterImpl implements ManagedParameter {
     }
     const { config } = this.modifiers.splice(index, 1)?.[0]!;
     const type = "delete";
-    this.events.emit("modifierUpdate", { id, type, config });
+    this.events.emit("modifierUpdate", { id, type, config: config as AnyModifierConfig });
   }
   clearModifiers() {
     this.modifiers = [];
