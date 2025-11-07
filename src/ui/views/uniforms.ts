@@ -4,10 +4,7 @@ import type {
   ParameterRegistry,
 } from "../../service/parameters";
 import type { ModifierType } from "../../service/parameters/modifiers";
-import {
-  LFOModifier,
-  type LFOConfig,
-} from "../../service/parameters/modifiers/lfo-modifier";
+import { LFOModifier } from "../../service/parameters/modifiers/lfo-modifier";
 import {
   UniformComponents,
   isParameterUniform,
@@ -18,12 +15,8 @@ import {
   attachAccessoryView,
   removeAccessoryView,
 } from "../components/decorators/accessory-view";
-import {
-  createModifiers,
-  type AnyModifierProps,
-  type BaseConfigModifierProps,
-  type ModifiersComponent,
-} from "../components/modifiers";
+import { createModifiers, type ModifiersComponent } from "../components/modifiers";
+import type { AnyModifierConfig } from "../../service/parameters/modifiers/types";
 import type { AccessoryOwnerComponent, ComponentEventMap } from "../components/types";
 import { getFactoryFor } from "../parameter-components";
 import type { UIRootEvents } from "../root";
@@ -48,13 +41,12 @@ function createAccessoryEventHandler(
       const param = registry.getParameter(group, parameter);
       unsubscribe.push(
         param.events.subscribe("modifierUpdate", ({ id, type, config }) => {
-          const props = { type: config.type, config } as AnyModifierProps;
           switch (type) {
             case "add":
-              components!.addModifier(id, props);
+              components!.addModifier(id, config);
               break;
             case "change":
-              components!.updateModifier(id, props);
+              components!.updateModifier(id, config);
               break;
             case "delete":
               components!.removeModifier(id);
@@ -65,11 +57,7 @@ function createAccessoryEventHandler(
       unsubscribe.push(
         param.events.subscribe("modifierInit", event => {
           const modifiers = event.modifiers.map(m => {
-            const props = {
-              type: m.config.type,
-              config: m.config,
-            } as AnyModifierProps;
-            return { id: m.id, props };
+            return { id: m.id, config: m.config };
           });
           components = createModifiers({
             modifiers,
@@ -79,8 +67,7 @@ function createAccessoryEventHandler(
                   LFOModifier.addTo(param, {});
               }
             },
-            onUpdate(id, props) {
-              const config = (props as BaseConfigModifierProps).config;
+            onUpdate(id, config: AnyModifierConfig) {
               param.updateModifier(id, config);
             },
             onRemove(id) {

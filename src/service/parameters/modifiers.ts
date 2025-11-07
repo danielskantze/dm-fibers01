@@ -9,6 +9,7 @@ import type {
 } from "../../types/gl/uniforms";
 import { generateId } from "../../ui/util/id";
 import type { ManagedParameter } from "../parameters";
+import type { AnyModifierConfig } from "./modifiers/types";
 
 export type ParameterModifierTransformFn<T extends UniformType> = (
   frame: number,
@@ -24,7 +25,7 @@ export interface ParameterModifierMapping {
 }
 export interface ParameterModifier<T extends UniformType> {
   readonly id: string;
-  config: BaseModifierConfig;
+  config: AnyModifierConfig | BaseModifierConfig;
   transform: ParameterModifierTransformFn<T>;
 }
 
@@ -76,8 +77,8 @@ export class BaseModifier<T extends UniformType> implements ParameterModifier<T>
       type: this._modifierType,
     };
   }
-  public set config(config: BaseModifierConfig) {
-    this._applyConfig(config);
+  public set config(config: AnyModifierConfig | BaseModifierConfig) {
+    this._applyConfig(config as BaseModifierConfig);
   }
 
   private _applyConfig(config: BaseModifierConfig) {
