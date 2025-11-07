@@ -83,7 +83,8 @@ export function createRoot({
     element,
     params.list().map(([, , u]) => u),
     params,
-    emitter
+    emitter,
+    analyzer
   );
   children.push(...uniformControls);
 
