@@ -3,20 +3,14 @@ import type {
   ParameterGroupKey,
   ParameterRegistry,
 } from "../../service/parameters";
-import type { ModifierType } from "../../service/parameters/modifiers";
-import { LFOModifier } from "../../service/parameters/modifiers/lfo-modifier";
+import type { PublicAudioStatsCollector } from "../../service/audio/audio-stats";
 import {
   UniformComponents,
   isParameterUniform,
   type ParameterUniform,
 } from "../../types/gl/uniforms";
 import type { Emitter, Handler } from "../../util/events";
-import {
-  attachAccessoryView,
-  removeAccessoryView,
-} from "../components/decorators/accessory-view";
-import { createModifiers, type ModifiersComponent } from "../components/modifiers";
-import type { AnyModifierConfig } from "../../service/parameters/modifiers/types";
+import { manageModifiersFor } from "../components/modifiers/manager";
 import type { AccessoryOwnerComponent, ComponentEventMap } from "../components/types";
 import { getFactoryFor } from "../parameter-components";
 import type { UIRootEvents } from "../root";
@@ -28,57 +22,22 @@ function uniformElementId(group: string, id: string): string {
 function createAccessoryEventHandler(
   registry: ParameterRegistry,
   group: ParameterGroupKey,
-  parameter: string
+  parameter: string,
+  audioAnalyzer: PublicAudioStatsCollector
 ): Handler<ComponentEventMap, "accessory"> {
-  let unsubscribe: (() => void)[] = [];
-  let components: ModifiersComponent | null = null;
+  let destroyManager: (() => void) | null = null;
+
   return props => {
     const { isOpen, sender } = props.open;
-    while (unsubscribe.length > 0) {
-      unsubscribe.shift()!();
+
+    if (destroyManager) {
+      destroyManager();
+      destroyManager = null;
     }
+
     if (isOpen) {
       const param = registry.getParameter(group, parameter);
-      unsubscribe.push(
-        param.events.subscribe("modifierUpdate", ({ id, type, config }) => {
-          switch (type) {
-            case "add":
-              components!.addModifier(id, config);
-              break;
-            case "change":
-              components!.updateModifier(id, config);
-              break;
-            case "delete":
-              components!.removeModifier(id);
-              break;
-          }
-        })
-      );
-      unsubscribe.push(
-        param.events.subscribe("modifierInit", event => {
-          const modifiers = event.modifiers.map(m => {
-            return { id: m.id, config: m.config };
-          });
-          components = createModifiers({
-            modifiers,
-            onAdd: (type: ModifierType) => {
-              switch (type) {
-                case "lfo":
-                  LFOModifier.addTo(param, {});
-              }
-            },
-            onUpdate(id, config: AnyModifierConfig) {
-              param.updateModifier(id, config);
-            },
-            onRemove(id) {
-              console.log("Remove", id);
-            },
-          });
-          attachAccessoryView(sender, components);
-        })
-      );
-    } else {
-      removeAccessoryView(sender);
+      destroyManager = manageModifiersFor(sender, param, audioAnalyzer);
     }
   };
 }
@@ -87,7 +46,8 @@ export function createUniformControls(
   controlsContainer: HTMLElement,
   uniforms: ParameterData[],
   registry: ParameterRegistry,
-  eventSource: Emitter<UIRootEvents>
+  eventSource: Emitter<UIRootEvents>,
+  audioAnalyzer: PublicAudioStatsCollector
 ): AccessoryOwnerComponent[] {
   const children: AccessoryOwnerComponent[] = [];
   for (const u of uniforms) {
@@ -139,7 +99,7 @@ export function createUniformControls(
       const child = factory(props);
       child.events?.subscribe(
         "accessory",
-        createAccessoryEventHandler(registry, group, parameter)
+        createAccessoryEventHandler(registry, group, parameter, audioAnalyzer)
       );
       if (child) {
         controlsContainer.appendChild(child.element);
