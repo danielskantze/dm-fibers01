@@ -9,6 +9,8 @@ import type { StageName } from "../types/stage";
 import { Emitter, type EventMap, type Subscribable } from "../util/events";
 import { migrate } from "./parameters/migrations";
 import { computeValue, type ParameterModifier } from "./parameters/modifiers";
+import { AudioAnalysisModifier } from "./parameters/modifiers/audio-analysis-modifier";
+import { LFOModifier } from "./parameters/modifiers/lfo-modifier";
 import type { AnyModifierConfig } from "./parameters/modifiers/types";
 export type ParameterData = ParameterUniform;
 export type ParameterPresetKey = "presets";
@@ -137,7 +139,7 @@ export type ParameterConfig<G extends string> = {
 
 type ParameterValues = Record<
   string,
-  Record<string, { baseValue: UniformValue; modifiers: [] }>
+  Record<string, { baseValue: UniformValue; modifiers: AnyModifierConfig[] }>
 >;
 
 export type ParameterPreset = {
@@ -252,6 +254,18 @@ class ParameterService<G extends string> {
           uniforms.createFromJson(data.baseValue, desc.type),
           true
         );
+        const param = this.getManagedParameter(group as G, id);
+        data.modifiers.forEach(m => {
+          switch (m.type) {
+            case "lfo":
+              console.log(m);
+              LFOModifier.addTo(param, m);
+              break;
+            case "audio":
+              //AudioAnalysisModifier.addTo(param, audioAnalyzer, {});
+              break;
+          }
+        });
       });
     });
   }
@@ -268,10 +282,10 @@ class ParameterService<G extends string> {
       if (!result.data[group]) {
         result.data[group] = {};
       }
-      Object.entries(parameters).forEach(([id, { data }]) => {
+      Object.entries(parameters).forEach(([id, { data, modifiers }]) => {
         result.data[group][id] = {
           baseValue: uniforms.valueToJson(this.getBaseValue(group, id), data.type),
-          modifiers: [],
+          modifiers: modifiers.map(m => m.config),
         };
       });
     });
