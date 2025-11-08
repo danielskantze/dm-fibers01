@@ -1,5 +1,4 @@
 import type { UniformValue } from "../../types/gl/uniforms";
-import type { AnyModifierConfig } from "../../service/parameters/modifiers/types";
 import type { EventMap, Subscribable } from "../../util/events";
 
 // 1. The new base component interface.

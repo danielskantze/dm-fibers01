@@ -6,6 +6,7 @@ import template from "./modal.html?raw";
 export interface ModalComponent extends Component<ModalEvents> {
   show: (text?: string) => void;
   hide: () => void;
+  update: (message: string) => void;
   events: Subscribable<ModalEvents>;
 }
 

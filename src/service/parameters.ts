@@ -14,7 +14,7 @@ export type ParameterData = ParameterUniform;
 export type ParameterPresetKey = "presets";
 export type ParameterGroupKey = "main" | "bloom" | StageName;
 
-const presetFormatVersion = 1;
+const presetFormatVersion = 2;
 
 export type ModifierEventUpdateType = "add" | "change" | "delete";
 export interface ParameterEvents extends EventMap {
@@ -135,7 +135,10 @@ export type ParameterConfig<G extends string> = {
   };
 };
 
-type ParameterValues = Record<string, Record<string, UniformValue>>;
+type ParameterValues = Record<
+  string,
+  Record<string, { baseValue: UniformValue; modifiers: [] }>
+>;
 
 export type ParameterPreset = {
   id: string;
@@ -230,13 +233,25 @@ class ParameterService<G extends string> {
       throw new Error("Cannot load values without config");
     }
     if (preset.version !== presetFormatVersion) {
+      console.log("Before", preset);
       preset = migrate(preset.version, presetFormatVersion, preset);
+      console.log("After", preset);
     }
     const { data } = preset;
     Object.entries(data).forEach(([group, parameters]) => {
       Object.entries(parameters).forEach(([id, data]) => {
         const desc = this.getParameterData(group as G, id);
-        this.setValue(group as G, id, uniforms.createFromJson(data, desc.type), true);
+        const baseValue = data.baseValue;
+        if (baseValue === undefined) {
+          console.warn("baseValue not set for entry, is preset broken? Skipping...");
+          return;
+        }
+        this.setValue(
+          group as G,
+          id,
+          uniforms.createFromJson(data.baseValue, desc.type),
+          true
+        );
       });
     });
   }
@@ -254,10 +269,10 @@ class ParameterService<G extends string> {
         result.data[group] = {};
       }
       Object.entries(parameters).forEach(([id, { data }]) => {
-        result.data[group][id] = uniforms.valueToJson(
-          this.getBaseValue(group, id),
-          data.type
-        );
+        result.data[group][id] = {
+          baseValue: uniforms.valueToJson(this.getBaseValue(group, id), data.type),
+          modifiers: [],
+        };
       });
     });
     return result;
