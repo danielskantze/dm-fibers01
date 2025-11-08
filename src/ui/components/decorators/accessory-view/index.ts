@@ -1,8 +1,8 @@
-import type { AccessoryOwnerComponent } from "../../types";
+import type { AccessoryOwnerComponent, Component } from "../../types";
 
 export function attachAccessoryView(
   owner: AccessoryOwnerComponent,
-  accessory: AccessoryOwnerComponent
+  accessory: Component
 ): void {
   const parentNode = owner.element.parentNode;
   if (!parentNode) {

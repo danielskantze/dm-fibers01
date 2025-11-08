@@ -1,8 +1,8 @@
 import type { ModifierType } from "../../../service/parameters/modifiers";
 import type { AnyModifierConfig } from "../../../service/parameters/modifiers/types";
-import type { EventMap } from "../../../util/events";
+import type { EventMap, Subscribable } from "../../../util/events";
 import { createButtons } from "../buttons";
-import type { AccessoryOwnerComponent, Component } from "../types";
+import type { Component } from "../types";
 import { createAudioModifier } from "./audio";
 import { createLFOModifier } from "./lfo";
 
@@ -19,9 +19,12 @@ export interface ModifierComponentEventMap extends EventMap {
   };
 }
 
-export interface ModifierComponent extends Component<ModifierComponentEventMap> {}
+export interface ModifierComponent extends Component<ModifierComponentEventMap> {
+  update: (config: AnyModifierConfig) => void;
+  events: Subscribable<ModifierComponentEventMap>;
+}
 
-export interface ModifiersComponent extends AccessoryOwnerComponent {
+export interface ModifiersComponent extends Component {
   addModifier: (id: string, config: AnyModifierConfig) => void;
   removeModifier: (id: string) => void;
   updateModifier: (id: string, config: AnyModifierConfig) => void;
@@ -62,12 +65,9 @@ export function createModifiers(props: Props): ModifiersComponent {
     const component = createModifierComponent(config);
     component.element.dataset.modifierID = id;
     modifiersList.appendChild(component.element);
-    const unsubscribe = component.events!.subscribe(
-      "change",
-      ({ config }: { config: AnyModifierConfig }) => {
-        props.onUpdate(id, config);
-      }
-    );
+    const unsubscribe = component.events!.subscribe("change", ({ config }) => {
+      props.onUpdate(id, config);
+    });
     modifiers.push({ id, component, unsubscribe });
   }
 
@@ -87,9 +87,8 @@ export function createModifiers(props: Props): ModifiersComponent {
 
   props.modifiers.forEach(({ id, config }) => {
     const component = createModifierComponent(config);
-    const unsubscribe = component.events!.subscribe(
-      "change",
-      ({ config }: { config: AnyModifierConfig }) => props.onUpdate(id, config)
+    const unsubscribe = component.events!.subscribe("change", ({ config }) =>
+      props.onUpdate(id, config)
     );
     modifiersList.appendChild(component.element);
     modifiers.push({ id, component, unsubscribe });

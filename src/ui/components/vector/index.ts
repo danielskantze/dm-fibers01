@@ -1,5 +1,6 @@
 import { createScalar } from "../scalar";
-import type { Component } from "../types";
+import type { UniformValue } from "../../../types/gl/uniforms";
+import type { ParameterComponent } from "../types";
 import "./vector.css";
 import template from "./vector.html?raw";
 
@@ -35,7 +36,7 @@ export function createVector({
   max,
   step,
   accessoryButton,
-}: VectorProps): Component {
+}: VectorProps): ParameterComponent {
   const wrapper: HTMLDivElement = document.createElement("div");
   wrapper.innerHTML = template;
   const control = wrapper.firstElementChild as HTMLDivElement;
@@ -64,7 +65,7 @@ export function createVector({
   };
   expandRadio.addEventListener("click", onExpandClick);
 
-  const children: Component[] = [];
+  const children: ParameterComponent[] = [];
 
   for (let i = 0; i < values.length; i++) {
     const child = createScalar({
@@ -80,7 +81,13 @@ export function createVector({
   }
   return {
     element: wrapper,
-    update: (values: number[]) => children.forEach((c, i) => c.update!(values[i])),
+    update: (values: UniformValue) => {
+      if (!Array.isArray(values)) {
+        console.warn("Vector component received non-array value:", values);
+        return;
+      }
+      children.forEach((c, i) => c.update!(values[i]));
+    },
     destroy: () => {
       expandRadio.removeEventListener("click", onExpandClick);
       if (accessoryButton) {

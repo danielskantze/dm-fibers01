@@ -1,6 +1,7 @@
 import type { Matrix4x3 } from "../../../math/types";
-import type { Component } from "../types";
-import { createVec3, type Vec3Component } from "../vec3";
+import type { UniformValue } from "../../../types/gl/uniforms";
+import type { ParameterComponent } from "../types";
+import { createVec3 } from "../vec3";
 import * as mat43 from "../../../math/mat43";
 import "./cos-palette.css";
 import template from "./cos-palette.html?raw";
@@ -18,16 +19,21 @@ function cosPalette(t: number, m: Matrix4x3) {
   return [Math.floor(255.0 * s[0]), Math.floor(255.0 * s[1]), Math.floor(255.0 * s[2])];
 }
 
-export function createCosPalette(
-  value: Matrix4x3,
-  onChange: (value: Matrix4x3) => void,
-  width: number = 320,
-  height: number = 1
-): Component {
-  let matrix = mat43.copy(value);
+export type CosPaletteProps = {
+  values: Matrix4x3;
+  onChange: (value: Matrix4x3) => void;
+};
+
+export function createCosPalette({
+  values,
+  onChange,
+}: CosPaletteProps): ParameterComponent {
+  const width = 320;
+  const height = 1;
+  let matrix = mat43.copy(values);
   const vec3A = createVec3({
     name: "A",
-    values: mat43.getRow(0, value),
+    values: mat43.getRow(0, values),
     onChange: v => {
       mat43.setRow(0, v, matrix);
       onChange(matrix);
@@ -37,7 +43,7 @@ export function createCosPalette(
   });
   const vec3B = createVec3({
     name: "B",
-    values: mat43.getRow(1, value),
+    values: mat43.getRow(1, values),
     onChange: v => {
       mat43.setRow(1, v, matrix);
       onChange(matrix);
@@ -47,7 +53,7 @@ export function createCosPalette(
   });
   const vec3C = createVec3({
     name: "C",
-    values: mat43.getRow(2, value),
+    values: mat43.getRow(2, values),
     onChange: v => {
       mat43.setRow(2, v, matrix);
       onChange(matrix);
@@ -57,7 +63,7 @@ export function createCosPalette(
   });
   const vec3D = createVec3({
     name: "D",
-    values: mat43.getRow(3, value),
+    values: mat43.getRow(3, values),
     onChange: v => {
       mat43.setRow(3, v, matrix);
       onChange(matrix);
@@ -72,7 +78,7 @@ export function createCosPalette(
   const container = element.querySelector(".cos-palette") as HTMLDivElement;
   const canvas = element.querySelector(".palette") as HTMLCanvasElement;
   const components = element.querySelector(".components") as HTMLDivElement;
-  const children: Vec3Component[] = [];
+  const children: ParameterComponent[] = [];
   const expandRadio = element.querySelector(
     ".cos-palette .expand-checkbox"
   ) as HTMLInputElement;
@@ -123,7 +129,11 @@ export function createCosPalette(
   drawPalette();
   return {
     element: container,
-    update: (value: Matrix4x3) => {
+    update: (value: UniformValue) => {
+      if (!(value instanceof Float32Array) || value.length !== 12) {
+        console.warn("CosPalette component received non-mat4x3 value:", value);
+        return;
+      }
       const m = value as Matrix4x3;
       if (mat43.equals(matrix, m)) {
         return;
@@ -139,7 +149,7 @@ export function createCosPalette(
       container.removeEventListener("click", onContainerClick);
       expandRadio.removeEventListener("click", onExpandClick);
       for (const child of children) {
-        child.destroy!();
+        child.destroy?.();
       }
     },
   };

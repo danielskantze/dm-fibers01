@@ -1,7 +1,7 @@
-import type { ComponentWithoutEvents } from "../../types";
+import type { Component } from "../../types";
 import "./icon-button.css";
 
-interface ButtonComponent extends ComponentWithoutEvents {
+interface ButtonComponent extends Component {
   updateButton: (svgIcon: string, title?: string) => void;
   setDisabled: (isDisabled: boolean) => void;
 }
@@ -59,7 +59,9 @@ export function createIconButton(props: ButtonProps): ButtonComponent {
     setDisabled: isDisabled => {
       button.disabled = isDisabled;
     },
-    destroy: () => {},
+    destroy: () => {
+      button.removeEventListener("click", clickHandler);
+    },
   };
 }
 

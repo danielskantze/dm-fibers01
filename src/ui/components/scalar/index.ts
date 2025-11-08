@@ -1,9 +1,9 @@
-import type { ScalarValueType } from "../../../types/gl/uniforms";
+import type { ScalarValueType, UniformValue } from "../../../types/gl/uniforms";
 import { Emitter } from "../../../util/events";
 import collapseIcon from "../../icons/collapse.svg?raw";
 import expandIcon from "../../icons/expand.svg?raw";
 import { createIconToggleButton } from "../buttons/icon-button";
-import type { AccessoryOwnerComponent, ComponentEventMap } from "../types";
+import type { AccessoryOwnerComponent, AccessoryOwnerEventMap } from "../types";
 import "./scalar.css";
 
 let idSeq = 1;
@@ -53,7 +53,7 @@ export function createScalar({
   enumValues,
 }: ScalarProps): AccessoryOwnerComponent {
   const container: HTMLDivElement = document.createElement("div");
-  const emitter = new Emitter<ComponentEventMap>();
+  const emitter = new Emitter<AccessoryOwnerEventMap>();
   container.classList.add("scalar");
   container.classList.add("ui-control");
 
@@ -109,11 +109,15 @@ export function createScalar({
   text.classList.add("digits");
   wrapper.classList.add("parameter");
 
-  const component = {
+  const component: AccessoryOwnerComponent = {
     element: container,
-    update: (value: number) => {
-      input.value = value.toString();
-      text.value = getValue(value as number, valueConfig);
+    update: (value: UniformValue) => {
+      if (typeof value === "number") {
+        input.value = value.toString();
+        text.value = getValue(value as number, valueConfig);
+      } else {
+        console.warn("Scalar component received non-number value:", value);
+      }
     },
     destroy: () => {
       input.removeEventListener("input", onInputChange);
@@ -130,7 +134,7 @@ export function createScalar({
       circular: true,
       onClick: function (): void {
         isAccessoryCollapsed = !isAccessoryCollapsed;
-        accessoryButton.update!(isAccessoryCollapsed);
+        accessoryButton.update?.(isAccessoryCollapsed);
         emitter.emit("accessory", {
           open: {
             sender: component,

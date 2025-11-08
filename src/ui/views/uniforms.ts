@@ -11,7 +11,11 @@ import {
 } from "../../types/gl/uniforms";
 import type { Emitter, Handler } from "../../util/events";
 import { manageModifiersFor } from "../components/modifiers/manager";
-import type { AccessoryOwnerComponent, ComponentEventMap } from "../components/types";
+import {
+  isAccessoryOwnerComponent,
+  type ComponentEventMap,
+  type ParameterComponent,
+} from "../components/types";
 import { getFactoryFor } from "../parameter-components";
 import type { UIRootEvents } from "../root";
 
@@ -27,7 +31,7 @@ function createAccessoryEventHandler(
 ): Handler<ComponentEventMap, "accessory"> {
   let destroyManager: (() => void) | null = null;
 
-  return props => {
+  return (props: any) => {
     const { isOpen, sender } = props.open;
 
     if (destroyManager) {
@@ -48,8 +52,8 @@ export function createUniformControls(
   registry: ParameterRegistry,
   eventSource: Emitter<UIRootEvents>,
   audioAnalyzer: PublicAudioStatsCollector
-): AccessoryOwnerComponent[] {
-  const children: AccessoryOwnerComponent[] = [];
+): ParameterComponent[] {
+  const children: ParameterComponent[] = [];
   for (const u of uniforms) {
     const { domain, ui } = u;
     if (isParameterUniform(u) && ui) {
@@ -97,11 +101,14 @@ export function createUniformControls(
       };
 
       const child = factory(props);
-      child.events?.subscribe(
+
+      if (isAccessoryOwnerComponent(child)) {
+        child.events.subscribe(
         "accessory",
-        createAccessoryEventHandler(registry, group, parameter, audioAnalyzer)
+          createAccessoryEventHandler(registry, group, parameter, audioAnalyzer)
       );
-      if (child) {
+      }
+
         controlsContainer.appendChild(child.element);
         if (registryKeys) {
           const [group, parameter] = registryKeys;
@@ -113,7 +120,6 @@ export function createUniformControls(
           });
         }
         children.push(child);
-      }
     }
   }
   return children;
