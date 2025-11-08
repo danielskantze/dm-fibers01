@@ -8,11 +8,13 @@ import {
   blendModeEnumMap,
 } from "../../../../service/parameters/modifiers/types";
 import {
-  scalarAnalysisTypeEnumMap,
-  scalarAnalysisPropertyEnumMap,
+  audioAnalysisTypeEnumMap,
+  audioLevelAnalysisPropertyEnumMap,
+  audioBeatAnalysisPropertyEnumMap,
 } from "../../../../service/parameters/modifiers/audio-analysis-modifier";
 import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
+import "./audio-modifier.css";
 
 export function createAudioModifier(
   initialConfig: AudioAnalysisModifierConfig
@@ -24,6 +26,7 @@ export function createAudioModifier(
   const container = document.createElement("div");
   outerContainer.classList.add("ui-component");
   outerContainer.classList.add("modifier");
+  outerContainer.classList.add("audio");
   container.classList.add("container");
   outerContainer.appendChild(container);
 
@@ -40,26 +43,39 @@ export function createAudioModifier(
 
   const typeControl = createScalar({
     name: "Type",
-    value: scalarAnalysisTypeEnumMap.stringToInt(
+    value: audioAnalysisTypeEnumMap.stringToInt(
       config.analysis.type as "levels" | "beat"
     ),
     type: "enum",
-    enumValues: scalarAnalysisTypeEnumMap.values,
+    enumValues: audioAnalysisTypeEnumMap.values,
     onChange: (value: number) => {
-      config.analysis.type = scalarAnalysisTypeEnumMap.intToString(value);
+      config.analysis.type = audioAnalysisTypeEnumMap.intToString(value);
       emitter.emit("change", { config });
     },
   } as ScalarProps);
 
-  const propertyControl = createScalar({
+  const levelPropertyControl = createScalar({
     name: "Property",
-    value: scalarAnalysisPropertyEnumMap.stringToInt(config.analysis.property),
+    value: audioLevelAnalysisPropertyEnumMap.stringToInt(config.analysis.property),
     type: "enum",
-    enumValues: scalarAnalysisPropertyEnumMap.values.map(
+    enumValues: audioLevelAnalysisPropertyEnumMap.values.map(
       e => scalarPropertyEnumLabelMap[e]
     ),
     onChange: (value: number) => {
-      config.analysis.property = scalarAnalysisPropertyEnumMap.intToString(value);
+      config.analysis.property = audioLevelAnalysisPropertyEnumMap.intToString(value);
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
+  const beatPropertyControl = createScalar({
+    name: "Property",
+    value: audioBeatAnalysisPropertyEnumMap.stringToInt(config.analysis.property),
+    type: "enum",
+    enumValues: audioBeatAnalysisPropertyEnumMap.values.map(
+      e => scalarPropertyEnumLabelMap[e]
+    ),
+    onChange: (value: number) => {
+      config.analysis.property = audioBeatAnalysisPropertyEnumMap.intToString(value);
       emitter.emit("change", { config });
     },
   } as ScalarProps);
@@ -97,11 +113,17 @@ export function createAudioModifier(
     },
   } as ScalarProps);
 
+  levelPropertyControl.element.classList.add("levels-property");
+  beatPropertyControl.element.classList.add("beat-property");
+
   container.appendChild(typeControl.element);
-  container.appendChild(propertyControl.element);
+  container.appendChild(levelPropertyControl.element);
+  container.appendChild(beatPropertyControl.element);
   container.appendChild(rangeControl.element);
   container.appendChild(offsetControl.element);
   container.appendChild(blendControl.element);
+
+  container.dataset.analysisType = config.analysis.type as string;
 
   return {
     element: outerContainer,
@@ -113,11 +135,15 @@ export function createAudioModifier(
       config = { ...newConfig };
       config.analysis = { ...config.analysis };
       typeControl.update?.(
-        scalarAnalysisTypeEnumMap.stringToInt(config.analysis.type as "levels" | "beat")
+        audioAnalysisTypeEnumMap.stringToInt(config.analysis.type as "levels" | "beat")
       );
-      propertyControl.update?.(
-        scalarAnalysisPropertyEnumMap.stringToInt(config.analysis.property)
+      levelPropertyControl.update?.(
+        audioLevelAnalysisPropertyEnumMap.stringToInt(config.analysis.property)
       );
+      beatPropertyControl.update?.(
+        audioBeatAnalysisPropertyEnumMap.stringToInt(config.analysis.property)
+      );
+      container.dataset.analysisType = config.analysis.type as string;
       rangeControl.update?.(config.range);
       offsetControl.update?.(config.offset);
       blendControl.update?.(blendModeEnumMap.stringToInt(config.blendMode));
