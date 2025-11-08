@@ -5,7 +5,8 @@
   /* Need to be defined in pixels! */
   --ui-width: 320px;
   --component-color-background: #222;
-  --component-color-background-modifier: #222244;
+  --component-color-background-modifier-audio: #222244;
+  --component-color-background-modifier-lfo: #224422;
   --component-color-background-1: #444;
   --component-color-background-down: #1e1e1e;
   --component-color-accent-1: #ddd;
@@ -73,7 +74,11 @@ body * {
   right: 0;
   padding: 6px;
   border-top-left-radius: 0.5rem;
-  background-color: rgba(0, 0, 0, 0.15);
+  background-color: none;
+}
+
+#controls > * {
+  filter: drop-shadow(rgba(0, 0, 0, 0.75) 0px 0px 3px);
 }
 
 button,

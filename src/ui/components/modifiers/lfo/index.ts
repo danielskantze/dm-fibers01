@@ -7,7 +7,7 @@ import { lfoCurveEnumMap } from "../../../../service/parameters/modifiers/lfo-mo
 import type { LFOConfig } from "../../../../service/parameters/modifiers/lfo-modifier";
 import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
-import "../modifier.css";
+import "./lfo-modifier.css";
 
 export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
   let config = { ...initialConfig };
@@ -16,6 +16,7 @@ export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
   const container = document.createElement("div");
   outerContainer.classList.add("ui-component");
   outerContainer.classList.add("modifier");
+  outerContainer.classList.add("lfo");
   outerContainer.appendChild(container);
   container.classList.add("container");
 
