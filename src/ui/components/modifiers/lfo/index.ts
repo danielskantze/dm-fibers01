@@ -1,57 +1,13 @@
 import type { ModifierComponent, ModifierComponentEventMap } from "..";
-import type { AnyModifierConfig } from "../../../../service/parameters/modifiers/types";
-import type { BlendMode } from "../../../../math/types";
-import type {
-  LFOConfig,
-  LFOCurve,
-} from "../../../../service/parameters/modifiers/lfo-modifier";
+import {
+  type AnyModifierConfig,
+  blendModeEnumMap,
+} from "../../../../service/parameters/modifiers/types";
+import { lfoCurveEnumMap } from "../../../../service/parameters/modifiers/lfo-modifier";
+import type { LFOConfig } from "../../../../service/parameters/modifiers/lfo-modifier";
 import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
 import "../modifier.css";
-
-function blendModeToInt(blendMode: BlendMode): number {
-  switch (blendMode) {
-    case "add":
-      return 0;
-    case "multiply":
-      return 1;
-  }
-}
-
-function intToBlendMode(value: number): BlendMode {
-  switch (value) {
-    case 0:
-      return "add";
-    case 1:
-      return "multiply";
-    default:
-      return "add";
-  }
-}
-
-function curveToInt(curve: LFOCurve): number {
-  switch (curve) {
-    case "sine":
-      return 0;
-    case "triangle":
-      return 1;
-    case "square":
-      return 2;
-  }
-}
-
-function intToCurve(value: number): LFOCurve {
-  switch (value) {
-    case 0:
-      return "sine";
-    case 1:
-      return "triangle";
-    case 2:
-      return "square";
-    default:
-      return "sine";
-  }
-}
 
 export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
   let config = { ...initialConfig };
@@ -109,26 +65,22 @@ export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
 
   const blendControl = createScalar({
     name: "Blend",
-    value: blendModeToInt(config.blendMode),
-    min: 0,
-    max: 1,
+    value: blendModeEnumMap.stringToInt(config.blendMode),
     type: "enum",
-    enumValues: ["add", "multiply"],
+    enumValues: blendModeEnumMap.values,
     onChange: (value: number) => {
-      config.blendMode = intToBlendMode(value);
+      config.blendMode = blendModeEnumMap.intToString(value);
       emitter.emit("change", { config });
     },
   } as ScalarProps);
 
   const curveControl = createScalar({
     name: "Curve",
-    value: curveToInt(config.curve),
-    min: 0,
-    max: 2,
+    value: lfoCurveEnumMap.stringToInt(config.curve),
     type: "enum",
-    enumValues: ["sine", "triangle", "square"],
+    enumValues: lfoCurveEnumMap.values,
     onChange: (value: number) => {
-      config.curve = intToCurve(value);
+      config.curve = lfoCurveEnumMap.intToString(value);
       emitter.emit("change", { config });
     },
   } as ScalarProps);
@@ -151,8 +103,8 @@ export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
       rangeControl.update?.(config.range);
       phaseControl.update?.(config.phase);
       offsetControl.update?.(config.offset);
-      blendControl.update?.(blendModeToInt(config.blendMode));
-      curveControl.update?.(curveToInt(config.curve));
+      blendControl.update?.(blendModeEnumMap.stringToInt(config.blendMode));
+      curveControl.update?.(lfoCurveEnumMap.stringToInt(config.curve));
     },
   };
 }
