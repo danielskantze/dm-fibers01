@@ -1,5 +1,8 @@
 import type { ModifierComponent, ModifierComponentEventMap } from "..";
-import type { AudioAnalysisModifierConfig } from "../../../../service/parameters/modifiers/audio-analysis-modifier";
+import type {
+  AudioAnalysisModifierConfig,
+  ScalarAnalysisProperty,
+} from "../../../../service/parameters/modifiers/audio-analysis-modifier";
 import {
   type AnyModifierConfig,
   blendModeEnumMap,
@@ -21,7 +24,19 @@ export function createAudioModifier(
   const container = document.createElement("div");
   outerContainer.classList.add("ui-component");
   outerContainer.classList.add("modifier");
+  container.classList.add("container");
   outerContainer.appendChild(container);
+
+  const scalarPropertyEnumLabelMap: { [K in ScalarAnalysisProperty]: string } = {
+    lastBeatTime: "tBeat",
+    timeSinceLastBeat: "ΔBeat",
+    rms: "RMS",
+    peak: "Peak",
+    avgPeak: "P̄eak",
+    avgRms: "R̄MS",
+    avgRms3: "R̄MS3",
+    avgRms5: "R̄MS5",
+  };
 
   const typeControl = createScalar({
     name: "Type",
@@ -40,7 +55,9 @@ export function createAudioModifier(
     name: "Property",
     value: scalarAnalysisPropertyEnumMap.stringToInt(config.analysis.property),
     type: "enum",
-    enumValues: scalarAnalysisPropertyEnumMap.values,
+    enumValues: scalarAnalysisPropertyEnumMap.values.map(
+      e => scalarPropertyEnumLabelMap[e]
+    ),
     onChange: (value: number) => {
       config.analysis.property = scalarAnalysisPropertyEnumMap.intToString(value);
       emitter.emit("change", { config });
