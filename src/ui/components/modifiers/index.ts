@@ -38,18 +38,21 @@ export function createModifiers(props: Props): ModifiersComponent {
   const addItem = document.createElement("div");
   const buttons = createButtons([
     {
+      id: "clear",
+      title: "! Clear",
+      onClick: () => {
+        modifiers.forEach(m => props.onRemove(m.id));
+      },
+    },
+    {
       id: "lfo",
       title: "+ LFO",
-      onClick: function (): void {
-        props.onAdd("lfo");
-      },
+      onClick: () => props.onAdd("lfo"),
     },
     {
       id: "audio",
       title: "+ Audio",
-      onClick: () => {
-        props.onAdd("audio");
-      },
+      onClick: () => props.onAdd("audio"),
     },
   ]);
 
@@ -64,7 +67,7 @@ export function createModifiers(props: Props): ModifiersComponent {
 
   function addModifier(id: string, config: AnyModifierConfig) {
     const component = createModifierComponent(config);
-    component.element.dataset.modifierID = id;
+    component.element.dataset.modifierId = id;
     modifiersList.appendChild(component.element);
     const unsubscribe = component.events!.subscribe("change", ({ config }) => {
       props.onUpdate(id, config);
@@ -80,7 +83,7 @@ export function createModifiers(props: Props): ModifiersComponent {
   }
 
   function removeModifier(id: string) {
-    const childNode = modifiersList.querySelector(`*[data-modifierId="${id}"]`);
+    const childNode = modifiersList.querySelector(`*[data-modifier-id="${id}"]`);
     if (childNode) {
       modifiersList.removeChild(childNode as Node);
     }
