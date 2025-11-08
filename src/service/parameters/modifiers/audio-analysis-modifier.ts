@@ -72,12 +72,13 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<
   private _fromScalarFn: any;
 
   constructor(
+    id: string | undefined,
     type: T,
     domain: UniformValueDomain,
     analyzer: PublicAudioStatsCollector,
     config: AudioAnalysisModifierConfig
   ) {
-    super(type, domain.max - domain.min, config);
+    super(id, type, domain.max - domain.min, config);
     this._analysisType = config.analysis.type as ScalarAnalysisType;
     this._analysisProperty = config.analysis.property;
     this._analyser = analyzer;
@@ -133,12 +134,13 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<
   static addTo(
     p: Parameter,
     analyzer: PublicAudioStatsCollector,
-    config: Partial<AudioAnalysisModifierConfig>
+    config: Partial<AudioAnalysisModifierConfig>,
+    id?: string
   ) {
     const { type, domain } = p.data;
     const fullConfig = { ...defaultConfig, ...config };
     p.addModifier(
-      new AudioAnalysisModifier<UniformType>(type!, domain, analyzer, fullConfig)
+      new AudioAnalysisModifier<UniformType>(id, type!, domain, analyzer, fullConfig)
     );
   }
 }

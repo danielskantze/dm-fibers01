@@ -9,8 +9,7 @@ import type { StageName } from "../types/stage";
 import { Emitter, type EventMap, type Subscribable } from "../util/events";
 import { migrate } from "./parameters/migrations";
 import { computeValue, type ParameterModifier } from "./parameters/modifiers";
-import { AudioAnalysisModifier } from "./parameters/modifiers/audio-analysis-modifier";
-import { LFOModifier } from "./parameters/modifiers/lfo-modifier";
+import { createModifier, type ModifierResources } from "./parameters/modifiers/factory";
 import type { AnyModifierConfig } from "./parameters/modifiers/types";
 export type ParameterData = ParameterUniform;
 export type ParameterPresetKey = "presets";
@@ -36,6 +35,7 @@ interface ModifierMutations {
   updateModifier: (id: string, config: AnyModifierConfig) => void;
   removeModifier: (id: string) => void;
   clearModifiers: () => void;
+  initModifiers: (modifiers: ParameterModifier<UniformType>[]) => void;
 }
 export interface Parameter extends ModifierMutations {
   data: ParameterData;
@@ -77,6 +77,9 @@ class ManagedParameterImpl implements ManagedParameter {
     });
   }
   addModifier(modifier: ParameterModifier<UniformType>) {
+    if (this.modifiers.find(m => m.id === modifier.id)) {
+      return;
+    }
     this.modifiers.push(modifier);
     const { id, config } = modifier;
     this.events.emit("modifierUpdate", {
@@ -110,7 +113,25 @@ class ManagedParameterImpl implements ManagedParameter {
   }
   clearModifiers() {
     this.modifiers = [];
+    console.log("clearModifiers");
     this.events.emit("modifierClear", {});
+  }
+  initModifiers(modifiers: ParameterModifier<UniformType>[]) {
+    let keys = new Set<string>();
+    let dedup: ParameterModifier<UniformType>[] = [];
+    modifiers.forEach(m => {
+      if (!keys.has(m.id)) {
+        dedup.push(m);
+        keys.add(m.id);
+      }
+    });
+    this.modifiers = dedup;
+    this.events.emit("modifierInit", {
+      modifiers: this.modifiers.map(({ id, config }) => ({
+        id,
+        config,
+      })),
+    });
   }
 }
 
@@ -139,7 +160,10 @@ export type ParameterConfig<G extends string> = {
 
 type ParameterValues = Record<
   string,
-  Record<string, { baseValue: UniformValue; modifiers: AnyModifierConfig[] }>
+  Record<
+    string,
+    { baseValue: UniformValue; modifiers: { id: string; config: AnyModifierConfig }[] }
+  >
 >;
 
 export type ParameterPreset = {
@@ -230,14 +254,20 @@ class ParameterService<G extends string> {
       .forEach(s => s.update(value));
   }
 
-  load(preset: ParameterPreset) {
+  loadDefaults(defaultPreset: ParameterPreset) {
+    return this._load(defaultPreset);
+  }
+
+  load(defaultPreset: ParameterPreset, modifierResources: ModifierResources) {
+    return this._load(defaultPreset, modifierResources);
+  }
+
+  private _load(preset: ParameterPreset, modifierResources?: ModifierResources) {
     if (Object.entries(this.groups).length === 0) {
       throw new Error("Cannot load values without config");
     }
     if (preset.version !== presetFormatVersion) {
-      console.log("Before", preset);
       preset = migrate(preset.version, presetFormatVersion, preset);
-      console.log("After", preset);
     }
     const { data } = preset;
     Object.entries(data).forEach(([group, parameters]) => {
@@ -248,24 +278,18 @@ class ParameterService<G extends string> {
           console.warn("baseValue not set for entry, is preset broken? Skipping...");
           return;
         }
-        this.setValue(
-          group as G,
-          id,
-          uniforms.createFromJson(data.baseValue, desc.type),
-          true
-        );
+        const value = uniforms.createFromJson(data.baseValue, desc.type);
+        this.setValue(group as G, id, value, true);
+        if (!modifierResources) {
+          return;
+        }
         const param = this.getManagedParameter(group as G, id);
-        data.modifiers.forEach(m => {
-          switch (m.type) {
-            case "lfo":
-              console.log(m);
-              LFOModifier.addTo(param, m);
-              break;
-            case "audio":
-              //AudioAnalysisModifier.addTo(param, audioAnalyzer, {});
-              break;
-          }
-        });
+        const { type, domain } = param.data;
+        param.initModifiers(
+          data.modifiers.map(({ id, config }) =>
+            createModifier(id, config, type, domain, modifierResources!)
+          )
+        );
       });
     });
   }
@@ -285,7 +309,7 @@ class ParameterService<G extends string> {
       Object.entries(parameters).forEach(([id, { data, modifiers }]) => {
         result.data[group][id] = {
           baseValue: uniforms.valueToJson(this.getBaseValue(group, id), data.type),
-          modifiers: modifiers.map(m => m.config),
+          modifiers: modifiers.map(m => ({ id: m.id, config: m.config })),
         };
       });
     });

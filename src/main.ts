@@ -8,8 +8,6 @@ import { WebGLRenderer } from "./render/webgl-renderer";
 import { createAudioStatsCollector } from "./service/audio/audio-stats";
 import { AudioPlayer } from "./service/audioplayer";
 import { createRegistryFromConfig, type ParameterPreset } from "./service/parameters";
-import { AudioAnalysisModifier } from "./service/parameters/modifiers/audio-analysis-modifier";
-import { LFOModifier } from "./service/parameters/modifiers/lfo-modifier";
 import type { BlobItemData, BlobStore } from "./service/storage";
 import { IndexedDBBlobStore } from "./service/storage/localblob";
 import { presetStore, userSettingsStore } from "./service/stores";
@@ -61,7 +59,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
   configureCanvas(canvas);
   const renderer = new WebGLRenderer(settings, canvas, params, f => params.update(f));
   const userSettings = userSettingsStore.load();
-  params.load(defaultValues as ParameterPreset);
+  params.loadDefaults(defaultValues as ParameterPreset);
   const audioStore = new IndexedDBBlobStore("data", "audio");
   await audioStore.initialize();
   const audioStats = createAudioStatsCollector({
@@ -182,7 +180,7 @@ async function main(canvas: HTMLCanvasElement, controls: HTMLDivElement) {
     const selectPreset = async (item: ParameterPreset) => {
       const isRunning = renderer.isRunning;
       renderer.pause();
-      params.load(item);
+      params.load(item, { audioAnalyzer: audioStats });
       userSettingsStore.save({ presetId: item.id });
       audioPlayer.clear();
       init();
