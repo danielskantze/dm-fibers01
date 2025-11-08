@@ -5,6 +5,7 @@ import { createButtons } from "../buttons";
 import type { Component } from "../types";
 import { createAudioModifier } from "./audio";
 import { createLFOModifier } from "./lfo";
+import "./modifier.css";
 
 export type Props = {
   modifiers: { id: string; config: AnyModifierConfig }[];

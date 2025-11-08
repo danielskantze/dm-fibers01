@@ -2,3 +2,7 @@
 .ui-component.modifier.audio .container[data-analysis-type="beat"] .levels-property {
   display: none !important;
 }
+
+.ui-component.modifier.audio {
+  --component-color-background: var(--component-color-background-modifier-audio);
+}
