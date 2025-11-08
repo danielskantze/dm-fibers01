@@ -1,0 +1,4 @@
+.ui-component.modifier.audio .container[data-analysis-type="levels"] .beat-property,
+.ui-component.modifier.audio .container[data-analysis-type="beat"] .levels-property {
+  display: none !important;
+}
