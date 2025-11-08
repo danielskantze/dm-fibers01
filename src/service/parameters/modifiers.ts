@@ -54,8 +54,8 @@ export abstract class BaseModifier<T extends UniformType, C extends AnyModifierC
   public offset: number = 0;
   public range: number = 1.0;
 
-  constructor(type: T, domainScale: number, config: C) {
-    this.id = generateId();
+  constructor(id: string | undefined, type: T, domainScale: number, config: C) {
+    this.id = id ?? generateId();
     this._type = type;
     this._blendMode = config.blendMode;
     this.offset = config.offset;

@@ -135,17 +135,17 @@ export const defaultParameterPreset: ParameterPreset = {
   id: "default",
   name: "Default",
   createdAt: "2025-10-16T00:00:00.000Z",
-  version: 1,
+  version: 2,
   data: {
     main: {
-      particles: 1000,
-      updatesPerDraw: 4,
+      particles: { baseValue: 1000, modifiers: [] },
+      updatesPerDraw: { baseValue: 4, modifiers: [] },
     },
     bloom: {
-      quality: 0,
-      steps: 6,
-      luma: 0.25,
-      intensity: 0.5,
+      quality: { baseValue: 0, modifiers: [] },
+      steps: { baseValue: 6, modifiers: [] },
+      luma: { baseValue: 0.25, modifiers: [] },
+      intensity: { baseValue: 0.5, modifiers: [] },
     },
   },
 };

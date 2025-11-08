@@ -7,7 +7,6 @@ import {
   type UniformValueDomain,
 } from "../../../types/gl/uniforms";
 import { createEnumMap } from "../../../util/enum";
-import { StreamLogging } from "../../../util/logging";
 import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
 
@@ -40,8 +39,13 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T, LFOConfi
   public phase: number;
   private _generateFn: GenerateFn<T>;
 
-  constructor(type: T, domain: UniformValueDomain, config: LFOConfig) {
-    super(type, domain.max - domain.min, config);
+  constructor(
+    id: string | undefined,
+    type: T,
+    domain: UniformValueDomain,
+    config: LFOConfig
+  ) {
+    super(id, type, domain.max - domain.min, config);
     this.offset = config.offset; // expect this to be inside domain
     this.range = config.range; // 0 - 1
     this._curve = config.curve;
@@ -70,7 +74,6 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T, LFOConfi
     switch (curve) {
       case "sine":
         generate = (frame: number) => {
-          StreamLogging.addOrlog("sine", 30, [this.hz]);
           const v =
             this.offset +
             this.range * Math.sin((this.hz * (frame / fps) + this.phase) * Math.PI * 2.0);
@@ -120,15 +123,16 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T, LFOConfi
 
   static fromParameter(
     p: Parameter,
-    config: Partial<LFOConfig>
+    config: Partial<LFOConfig>,
+    id?: string
   ): LFOModifier<UniformType> {
     const { type, domain } = p.data;
     const lfoConfig = { ...defaultConfig, ...config };
-    return new LFOModifier<UniformType>(type!, domain, lfoConfig);
+    return new LFOModifier<UniformType>(id, type!, domain, lfoConfig);
   }
-  static addTo(p: Parameter, config: Partial<LFOConfig>) {
+  static addTo(p: Parameter, config: Partial<LFOConfig>, id?: string) {
     const { type, domain } = p.data;
     const lfoConfig = { ...defaultConfig, ...config };
-    p.addModifier(new LFOModifier<UniformType>(type!, domain, lfoConfig));
+    p.addModifier(new LFOModifier<UniformType>(id, type!, domain, lfoConfig));
   }
 }

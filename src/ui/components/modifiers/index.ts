@@ -91,6 +91,7 @@ export function createModifiers(props: Props): ModifiersComponent {
 
   props.modifiers.forEach(({ id, config }) => {
     const component = createModifierComponent(config);
+    component.element.dataset.modifierId = id;
     const unsubscribe = component.events!.subscribe("change", ({ config }) =>
       props.onUpdate(id, config)
     );

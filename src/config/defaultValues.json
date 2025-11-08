@@ -2,31 +2,112 @@
   "id": "default",
   "name": "Default",
   "createdAt": "2025-10-13T20:00:00.000Z",
-  "version": 1,
+  "version": 2,
   "data": {
     "main": {
-      "particles": 130000,
-      "updatesPerDraw": 6,
-      "seed": "fibers01",
-      "audio": ""
+      "particles": {
+        "baseValue": 130000,
+        "modifiers": []
+      },
+      "updatesPerDraw": {
+        "baseValue": 6,
+        "modifiers": []
+      },
+      "seed": {
+        "baseValue": "fibers01",
+        "modifiers": []
+      },
+      "audio": {
+        "baseValue": "",
+        "modifiers": []
+      }
     },
     "bloom": {
-      "quality": 0,
-      "steps": 6,
-      "luma": 0.25,
-      "intensity": 0.5
+      "quality": {
+        "baseValue": 0,
+        "modifiers": []
+      },
+      "steps": {
+        "baseValue": 6,
+        "modifiers": []
+      },
+      "luma": {
+        "baseValue": 0.25,
+        "modifiers": []
+      },
+      "intensity": {
+        "baseValue": 0.5,
+        "modifiers": []
+      }
     },
     "simulate": {
-      "strokeNoise": [0.5, 0.1, 1.55, 0.33],
-      "strokeDrift": [0.03, 0.01, 0.1, 0.1],
-      "colorNoise": [0.1, 0.1, 0.001, 0.05],
-      "cosPalette": [0.9, 0.5, 0.1, 0.1, 0.5, 0.9, 1.0, 0.5, 1.0, 0.0, 0.9, 0.9],
-      "maxRadius": 2,
-      "audioLevelStats": [0, 0, 0, 0]
+      "strokeNoise": {
+        "baseValue": [
+          0.5,
+          0.1,
+          1.55,
+          0.33
+        ],
+        "modifiers": []
+      },
+      "strokeDrift": {
+        "baseValue": [
+          0.03,
+          0.01,
+          0.1,
+          0.1
+        ],
+        "modifiers": []
+      },
+      "colorNoise": {
+        "baseValue": [
+          0.1,
+          0.1,
+          0.001,
+          0.05
+        ],
+        "modifiers": []
+      },
+      "cosPalette": {
+        "baseValue": [
+          0.9,
+          0.5,
+          0.1,
+          0.1,
+          0.5,
+          0.9,
+          1.0,
+          0.5,
+          1.0,
+          0.0,
+          0.9,
+          0.9
+        ],
+        "modifiers": []
+      },
+      "maxRadius": {
+        "baseValue": 2,
+        "modifiers": []
+      },
+      "audioLevelStats": {
+        "baseValue": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "modifiers": []
+      }
     },
     "accumulate": {
-      "fadeTime": 5,
-      "accumulate": 1
+      "fadeTime": {
+        "baseValue": 5,
+        "modifiers": []
+      },
+      "accumulate": {
+        "baseValue": 1,
+        "modifiers": []
+      }
     }
   }
 }
