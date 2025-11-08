@@ -1,4 +1,5 @@
 import { createScalar } from "../scalar";
+import { isVecLike } from "../../../math/types";
 import type { UniformValue } from "../../../types/gl/uniforms";
 import type { ParameterComponent } from "../types";
 import "./vector.css";
@@ -82,7 +83,7 @@ export function createVector({
   return {
     element: wrapper,
     update: (values: UniformValue) => {
-      if (!Array.isArray(values)) {
+      if (!isVecLike(values)) {
         console.warn("Vector component received non-array value:", values);
         return;
       }

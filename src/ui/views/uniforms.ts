@@ -104,22 +104,22 @@ export function createUniformControls(
 
       if (isAccessoryOwnerComponent(child)) {
         child.events.subscribe(
-        "accessory",
+          "accessory",
           createAccessoryEventHandler(registry, group, parameter, audioAnalyzer)
-      );
+        );
       }
 
-        controlsContainer.appendChild(child.element);
-        if (registryKeys) {
-          const [group, parameter] = registryKeys;
-          child.element.id = uniformElementId(group, parameter);
-          registry.subscribe<ParameterUniform>(group, parameter, value => {
-            if (value !== undefined && child.update) {
-              child.update(value);
-            }
-          });
-        }
-        children.push(child);
+      controlsContainer.appendChild(child.element);
+      if (registryKeys) {
+        const [group, parameter] = registryKeys;
+        child.element.id = uniformElementId(group, parameter);
+        registry.subscribe<ParameterUniform>(group, parameter, value => {
+          if (value !== undefined && child.update) {
+            child.update(value);
+          }
+        });
+      }
+      children.push(child);
     }
   }
   return children;
