@@ -4,6 +4,7 @@ import type {
   UniformType,
   UniformValueDomain,
 } from "../../../types/gl/uniforms";
+import { createEnumMap } from "../../../util/enum";
 import type { Handler } from "../../../util/events";
 import type {
   AudioAnalysisEvents,
@@ -17,6 +18,20 @@ import { BaseModifier, type BaseModifierConfig } from "../modifiers";
 
 export type ScalarAnalysisType = Omit<AudioAnalysisType, "fft">;
 export type ScalarAnalysisProperty = keyof BeatDetectorState | keyof LevelsMonitorState;
+
+export const scalarAnalysisTypeEnumMap = createEnumMap<"levels" | "beat">([
+  "levels",
+  "beat",
+]);
+
+export const scalarAnalysisPropertyEnumMap = createEnumMap<ScalarAnalysisProperty>([
+  "peak",
+  "avgPeak",
+  "rms",
+  "avgRms",
+  "avgRms3",
+  "avgRms5",
+]);
 
 export interface AudioAnalysisModifierConfig extends BaseModifierConfig {
   type: "audio";

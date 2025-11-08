@@ -1,93 +1,15 @@
 import type { ModifierComponent, ModifierComponentEventMap } from "..";
-import type { BlendMode } from "../../../../math/types";
-import type {
-  AudioAnalysisModifierConfig,
-  ScalarAnalysisProperty,
-  ScalarAnalysisType,
+import type { AudioAnalysisModifierConfig } from "../../../../service/parameters/modifiers/audio-analysis-modifier";
+import {
+  type AnyModifierConfig,
+  blendModeEnumMap,
+} from "../../../../service/parameters/modifiers/types";
+import {
+  scalarAnalysisTypeEnumMap,
+  scalarAnalysisPropertyEnumMap,
 } from "../../../../service/parameters/modifiers/audio-analysis-modifier";
-import type { AnyModifierConfig } from "../../../../service/parameters/modifiers/types";
 import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
-
-function analysisTypeToInt(type: ScalarAnalysisType): number {
-  switch (type) {
-    case "levels":
-      return 0;
-    case "beat":
-      return 0;
-    default:
-      return 0;
-  }
-}
-
-function intToAnalysisType(value: number): ScalarAnalysisType {
-  switch (value) {
-    case 0:
-      return "levels";
-    case 1:
-      return "beat";
-    default:
-      return "levels";
-  }
-}
-
-function propertyToInt(property: ScalarAnalysisProperty): number {
-  switch (property) {
-    case "peak":
-      return 0;
-    case "avgPeak":
-      return 1;
-    case "rms":
-      return 2;
-    case "avgRms":
-      return 3;
-    case "avgRms3":
-      return 4;
-    case "avgRms5":
-      return 5;
-    default:
-      return 3;
-  }
-}
-
-function intToProperty(value: number): ScalarAnalysisProperty {
-  switch (value) {
-    case 0:
-      return "peak";
-    case 1:
-      return "avgPeak";
-    case 2:
-      return "rms";
-    case 3:
-      return "avgRms";
-    case 4:
-      return "avgRms3";
-    case 5:
-      return "avgRms5";
-    default:
-      return "avgRms";
-  }
-}
-
-function blendModeToInt(blendMode: BlendMode): number {
-  switch (blendMode) {
-    case "add":
-      return 0;
-    case "multiply":
-      return 1;
-  }
-}
-
-function intToBlendMode(value: number): BlendMode {
-  switch (value) {
-    case 0:
-      return "add";
-    case 1:
-      return "multiply";
-    default:
-      return "add";
-  }
-}
 
 export function createAudioModifier(
   initialConfig: AudioAnalysisModifierConfig
@@ -103,26 +25,24 @@ export function createAudioModifier(
 
   const typeControl = createScalar({
     name: "Type",
-    value: analysisTypeToInt(config.analysis.type),
-    min: 0,
-    max: 1,
+    value: scalarAnalysisTypeEnumMap.stringToInt(
+      config.analysis.type as "levels" | "beat"
+    ),
     type: "enum",
-    enumValues: ["levels", "beat"],
+    enumValues: scalarAnalysisTypeEnumMap.values,
     onChange: (value: number) => {
-      config.analysis.type = intToAnalysisType(value);
+      config.analysis.type = scalarAnalysisTypeEnumMap.intToString(value);
       emitter.emit("change", { config });
     },
   } as ScalarProps);
 
   const propertyControl = createScalar({
     name: "Property",
-    value: propertyToInt(config.analysis.property),
-    min: 0,
-    max: 6,
+    value: scalarAnalysisPropertyEnumMap.stringToInt(config.analysis.property),
     type: "enum",
-    enumValues: ["peak", "avgPeak", "rms", "avgRms", "avgRms3", "avgRms5"],
+    enumValues: scalarAnalysisPropertyEnumMap.values,
     onChange: (value: number) => {
-      config.analysis.property = intToProperty(value);
+      config.analysis.property = scalarAnalysisPropertyEnumMap.intToString(value);
       emitter.emit("change", { config });
     },
   } as ScalarProps);
@@ -151,13 +71,11 @@ export function createAudioModifier(
 
   const blendControl = createScalar({
     name: "Blend",
-    value: blendModeToInt(config.blendMode),
-    min: 0,
-    max: 1,
+    value: blendModeEnumMap.stringToInt(config.blendMode),
     type: "enum",
-    enumValues: ["add", "multiply"],
+    enumValues: blendModeEnumMap.values,
     onChange: (value: number) => {
-      config.blendMode = intToBlendMode(value);
+      config.blendMode = blendModeEnumMap.intToString(value);
       emitter.emit("change", { config });
     },
   } as ScalarProps);
@@ -177,11 +95,15 @@ export function createAudioModifier(
       }
       config = { ...newConfig };
       config.analysis = { ...config.analysis };
-      typeControl.update?.(analysisTypeToInt(config.analysis.type));
-      propertyControl.update?.(propertyToInt(config.analysis.property));
+      typeControl.update?.(
+        scalarAnalysisTypeEnumMap.stringToInt(config.analysis.type as "levels" | "beat")
+      );
+      propertyControl.update?.(
+        scalarAnalysisPropertyEnumMap.stringToInt(config.analysis.property)
+      );
       rangeControl.update?.(config.range);
       offsetControl.update?.(config.offset);
-      blendControl.update?.(blendModeToInt(config.blendMode));
+      blendControl.update?.(blendModeEnumMap.stringToInt(config.blendMode));
     },
   };
 }

@@ -6,11 +6,14 @@ import {
   type UniformType,
   type UniformValueDomain,
 } from "../../../types/gl/uniforms";
+import { createEnumMap } from "../../../util/enum";
 import { StreamLogging } from "../../../util/logging";
 import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
 
 export type LFOCurve = "sine" | "square" | "triangle";
+
+export const lfoCurveEnumMap = createEnumMap<LFOCurve>(["sine", "triangle", "square"]);
 
 type GenerateFn<T extends UniformType> = (frame: number) => MappedUniformValue<T>;
 

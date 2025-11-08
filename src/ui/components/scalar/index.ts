@@ -74,14 +74,14 @@ export function createScalar({
   idSeq++;
   input.type = "range";
 
-  if (min !== undefined) {
-    input.min = min.toString();
+  if (min !== undefined || type === "enum") {
+    input.min = type === "enum" ? "0" : min!.toString();
   }
-  if (max !== undefined) {
-    input.max = max.toString();
+  if (max !== undefined || type === "enum") {
+    input.max = type === "enum" ? (enumValues!.length - 1).toString() : max!.toString();
   }
-  if (step !== undefined) {
-    input.step = step!.toString();
+  if (step !== undefined || type === "enum") {
+    input.step = type === "enum" ? "1" : step!.toString();
   } else {
     input.step = "any";
   }
@@ -89,7 +89,6 @@ export function createScalar({
     input.value = value.toString();
     text.value = getValue(value, valueConfig);
   }
-
   const inputId = `control_${idSeq}`;
   input.id = inputId;
 

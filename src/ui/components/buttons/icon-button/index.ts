@@ -55,7 +55,6 @@ export function createIconButton(props: ButtonProps): ButtonComponent {
         }
       }
     },
-    update: () => {},
     setDisabled: isDisabled => {
       button.disabled = isDisabled;
     },
@@ -69,7 +68,11 @@ interface ToggleButtonProps extends Omit<ButtonProps, "svgIcon"> {
   svgIcons: [string, string];
 }
 
-export function createIconToggleButton(props: ToggleButtonProps): ButtonComponent {
+interface ToggleButtonComponent extends Component {
+  update: (value: boolean) => void;
+}
+
+export function createIconToggleButton(props: ToggleButtonProps): ToggleButtonComponent {
   const svgIcons = props.svgIcons;
   let newProps = { ...props, svgIcon: svgIcons[0] };
   const button = createIconButton(newProps);

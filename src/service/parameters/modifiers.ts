@@ -1,6 +1,6 @@
 import { blenderFactory } from "../../math/generic/blending";
 import { clamperFactory } from "../../math/generic/clamping";
-import type { BlendFunction, BlendMode } from "../../math/types";
+import type { BlendFunction } from "../../math/types";
 import type {
   MappedUniformValue,
   UniformType,
@@ -9,7 +9,7 @@ import type {
 } from "../../types/gl/uniforms";
 import { generateId } from "../../ui/util/id";
 import type { ManagedParameter } from "../parameters";
-import type { AnyModifierConfig } from "./modifiers/types";
+import type { AnyModifierConfig, BlendMode } from "./modifiers/types";
 
 export type ParameterModifierTransformFn<T extends UniformType> = (
   frame: number,
