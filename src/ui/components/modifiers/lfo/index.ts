@@ -1,4 +1,5 @@
 import type { ModifierComponent, ModifierComponentEventMap } from "..";
+import type { AnyModifierConfig } from "../../../../service/parameters/modifiers/types";
 import type { BlendMode } from "../../../../math/types";
 import type {
   LFOConfig,
@@ -141,7 +142,8 @@ export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
   return {
     element: outerContainer,
     events: emitter,
-    update: (newConfig: LFOConfig) => {
+    update: (newConfig: AnyModifierConfig) => {
+      if (newConfig.type !== "lfo") return;
       config = { ...newConfig };
       hzControl.update?.(config.hz);
       rangeControl.update?.(config.range);
@@ -149,7 +151,6 @@ export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
       offsetControl.update?.(config.offset);
       blendControl.update?.(blendModeToInt(config.blendMode));
       curveControl.update?.(curveToInt(config.curve));
-      //emitter.emit("change", { config });
     },
   };
 }

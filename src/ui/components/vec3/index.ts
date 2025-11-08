@@ -2,7 +2,8 @@ import * as mat4 from "../../../math/mat4";
 import type { Matrix4x4, Vec3 } from "../../../math/types";
 import * as vec3 from "../../../math/vec3";
 import * as vec4 from "../../../math/vec4";
-import type { ComponentWithoutEvents } from "../types";
+import type { UniformValue } from "../../../types/gl/uniforms";
+import type { ParameterComponent } from "../types";
 import { createVec3GimbalView } from "./3d/vec3-gimbal";
 import "./vec3.css";
 import template from "./vec3.html?raw";
@@ -128,10 +129,6 @@ export type Vec3Params = {
   expandable: boolean;
 };
 
-export interface Vec3Component extends ComponentWithoutEvents {
-  update: (value: Vec3) => void;
-}
-
 export type Vec3Props = {
   name: string;
   values: Vec3;
@@ -157,7 +154,7 @@ export function createVec3({
   values,
   onChange,
   params = defaultVec3Params,
-}: Vec3Props): Vec3Component {
+}: Vec3Props): ParameterComponent {
   const { minVal, maxVal, inputPrecision, expandable } = {
     ...defaultVec3Params,
     ...params,
@@ -326,8 +323,11 @@ export function createVec3({
 
   return {
     element: control,
-    update: (value: Vec3) => {
-      if (vec3.equals(value, mapper.fromBToA(state.value, true))) {
+    update: (value: UniformValue) => {
+      if (!Array.isArray(value) || value.length !== 3) {
+        return;
+      }
+      if (vec3.equals(value as Vec3, mapper.fromBToA(state.value, true))) {
         return;
       }
       setComponentValues(value as Vec3);

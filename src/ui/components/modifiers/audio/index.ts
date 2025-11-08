@@ -1,5 +1,6 @@
 import type { ModifierComponent, ModifierComponentEventMap } from "..";
 import type { AudioAnalysisModifierConfig } from "../../../../service/parameters/modifiers/audio-analysis-modifier";
+import type { AnyModifierConfig } from "../../../../service/parameters/modifiers/types";
 import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
 
@@ -21,7 +22,7 @@ export function createAudioModifier(
   return {
     element: outerContainer,
     events: emitter,
-    update: (_newConfig: AudioAnalysisModifierConfig) => {
+    update: (_newConfig: AnyModifierConfig) => {
       // TODO
     },
   };

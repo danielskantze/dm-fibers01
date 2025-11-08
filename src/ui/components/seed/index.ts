@@ -1,5 +1,6 @@
 import { rndSeed } from "../../util/seed";
-import type { Component } from "../types";
+import type { UniformValue } from "../../../types/gl/uniforms";
+import type { ParameterComponent } from "../types";
 import "./seed.css";
 import template from "./seed.html?raw";
 
@@ -10,7 +11,7 @@ type SeedProps = {
   onSeed: (seed: string) => void;
 };
 
-export function createSeed(props: SeedProps): Component {
+export function createSeed(props: SeedProps): ParameterComponent {
   const { title, buttonTitle, onSeed, value } = props;
   let currentValue = value;
   const wrapper: HTMLDivElement = document.createElement("div");
@@ -48,7 +49,11 @@ export function createSeed(props: SeedProps): Component {
 
   return {
     element: wrapper,
-    update: (v: any) => {
+    update: (v: UniformValue) => {
+      if (typeof v !== "string") {
+        console.warn("Seed component received non-string value:", v);
+        return;
+      }
       inputElmt.value = v as string;
       currentValue = v as string;
       buttonElmt.disabled = true;

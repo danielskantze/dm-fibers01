@@ -277,9 +277,12 @@ class ParameterService<G extends string> {
         parameters: {},
       };
     }
+
+    const initialValue = uniforms.createFromJson(descriptor.value ?? 0, descriptor.type);
+
     const p = new ManagedParameterImpl({
       data: descriptor,
-      baseValue: descriptor.value ?? 0,
+      baseValue: initialValue,
       modifiers: [],
       value: 0,
       updatedFrame: -1,
