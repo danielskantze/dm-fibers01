@@ -143,7 +143,9 @@ export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
     element: outerContainer,
     events: emitter,
     update: (newConfig: AnyModifierConfig) => {
-      if (newConfig.type !== "lfo") return;
+      if (newConfig.type !== "lfo") {
+        throw new Error(`Invalid modifier config: ${JSON.stringify(newConfig)}`);
+      }
       config = { ...newConfig };
       hzControl.update?.(config.hz);
       rangeControl.update?.(config.range);

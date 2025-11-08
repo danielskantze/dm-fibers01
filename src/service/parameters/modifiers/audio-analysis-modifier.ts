@@ -15,8 +15,8 @@ import type { LevelsMonitorState } from "../../audio/levels-monitor";
 import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
 
-type ScalarAnalysisType = Omit<AudioAnalysisType, "fft">;
-type ScalarAnalysisProperty = keyof BeatDetectorState | keyof LevelsMonitorState;
+export type ScalarAnalysisType = Omit<AudioAnalysisType, "fft">;
+export type ScalarAnalysisProperty = keyof BeatDetectorState | keyof LevelsMonitorState;
 
 export interface AudioAnalysisModifierConfig extends BaseModifierConfig {
   type: "audio";
