@@ -15,10 +15,13 @@ type Props = {
 
 export interface ModifierHeaderComponent extends Component {
   initialize: (id: string) => void;
+  setCanMoveDown: (value: boolean) => void;
+  setCanMoveUp: (value: boolean) => void;
 }
 
 export function createModifierHeader(props: Props): ModifierHeaderComponent {
   const { title, icon, iconShiftY, onRemove, onMoveDown, onMoveUp } = props;
+
   let modifierId = "";
 
   function initialize(id: string) {
@@ -31,9 +34,9 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   const menuElement = document.createElement("div");
 
   // create menu items
-  const menuRemoveElement = document.createElement("div");
-  const menuMoveUpElement = document.createElement("div");
-  const menuMoveDownElement = document.createElement("div");
+  const menuRemoveElement = document.createElement("button");
+  const menuMoveUpElement = document.createElement("button");
+  const menuMoveDownElement = document.createElement("button");
 
   // setup header row
   container.classList.add("ui-component");
@@ -58,6 +61,14 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   menuMoveUpElement.onclick = _ => onMoveUp(modifierId);
   menuMoveDownElement.onclick = _ => onMoveDown(modifierId);
 
+  function setCanMoveUp(value: boolean) {
+    menuMoveUpElement.disabled = value;
+  }
+
+  function setCanMoveDown(value: boolean) {
+    menuMoveDownElement.disabled = value;
+  }
+
   // put it together
   container.appendChild(iconElement);
   container.appendChild(titleElement);
@@ -66,5 +77,7 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   return {
     element: container,
     initialize,
+    setCanMoveDown,
+    setCanMoveUp,
   };
 }
