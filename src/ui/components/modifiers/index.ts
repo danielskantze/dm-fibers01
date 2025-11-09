@@ -9,11 +9,13 @@ import "./modifier.css";
 import clearIcon from "../../icons/clear.svg?raw";
 import audioStatsIcon from "../../icons/audiostats.svg?raw";
 import lfoIcon from "../../icons/lfo.svg?raw";
+import { createModifierHeader, type ModifierHeaderComponent } from "./header";
 
 export type Props = {
   modifiers: { id: string; config: AnyModifierConfig }[];
   onAdd: (type: ModifierType) => void;
   onUpdate: (id: string, config: AnyModifierConfig) => void;
+  onReorder: (id: string, direction: "up" | "down") => void;
   onRemove: (id: string) => void;
 };
 
@@ -30,6 +32,7 @@ export interface ModifierComponent extends Component<ModifierComponentEventMap> 
 
 export interface ModifiersComponent extends Component {
   addModifier: (id: string, config: AnyModifierConfig) => void;
+  reorderModifier: (id: string, direction: "up" | "down") => void;
   removeModifier: (id: string) => void;
   updateModifier: (id: string, config: AnyModifierConfig) => void;
 }
@@ -63,18 +66,59 @@ export function createModifiers(props: Props): ModifiersComponent {
     },
   ]);
 
-  function createModifierComponent(config: AnyModifierConfig): ModifierComponent {
+  function createModifierComponent(config: AnyModifierConfig): {
+    header: ModifierHeaderComponent;
+    component: ModifierComponent;
+  } {
+    function onRemove(id: string) {
+      props.onRemove(id);
+      return;
+    }
+    function onMoveUp(id: string) {
+      props.onReorder(id, "up");
+      return true;
+    }
+    function onMoveDown(id: string) {
+      props.onReorder(id, "down");
+      return true;
+    }
+
+    let header: ModifierHeaderComponent;
+    let modifier: ModifierComponent;
+
     switch (config.type) {
       case "lfo":
-        return createLFOModifier(config);
+        header = createModifierHeader({
+          title: "LFO",
+          icon: lfoIcon,
+          onRemove,
+          onMoveUp,
+          onMoveDown,
+        });
+        modifier = createLFOModifier(config, header);
+        break;
       case "audio":
-        return createAudioModifier(config);
+        header = createModifierHeader({
+          title: "Audio",
+          icon: audioStatsIcon,
+          iconShiftY: -2,
+          onRemove,
+          onMoveUp,
+          onMoveDown,
+        });
+        modifier = createAudioModifier(config, header);
+        break;
     }
+    return {
+      header,
+      component: modifier,
+    };
   }
 
   function addModifier(id: string, config: AnyModifierConfig) {
-    const component = createModifierComponent(config);
+    const { header, component } = createModifierComponent(config);
     component.element.dataset.modifierId = id;
+    header.initialize(id);
     modifiersList.appendChild(component.element);
     const unsubscribe = component.events!.subscribe("change", ({ config }) => {
       props.onUpdate(id, config);
@@ -96,9 +140,17 @@ export function createModifiers(props: Props): ModifiersComponent {
     }
   }
 
+  function reorderModifier(id: string) {
+    const childNode = modifiersList.querySelector(`*[data-modifier-id="${id}"]`);
+    if (childNode) {
+      modifiersList.removeChild(childNode as Node);
+    }
+  }
+
   props.modifiers.forEach(({ id, config }) => {
-    const component = createModifierComponent(config);
+    const { header, component } = createModifierComponent(config);
     component.element.dataset.modifierId = id;
+    header.initialize(id);
     const unsubscribe = component.events!.subscribe("change", ({ config }) =>
       props.onUpdate(id, config)
     );
@@ -115,9 +167,12 @@ export function createModifiers(props: Props): ModifiersComponent {
         m.unsubscribe();
         m.component.destroy?.();
       });
+      container.removeChild(addItem);
+      container.removeChild(modifiersList);
     },
     addModifier,
     updateModifier,
     removeModifier,
+    reorderModifier,
   };
 }

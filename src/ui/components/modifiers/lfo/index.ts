@@ -12,8 +12,7 @@ import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
 import "./lfo-modifier.css";
 import { blendModeEnumLabelMap } from "../manager";
-import { createModifierHeader } from "../header";
-import lfoIcon from "../../../icons/lfo.svg?raw";
+import type { ModifierHeaderComponent } from "../header";
 
 const lfoCurveEnumLabelMap: { [K in LFOCurve]: string } = {
   sine: "Sin",
@@ -21,12 +20,14 @@ const lfoCurveEnumLabelMap: { [K in LFOCurve]: string } = {
   square: "Sqr",
 };
 
-export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
+export function createLFOModifier(
+  initialConfig: LFOConfig,
+  header: ModifierHeaderComponent
+): ModifierComponent {
   let config = { ...initialConfig };
   const emitter = new Emitter<ModifierComponentEventMap>();
   const outerContainer = document.createElement("div");
   const container = document.createElement("div");
-  const header = createModifierHeader("LFO", lfoIcon);
   outerContainer.classList.add("ui-component");
   outerContainer.classList.add("modifier");
   outerContainer.classList.add("lfo");
