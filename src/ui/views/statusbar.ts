@@ -47,7 +47,7 @@ export function createStatusBar(
       title: "Reset",
       svgIcon: clearIcon,
       onClick: () => emitter.emit("click", "reset"),
-      color: 0,
+      color: 5,
     },
     {
       id: "stop",
@@ -120,7 +120,6 @@ export function createStatusBar(
 
   return {
     element,
-    update: () => {},
     events: emitter,
     destroy: () => {
       appEvents.unsubscribe("record", onRecord);
