@@ -15,6 +15,7 @@ import {
 import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
 import "./audio-modifier.css";
+import { blendModeEnumLabelMap } from "../manager";
 
 export function createAudioModifier(
   initialConfig: AudioAnalysisModifierConfig
@@ -106,7 +107,7 @@ export function createAudioModifier(
     name: "Blend",
     value: blendModeEnumMap.stringToInt(config.blendMode),
     type: "enum",
-    enumValues: blendModeEnumMap.values,
+    enumValues: blendModeEnumMap.values.map(v => blendModeEnumLabelMap[v]),
     onChange: (value: number) => {
       config.blendMode = blendModeEnumMap.intToString(value);
       emitter.emit("change", { config });

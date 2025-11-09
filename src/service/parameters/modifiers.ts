@@ -8,6 +8,7 @@ import type {
   UniformValueDomain,
 } from "../../types/gl/uniforms";
 import { generateId } from "../../ui/util/id";
+import { StreamLogging } from "../../util/logging";
 import type { ManagedParameter } from "../parameters";
 import type { AnyModifierConfig, BlendMode } from "./modifiers/types";
 
@@ -100,7 +101,7 @@ export abstract class BaseModifier<T extends UniformType, C extends AnyModifierC
   protected abstract _applySpecificConfig(config: C): void;
 
   private _applyConfig(config: BaseModifierConfig) {
-    this._blendMode = config.blendMode;
+    this.blendMode = config.blendMode;
     this.offset = config.offset;
     this.range = config.range;
     this.offset = config.offset;

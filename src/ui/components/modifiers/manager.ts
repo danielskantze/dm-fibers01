@@ -3,10 +3,19 @@ import type { Parameter } from "../../../service/parameters";
 import type { ModifierType } from "../../../service/parameters/modifiers";
 import { AudioAnalysisModifier } from "../../../service/parameters/modifiers/audio-analysis-modifier";
 import { LFOModifier } from "../../../service/parameters/modifiers/lfo-modifier";
-import type { AnyModifierConfig } from "../../../service/parameters/modifiers/types";
+import type {
+  AnyModifierConfig,
+  BlendMode,
+} from "../../../service/parameters/modifiers/types";
 import { attachAccessoryView, removeAccessoryView } from "../decorators/accessory-view";
 import type { AccessoryOwnerComponent } from "../types";
 import { createModifiers, type ModifiersComponent } from "./index";
+
+export const blendModeEnumLabelMap: { [K in BlendMode]: string } = {
+  add: "Add",
+  multiply: "Mult",
+  overwrite: "Set",
+};
 
 export function manageModifiersFor(
   owner: AccessoryOwnerComponent,

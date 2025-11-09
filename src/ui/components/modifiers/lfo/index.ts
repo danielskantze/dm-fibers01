@@ -4,10 +4,20 @@ import {
   blendModeEnumMap,
 } from "../../../../service/parameters/modifiers/types";
 import { lfoCurveEnumMap } from "../../../../service/parameters/modifiers/lfo-modifier";
-import type { LFOConfig } from "../../../../service/parameters/modifiers/lfo-modifier";
+import type {
+  LFOConfig,
+  LFOCurve,
+} from "../../../../service/parameters/modifiers/lfo-modifier";
 import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
 import "./lfo-modifier.css";
+import { blendModeEnumLabelMap } from "../manager";
+
+const lfoCurveEnumLabelMap: { [K in LFOCurve]: string } = {
+  sine: "Sin",
+  triangle: "Tri",
+  square: "Sqr",
+};
 
 export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
   let config = { ...initialConfig };
@@ -68,7 +78,7 @@ export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
     name: "Blend",
     value: blendModeEnumMap.stringToInt(config.blendMode),
     type: "enum",
-    enumValues: blendModeEnumMap.values,
+    enumValues: blendModeEnumMap.values.map(v => blendModeEnumLabelMap[v]),
     onChange: (value: number) => {
       config.blendMode = blendModeEnumMap.intToString(value);
       emitter.emit("change", { config });
@@ -79,7 +89,7 @@ export function createLFOModifier(initialConfig: LFOConfig): ModifierComponent {
     name: "Curve",
     value: lfoCurveEnumMap.stringToInt(config.curve),
     type: "enum",
-    enumValues: lfoCurveEnumMap.values,
+    enumValues: lfoCurveEnumMap.values.map(v => lfoCurveEnumLabelMap[v]),
     onChange: (value: number) => {
       config.curve = lfoCurveEnumMap.intToString(value);
       emitter.emit("change", { config });
