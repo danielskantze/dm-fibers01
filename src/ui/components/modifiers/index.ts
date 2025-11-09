@@ -6,6 +6,9 @@ import type { Component } from "../types";
 import { createAudioModifier } from "./audio";
 import { createLFOModifier } from "./lfo";
 import "./modifier.css";
+import clearIcon from "../../icons/clear.svg?raw";
+import audioStatsIcon from "../../icons/audiostats.svg?raw";
+import lfoIcon from "../../icons/lfo.svg?raw";
 
 export type Props = {
   modifiers: { id: string; config: AnyModifierConfig }[];
@@ -40,6 +43,8 @@ export function createModifiers(props: Props): ModifiersComponent {
     {
       id: "clear",
       title: "! Clear",
+      svgIcon: clearIcon,
+      color: 5,
       onClick: () => {
         modifiers.forEach(m => props.onRemove(m.id));
       },
@@ -47,11 +52,13 @@ export function createModifiers(props: Props): ModifiersComponent {
     {
       id: "lfo",
       title: "+ LFO",
+      svgIcon: lfoIcon,
       onClick: () => props.onAdd("lfo"),
     },
     {
       id: "audio",
       title: "+ Audio",
+      svgIcon: audioStatsIcon,
       onClick: () => props.onAdd("audio"),
     },
   ]);

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="scale(1, -1), translate(0, -14)" fill="currentColor">
+    <g transform="scale(1, 0.867)">
+      <rect x="0" y="0" width="1" height="15" />
+      <rect x="2" y="0" width="1" height="11" />
+      <g opacity="0.25">
+        <rect x="4" y="0" width="1" height="9" />
+        <rect x="6" y="0" width="1" height="7.75" />
+        <rect x="8" y="0" width="1" height="7.25" />
+        <rect x="10" y="0" width="1" height="7" />
+        <rect x="12" y="0" width="1" height="6.8" />
+        <rect x="14" y="0" width="1" height="6.7" />
+      </g>
+    </g>
+  </g>
+</svg>
