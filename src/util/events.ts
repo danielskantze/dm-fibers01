@@ -8,7 +8,11 @@ type Subscriber<E extends EventMap, K extends keyof E> = {
 };
 
 export interface Subscribable<E extends EventMap> {
-  subscribe<K extends keyof E>(event: K, listener: Handler<E, K>): () => void;
+  subscribe<K extends keyof E>(
+    event: K,
+    listener: Handler<E, K>,
+    notifyOnAdd?: boolean
+  ): () => void;
   unsubscribe<K extends keyof E>(event: K, handler: Handler<E, K>): void;
 }
 
@@ -24,11 +28,7 @@ export class Emitter<E extends EventMap> implements Subscribable<E> {
     this.subscribers = [];
   }
 
-  subscribe<K extends keyof E>(
-    event: K,
-    listener: Handler<E, K>,
-    notifyOnAdd: boolean = true
-  ) {
+  subscribe<K extends keyof E>(event: K, listener: Handler<E, K>, notifyOnAdd?: boolean) {
     this.subscribers.push({ event, listener });
     const payload = this.states?.[event];
     if (notifyOnAdd && payload) {
