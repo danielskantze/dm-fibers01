@@ -7,7 +7,7 @@ import {
 } from "../types/gl/uniforms";
 import type { StageName } from "../types/stage";
 import { Emitter, type EventMap, type Subscribable } from "../util/events";
-import { migrate } from "./parameters/migrations";
+import { fixBrokenV2, migrate } from "./parameters/migrations";
 import { computeValue, type ParameterModifier } from "./parameters/modifiers";
 import { createModifier, type ModifierResources } from "./parameters/modifiers/factory";
 import type { AnyModifierConfig } from "./parameters/modifiers/types";
@@ -268,6 +268,10 @@ class ParameterService<G extends string> {
     }
     if (preset.version !== presetFormatVersion) {
       preset = migrate(preset.version, presetFormatVersion, preset);
+    } else if (preset.version === 2) {
+      // Uncomment this to try harder to fix broken v2 presets.
+      // We should remove this code and fixBrokenV2 as soon as everything is updated
+      // preset = fixBrokenV2(preset);
     }
     const { data } = preset;
     Object.entries(data).forEach(([group, parameters]) => {
