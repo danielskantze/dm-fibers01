@@ -147,7 +147,7 @@ export function createModifiers(props: Props): ModifiersComponent {
     }
   }
 
-  props.modifiers.forEach(({ id, config }) => {
+  props.modifiers.forEach(({ id, config }, i, a) => {
     const { header, component } = createModifierComponent(config);
     component.element.dataset.modifierId = id;
     header.initialize(id);
@@ -156,6 +156,8 @@ export function createModifiers(props: Props): ModifiersComponent {
     );
     modifiersList.appendChild(component.element);
     modifiers.push({ id, component, unsubscribe });
+    header.setCanMoveUp(i === 0);
+    header.setCanMoveDown(i === a.length - 1);
   });
   addItem.appendChild(buttons.element);
   container.appendChild(modifiersList);
