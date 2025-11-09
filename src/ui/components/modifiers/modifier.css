@@ -1,10 +1,38 @@
 .ui-component.modifier {
-  padding-left: 1.0rem;
-  --ui-width: calc(var(--ui-width) - 1.0rem);
+  padding-left: 1rem;
+  --ui-width: calc(var(--ui-width) - 1rem);
   --component-color-background: var(--component-color-background-modifier);
 }
 
 .ui-component.modifier .container {
   background-color: var(--component-color-background);
   border-radius: 6px;
+}
+
+.ui-component.modifier .container > *:last-child {
+  padding-bottom: 2px;
+}
+
+.ui-component.modifier-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--component-color-accent-1);
+  padding: 4px 8px 0px 10px;
+  margin-bottom: -3px;
+}
+
+.ui-component.modifier-header .icon > svg {
+  height: 18px;
+}
+
+.ui-component.modifier-header .title {
+  flex-grow: 1;
+}
+
+.ui-component.modifier-header .menu {
+  display: flex;
+  flex-direction: row;
 }

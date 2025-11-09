@@ -8,7 +8,6 @@ import type {
   UniformValueDomain,
 } from "../../types/gl/uniforms";
 import { generateId } from "../../ui/util/id";
-import { StreamLogging } from "../../util/logging";
 import type { ManagedParameter } from "../parameters";
 import type { AnyModifierConfig, BlendMode } from "./modifiers/types";
 

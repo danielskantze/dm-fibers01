@@ -16,6 +16,8 @@ import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
 import "./audio-modifier.css";
 import { blendModeEnumLabelMap } from "../manager";
+import { createModifierHeader } from "../header";
+import audioStatsIcon from "../../../icons/audiostats.svg?raw";
 
 export function createAudioModifier(
   initialConfig: AudioAnalysisModifierConfig
@@ -25,6 +27,7 @@ export function createAudioModifier(
   const emitter = new Emitter<ModifierComponentEventMap>();
   const outerContainer = document.createElement("div");
   const container = document.createElement("div");
+  const header = createModifierHeader("Audio", audioStatsIcon, -2);
   outerContainer.classList.add("ui-component");
   outerContainer.classList.add("modifier");
   outerContainer.classList.add("audio");
@@ -117,6 +120,7 @@ export function createAudioModifier(
   levelPropertyControl.element.classList.add("levels-property");
   beatPropertyControl.element.classList.add("beat-property");
 
+  container.appendChild(header.element);
   container.appendChild(typeControl.element);
   container.appendChild(levelPropertyControl.element);
   container.appendChild(beatPropertyControl.element);
