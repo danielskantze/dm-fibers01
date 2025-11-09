@@ -65,10 +65,12 @@ export function createBlendFn(
 ): BlendFunction<number> {
   switch (blendMode) {
     case "add":
-      return (a: number, b: number) => {
+      return (a, b) => {
         return a + scale * b;
       };
     case "multiply":
-      return (a: number, b: number) => a * b;
+      return (a, b) => a * b;
+    case "overwrite":
+      return (_, b) => scale * b;
   }
 }

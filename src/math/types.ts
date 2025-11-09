@@ -5,6 +5,7 @@ export type Matrix3x3 = Float32Array;
 export type Matrix4x4 = Float32Array;
 export type Matrix4x3 = Float32Array;
 export type BlendFunction<T> = (a: T, b: T) => T;
+export type BlendMode = "add" | "multiply" | "overwrite";
 export type DomainFunction<T> = (v: T) => T;
 export type Range<T> = {
   min: T;

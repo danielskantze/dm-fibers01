@@ -198,6 +198,8 @@ export function createBlendFn(blendMode: BlendMode, s: number): BlendFunction<Ve
       return (a, b) => addScaleB(a, b, s);
     case "multiply":
       return mul;
+    case "overwrite":
+      return (_, b) => scale(b, s);
   }
 }
 
