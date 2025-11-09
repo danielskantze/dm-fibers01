@@ -13,7 +13,6 @@ import type {
 } from "../../audio/audio-stats";
 import type { BeatDetectorState } from "../../audio/beat-detector";
 import type { LevelsMonitorState } from "../../audio/levels-monitor";
-import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
 
 export type ScalarAnalysisType = Omit<AudioAnalysisType, "fft">;
@@ -76,13 +75,14 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<
     type: T,
     domain: UniformValueDomain,
     analyzer: PublicAudioStatsCollector,
-    config: AudioAnalysisModifierConfig
+    config: Partial<AudioAnalysisModifierConfig>
   ) {
-    super(id, type, domain.max - domain.min, config);
-    this._analysisType = config.analysis.type as ScalarAnalysisType;
-    this._analysisProperty = config.analysis.property;
+    const fullConfig = { ...defaultConfig, ...config };
+    super(id, type, domain.max - domain.min, fullConfig);
+    this._analysisType = fullConfig.analysis.type as ScalarAnalysisType;
+    this._analysisProperty = fullConfig.analysis.property;
     this._analyser = analyzer;
-    this._declineFalloff = config.analysis.declineFalloff;
+    this._declineFalloff = fullConfig.analysis.declineFalloff;
     this._fromScalarFn = fromScalarFactory[this.type];
     if (this.type === "int") {
       this._fromScalarFn = fromScalarFactory["int"];
@@ -129,18 +129,5 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<
       this._currentValue = this._value;
     }
     return this._fromScalarFn(this._currentValue) as MappedUniformValue<T>;
-  }
-
-  static addTo(
-    p: Parameter,
-    analyzer: PublicAudioStatsCollector,
-    config: Partial<AudioAnalysisModifierConfig>,
-    id?: string
-  ) {
-    const { type, domain } = p.data;
-    const fullConfig = { ...defaultConfig, ...config };
-    p.addModifier(
-      new AudioAnalysisModifier<UniformType>(id, type!, domain, analyzer, fullConfig)
-    );
   }
 }
