@@ -7,7 +7,7 @@ import {
 } from "../types/gl/uniforms";
 import type { StageName } from "../types/stage";
 import { Emitter, type EventMap, type Subscribable } from "../util/events";
-import { fixBrokenV2, migrate } from "./parameters/migrations";
+import { migrate } from "./parameters/migrations";
 import { computeValue, type ParameterModifier } from "./parameters/modifiers";
 import { createModifier, type ModifierResources } from "./parameters/modifiers/factory";
 import type { AnyModifierConfig } from "./parameters/modifiers/types";
