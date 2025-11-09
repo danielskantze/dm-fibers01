@@ -7,7 +7,6 @@ import {
   type UniformValueDomain,
 } from "../../../types/gl/uniforms";
 import { createEnumMap } from "../../../util/enum";
-import type { Parameter } from "../../parameters";
 import { BaseModifier, type BaseModifierConfig } from "../modifiers";
 
 export type LFOCurve = "sine" | "square" | "triangle";
@@ -43,15 +42,16 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T, LFOConfi
     id: string | undefined,
     type: T,
     domain: UniformValueDomain,
-    config: LFOConfig
+    config: Partial<LFOConfig>
   ) {
-    super(id, type, domain.max - domain.min, config);
-    this.offset = config.offset; // expect this to be inside domain
-    this.range = config.range; // 0 - 1
-    this._curve = config.curve;
-    this.hz = config.hz;
-    this.phase = config.phase;
-    this._generateFn = this._createGenerateFn(config.curve);
+    const fullConfig = { ...defaultConfig, ...config };
+    super(id, type, domain.max - domain.min, fullConfig);
+    this.offset = fullConfig.offset; // expect this to be inside domain
+    this.range = fullConfig.range; // 0 - 1
+    this._curve = fullConfig.curve;
+    this.hz = fullConfig.hz;
+    this.phase = fullConfig.phase;
+    this._generateFn = this._createGenerateFn(fullConfig.curve);
   }
 
   protected _applySpecificConfig(config: LFOConfig): void {
@@ -119,20 +119,5 @@ export class LFOModifier<T extends UniformType> extends BaseModifier<T, LFOConfi
 
   generate(frame: number): MappedUniformValue<T> {
     return this._generateFn(frame);
-  }
-
-  static fromParameter(
-    p: Parameter,
-    config: Partial<LFOConfig>,
-    id?: string
-  ): LFOModifier<UniformType> {
-    const { type, domain } = p.data;
-    const lfoConfig = { ...defaultConfig, ...config };
-    return new LFOModifier<UniformType>(id, type!, domain, lfoConfig);
-  }
-  static addTo(p: Parameter, config: Partial<LFOConfig>, id?: string) {
-    const { type, domain } = p.data;
-    const lfoConfig = { ...defaultConfig, ...config };
-    p.addModifier(new LFOModifier<UniformType>(id, type!, domain, lfoConfig));
   }
 }

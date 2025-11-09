@@ -8,11 +8,6 @@ import { attachAccessoryView, removeAccessoryView } from "../decorators/accessor
 import type { AccessoryOwnerComponent } from "../types";
 import { createModifiers, type ModifiersComponent } from "./index";
 
-/**
- * Manages the modifier UI for a given parameter, attaching it to an owner component.
- * This function handles the entire lifecycle of the modifier UI.
- * @returns A destroy function to tear down the UI and subscriptions.
- */
 export function manageModifiersFor(
   owner: AccessoryOwnerComponent,
   param: Parameter,
@@ -21,13 +16,16 @@ export function manageModifiersFor(
   let component: ModifiersComponent | null = null;
   const subscriptions: (() => void)[] = [];
 
-  const onAdd = (type: ModifierType) => {
-    switch (type) {
+  const onAdd = (modifierType: ModifierType) => {
+    const { type, domain } = param.data;
+    switch (modifierType) {
       case "lfo":
-        LFOModifier.addTo(param, {});
+        param.addModifier(new LFOModifier(undefined, type ?? "float", domain, {}));
         break;
       case "audio":
-        AudioAnalysisModifier.addTo(param, audioAnalyzer, {});
+        param.addModifier(
+          new AudioAnalysisModifier(undefined, type ?? "float", domain, audioAnalyzer, {})
+        );
         break;
     }
   };
