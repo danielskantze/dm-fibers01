@@ -23,7 +23,8 @@ export function manageModifiersFor(
   audioAnalyzer: PublicAudioStatsCollector
 ): () => void {
   let component: ModifiersComponent | null = null;
-  const subscriptions: (() => void)[] = [];
+  //const subscriptions: (() => void)[] = [];
+  let updateSub: any;
 
   const onAdd = (modifierType: ModifierType) => {
     const { type, domain } = param.data;
@@ -51,43 +52,47 @@ export function manageModifiersFor(
     param.reorderModifier(id, direction);
   };
 
-  const initSub = param.events.subscribe("modifierInit", ({ modifiers }) => {
-    if (component) {
-      // Should not happen with sticky event, but good practice
-      removeAccessoryView(owner);
-      component.destroy?.();
-    }
-
-    component = createModifiers({
-      modifiers,
-      onAdd,
-      onUpdate,
-      onRemove,
-      onReorder,
-    });
-    attachAccessoryView(owner, component);
-
-    const updateSub = param.events.subscribe("modifierUpdate", ({ id, type, config }) => {
-      if (!component) return;
-      switch (type) {
-        case "add":
-          component.addModifier(id, config);
-          break;
-        case "change":
-          component.updateModifier(id, config);
-          break;
-        case "delete":
-          component.removeModifier(id);
-          break;
+  const initSub = param.events.subscribe(
+    "modifierInit",
+    ({ modifiers }) => {
+      updateSub?.();
+      if (component) {
+        // Should not happen with sticky event, but good practice
+        removeAccessoryView(owner);
+        component.destroy?.();
       }
-    });
-    subscriptions.push(updateSub);
-  });
-  subscriptions.push(initSub);
+
+      component = createModifiers({
+        modifiers,
+        onAdd,
+        onUpdate,
+        onRemove,
+        onReorder,
+      });
+      attachAccessoryView(owner, component);
+
+      updateSub = param.events.subscribe("modifierUpdate", ({ id, type, config }) => {
+        if (!component) return;
+        switch (type) {
+          case "add":
+            component.addModifier(id, config);
+            break;
+          case "change":
+            component.updateModifier(id, config);
+            break;
+          case "delete":
+            component.removeModifier(id);
+            break;
+        }
+      });
+    },
+    true
+  );
 
   return () => {
     removeAccessoryView(owner);
-    subscriptions.forEach(unsub => unsub());
+    initSub?.();
+    updateSub?.();
     component?.destroy?.();
   };
 }
