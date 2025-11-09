@@ -34,6 +34,7 @@ interface ModifierMutations {
   addModifier: (modifier: ParameterModifier<UniformType>) => void;
   updateModifier: (id: string, config: AnyModifierConfig) => void;
   removeModifier: (id: string) => void;
+  reorderModifier: (id: string, direction: "up" | "down") => void;
   clearModifiers: () => void;
   initModifiers: (modifiers: ParameterModifier<UniformType>[]) => void;
 }
@@ -115,6 +116,35 @@ class ManagedParameterImpl implements ManagedParameter {
     this.modifiers = [];
     console.log("clearModifiers");
     this.events.emit("modifierClear", {});
+  }
+  reorderModifier(id: string, direction: "up" | "down") {
+    const idx = this.modifiers.findIndex(m => m.id === id);
+    if (idx < 0) {
+      return;
+    }
+    if (direction === "up") {
+      if (idx === 0) {
+        return;
+      }
+      const previous = this.modifiers[idx - 1];
+      const item = this.modifiers[idx];
+      this.modifiers[idx - 1] = item;
+      this.modifiers[idx] = previous;
+    } else if (direction === "down") {
+      if (idx > this.modifiers.length - 2) {
+        return;
+      }
+      const next = this.modifiers[idx + 1];
+      const item = this.modifiers[idx];
+      this.modifiers[idx + 1] = item;
+      this.modifiers[idx] = next;
+    }
+    this.events.emit("modifierInit", {
+      modifiers: this.modifiers.map(({ id, config }) => ({
+        id,
+        config,
+      })),
+    });
   }
   initModifiers(modifiers: ParameterModifier<UniformType>[]) {
     let keys = new Set<string>();

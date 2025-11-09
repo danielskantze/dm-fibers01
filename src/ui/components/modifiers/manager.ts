@@ -47,6 +47,10 @@ export function manageModifiersFor(
     param.removeModifier(id);
   };
 
+  const onReorder = (id: string, direction: "up" | "down") => {
+    param.reorderModifier(id, direction);
+  };
+
   const initSub = param.events.subscribe("modifierInit", ({ modifiers }) => {
     if (component) {
       // Should not happen with sticky event, but good practice
@@ -59,6 +63,7 @@ export function manageModifiersFor(
       onAdd,
       onUpdate,
       onRemove,
+      onReorder,
     });
     attachAccessoryView(owner, component);
 

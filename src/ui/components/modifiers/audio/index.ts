@@ -16,18 +16,17 @@ import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
 import "./audio-modifier.css";
 import { blendModeEnumLabelMap } from "../manager";
-import { createModifierHeader } from "../header";
-import audioStatsIcon from "../../../icons/audiostats.svg?raw";
+import type { ModifierHeaderComponent } from "../header";
 
 export function createAudioModifier(
-  initialConfig: AudioAnalysisModifierConfig
+  initialConfig: AudioAnalysisModifierConfig,
+  header: ModifierHeaderComponent
 ): ModifierComponent {
   let config = { ...initialConfig };
   config.analysis = { ...config.analysis };
   const emitter = new Emitter<ModifierComponentEventMap>();
   const outerContainer = document.createElement("div");
   const container = document.createElement("div");
-  const header = createModifierHeader("Audio", audioStatsIcon, -2);
   outerContainer.classList.add("ui-component");
   outerContainer.classList.add("modifier");
   outerContainer.classList.add("audio");
