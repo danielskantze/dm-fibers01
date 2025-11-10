@@ -1,8 +1,9 @@
 import type { ScalarValueType, UniformValue } from "../../../types/gl/uniforms";
 import { Emitter } from "../../../util/events";
-import collapseIcon from "../../icons/collapse.svg?raw";
-import expandIcon from "../../icons/expand.svg?raw";
-import { createIconToggleButton } from "../buttons/icon-button";
+import {
+  createAccessoryButton,
+  type ToggleButtonComponent,
+} from "../buttons/icon-button";
 import type { AccessoryOwnerComponent, AccessoryOwnerEventMap } from "../types";
 import "./scalar.css";
 
@@ -63,6 +64,7 @@ export function createScalar({
   const input: HTMLInputElement = document.createElement("input");
   const text: HTMLInputElement = document.createElement("input");
 
+  let accessoryButton: ToggleButtonComponent | undefined;
   const id: string = sanitizeName(name);
   const valueConfig: ValueConfig = { type, enumValues };
 
@@ -119,6 +121,7 @@ export function createScalar({
       }
     },
     destroy: () => {
+      accessoryButton?.destroy?.();
       input.removeEventListener("input", onInputChange);
       emitter.destroy();
     },
@@ -126,22 +129,7 @@ export function createScalar({
   };
 
   if (hasAccessory) {
-    let isAccessoryCollapsed = true;
-    const accessoryButton = createIconToggleButton({
-      svgIcons: [expandIcon, collapseIcon],
-      size: "small",
-      circular: true,
-      onClick: function (): void {
-        isAccessoryCollapsed = !isAccessoryCollapsed;
-        accessoryButton.update?.(isAccessoryCollapsed);
-        emitter.emit("accessory", {
-          open: {
-            sender: component,
-            isOpen: !isAccessoryCollapsed,
-          },
-        });
-      },
-    });
+    accessoryButton = createAccessoryButton(component, emitter);
     wrapper.appendChild(accessoryButton.element);
   }
 

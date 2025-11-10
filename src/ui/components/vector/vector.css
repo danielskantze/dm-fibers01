@@ -1,4 +1,3 @@
-
 .vector {
   width: var(--total-width);
   padding: 0;
@@ -27,17 +26,17 @@
   margin-right: 0.5rem;
 }
 
-.vector header > .label {
+.vector header>.label {
   flex: 1;
 }
 
-.vector header > .accessory-button {
+.vector header>.accessory-button {
   margin-right: 1.0rem;
   cursor: default;
   user-select: none;
 }
 
-.vector header > .accessory-button:hover {
+.vector header>.accessory-button:hover {
   text-decoration: underline;
 }
 
@@ -48,4 +47,9 @@
 .vector .scalar .parameter,
 .vector .scalar .parameter .digits {
   background-color: var(--component-color-background-1);
+}
+
+.vector .icon-button {
+  margin-left: 6px;
+  margin-right: 8px;
 }

@@ -1,5 +1,13 @@
-import type { Component } from "../../types";
+import type { Emitter } from "../../../../util/events";
+import type {
+  AccessoryOwnerComponent,
+  AccessoryOwnerEventMap,
+  Component,
+} from "../../types";
 import "./icon-button.css";
+
+import collapseIcon from "../../../icons/collapse.svg?raw";
+import expandIcon from "../../../icons/expand.svg?raw";
 
 interface ButtonComponent extends Component {
   updateButton: (svgIcon: string, title?: string) => void;
@@ -68,7 +76,7 @@ interface ToggleButtonProps extends Omit<ButtonProps, "svgIcon"> {
   svgIcons: [string, string];
 }
 
-interface ToggleButtonComponent extends Component {
+export interface ToggleButtonComponent extends Component {
   update: (value: boolean) => void;
 }
 
@@ -82,4 +90,27 @@ export function createIconToggleButton(props: ToggleButtonProps): ToggleButtonCo
       button.updateButton(svgIcons[value ? 0 : 1], props.title);
     },
   };
+}
+
+export function createAccessoryButton(
+  sender: AccessoryOwnerComponent,
+  emitter: Emitter<AccessoryOwnerEventMap>
+) {
+  let isAccessoryCollapsed = true;
+  const accessoryButton = createIconToggleButton({
+    svgIcons: [expandIcon, collapseIcon],
+    size: "small",
+    circular: true,
+    onClick: function (): void {
+      isAccessoryCollapsed = !isAccessoryCollapsed;
+      accessoryButton.update?.(isAccessoryCollapsed);
+      emitter.emit("accessory", {
+        open: {
+          sender,
+          isOpen: !isAccessoryCollapsed,
+        },
+      });
+    },
+  });
+  return accessoryButton;
 }

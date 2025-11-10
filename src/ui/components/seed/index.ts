@@ -13,10 +13,12 @@ type SeedProps = {
 
 export function createSeed(props: SeedProps): ParameterComponent {
   const { title, buttonTitle, onSeed, value } = props;
+
+  const tmp: HTMLDivElement = document.createElement("div");
+  tmp.innerHTML = template;
+  const control = tmp.firstElementChild as HTMLDivElement;
+
   let currentValue = value;
-  const wrapper: HTMLDivElement = document.createElement("div");
-  wrapper.innerHTML = template;
-  const control = wrapper.firstElementChild as HTMLDivElement;
   const titleElmt = control.querySelector("label") as HTMLLabelElement;
   const rndButton = control.querySelector(".rnd-button") as HTMLDivElement;
   const inputElmt = control.querySelector("input") as HTMLInputElement;
@@ -48,7 +50,7 @@ export function createSeed(props: SeedProps): ParameterComponent {
   buttonElmt.addEventListener("click", onButtonClick);
 
   return {
-    element: wrapper,
+    element: control,
     update: (v: UniformValue) => {
       if (typeof v !== "string") {
         console.warn("Seed component received non-string value:", v);

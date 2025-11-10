@@ -1,9 +1,18 @@
 import { createScalar } from "../scalar";
 import { isVecLike } from "../../../math/types";
 import type { UniformValue } from "../../../types/gl/uniforms";
-import type { ParameterComponent } from "../types";
+import type {
+  AccessoryOwnerComponent,
+  AccessoryOwnerEventMap,
+  ParameterComponent,
+} from "../types";
 import "./vector.css";
 import template from "./vector.html?raw";
+import { Emitter } from "../../../util/events";
+import {
+  createAccessoryButton,
+  type ToggleButtonComponent,
+} from "../buttons/icon-button";
 
 const VECTOR_COMPONENTS = ["x", "y", "z", "w"];
 
@@ -14,11 +23,6 @@ function vecCompName(i: number) {
   return VECTOR_COMPONENTS[i];
 }
 
-type AccessoryButton = {
-  title: string;
-  onClick: () => void;
-};
-
 type VectorProps = {
   name: string;
   values: number[];
@@ -26,7 +30,7 @@ type VectorProps = {
   min?: number;
   max?: number;
   step?: number;
-  accessoryButton?: AccessoryButton;
+  hasAccessory?: boolean;
 };
 
 export function createVector({
@@ -36,20 +40,18 @@ export function createVector({
   min,
   max,
   step,
-  accessoryButton,
-}: VectorProps): ParameterComponent {
-  const wrapper: HTMLDivElement = document.createElement("div");
-  wrapper.innerHTML = template;
-  const control = wrapper.firstElementChild as HTMLDivElement;
+  hasAccessory,
+}: VectorProps): AccessoryOwnerComponent {
+  const tmp: HTMLDivElement = document.createElement("div");
+  tmp.innerHTML = template;
+  const control = tmp.firstElementChild as HTMLDivElement;
 
-  if (accessoryButton) {
-    const button = wrapper.querySelector(".accessory-button") as HTMLButtonElement;
-    button.innerText = accessoryButton.title;
-    button.addEventListener("click", accessoryButton.onClick);
-  }
+  const emitter = new Emitter<AccessoryOwnerEventMap>();
+  let accessoryButton: ToggleButtonComponent | undefined;
 
   control.dataset.expanded = "0";
   const label = control.querySelector("header .label")! as HTMLDivElement;
+  const header = control.querySelector("header") as HTMLDivElement;
   const expandRadio = control.querySelector(
     "header .expand-checkbox"
   )! as HTMLInputElement;
@@ -80,8 +82,8 @@ export function createVector({
     components?.appendChild(child.element);
     children.push(child);
   }
-  return {
-    element: wrapper,
+  const component = {
+    element: control,
     update: (values: UniformValue) => {
       if (!isVecLike(values)) {
         console.warn("Vector component received non-array value:", values);
@@ -90,14 +92,20 @@ export function createVector({
       children.forEach((c, i) => c.update!(values[i]));
     },
     destroy: () => {
+      accessoryButton?.destroy?.();
       expandRadio.removeEventListener("click", onExpandClick);
-      if (accessoryButton) {
-        const button = wrapper.querySelector(".accessory-button") as HTMLButtonElement;
-        button.removeEventListener("click", accessoryButton.onClick);
-      }
       for (const child of children) {
         child.destroy!();
       }
+      emitter.destroy();
     },
+    events: emitter,
   };
+
+  if (hasAccessory) {
+    accessoryButton = createAccessoryButton(component, emitter);
+    header.appendChild(accessoryButton.element);
+  }
+
+  return component;
 }
