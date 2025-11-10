@@ -8,8 +8,9 @@ import type {
   UniformValueDomain,
 } from "../../types/gl/uniforms";
 import { generateId } from "../../ui/util/id";
-import type { ManagedParameter } from "../parameters";
+import { StreamLogging } from "../../util/logging";
 import type { AnyModifierConfig, BlendMode } from "./modifiers/types";
+import type { ManagedParameter } from "./parameter";
 
 export type ParameterModifierTransformFn<T extends UniformType> = (
   frame: number,
@@ -112,6 +113,7 @@ export abstract class BaseModifier<T extends UniformType, C extends AnyModifierC
   transform(frame: number, value: MappedUniformValue<T>): MappedUniformValue<T> {
     const signal = this.generate(frame);
     const blended = this._blendFn(value, signal);
+    StreamLogging.addOrlog("transform", 20, [value, blended, signal]);
     return blended;
   }
 }

@@ -108,9 +108,10 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<
   }
   _subscribe() {
     this._handler = ({ stats }) => {
-      this._value = (stats[this._analysisType as AudioAnalysisType] as any)[
+      const y = (stats[this._analysisType as AudioAnalysisType] as any)[
         this._analysisProperty
       ];
+      this._value = this.offset + this.range * y;
     };
     this._analyser.events.subscribe("update", this._handler);
   }
