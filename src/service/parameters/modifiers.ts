@@ -113,7 +113,6 @@ export abstract class BaseModifier<T extends UniformType, C extends AnyModifierC
   transform(frame: number, value: MappedUniformValue<T>): MappedUniformValue<T> {
     const signal = this.generate(frame);
     const blended = this._blendFn(value, signal);
-    StreamLogging.addOrlog("transform", 20, [value, blended, signal]);
     return blended;
   }
 }

@@ -11,6 +11,7 @@ import {
   audioAnalysisTypeEnumMap,
   audioLevelAnalysisPropertyEnumMap,
   audioBeatAnalysisPropertyEnumMap,
+  defaultAudioPropertyValueMap,
 } from "../../../../service/parameters/modifiers/audio-analysis-modifier";
 import { Emitter } from "../../../../util/events";
 import { createScalar, type ScalarProps } from "../../scalar";
@@ -52,7 +53,9 @@ export function createAudioModifier(
     type: "enum",
     enumValues: audioAnalysisTypeEnumMap.values,
     onChange: (value: number) => {
-      config.analysis.type = audioAnalysisTypeEnumMap.intToString(value);
+      const analysisType = audioAnalysisTypeEnumMap.intToString(value);
+      config.analysis.type = analysisType;
+      config.analysis.property = defaultAudioPropertyValueMap[analysisType];
       emitter.emit("change", { config });
     },
   } as ScalarProps);
@@ -86,7 +89,7 @@ export function createAudioModifier(
   const rangeControl = createScalar({
     name: "Range",
     value: config.range,
-    min: 0,
+    min: -1,
     max: 1,
     onChange: (value: number) => {
       config.range = value;

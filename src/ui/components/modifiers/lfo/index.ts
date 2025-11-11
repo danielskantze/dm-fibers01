@@ -48,7 +48,7 @@ export function createLFOModifier(
   const rangeControl = createScalar({
     name: "Range",
     value: config.range,
-    min: 0,
+    min: -1,
     max: 1,
     onChange: (value: number) => {
       config.range = value;

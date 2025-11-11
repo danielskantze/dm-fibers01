@@ -36,6 +36,14 @@ export const audioBeatAnalysisPropertyEnumMap = createEnumMap<ScalarAnalysisProp
   "timeSinceLastBeat",
 ]);
 
+export const defaultAudioPropertyValueMap: Record<
+  "levels" | "beat",
+  ScalarAnalysisProperty
+> = {
+  levels: "avgRms",
+  beat: "timeSinceLastBeat",
+};
+
 export interface AudioAnalysisModifierConfig extends BaseModifierConfig {
   type: "audio";
   analysis: {
