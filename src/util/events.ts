@@ -48,9 +48,13 @@ export class Emitter<E extends EventMap> implements Subscribable<E> {
     }
   }
 
+  setEventPayload<K extends keyof E>(event: K, payload: E[K]) {
+    this.states[event] = payload;
+  }
+
   emit<K extends keyof E>(event: K, payload: E[K]) {
     const subscribers = this.subscribers.concat();
-    this.states[event] = payload;
+    this.setEventPayload(event, payload);
     subscribers
       .filter(s => s.event === event)
       .forEach(s => (s.listener as Handler<E, K>)(payload));

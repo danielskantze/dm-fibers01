@@ -52,6 +52,7 @@ export class ManagedParameterImpl implements ManagedParameter {
       type: "add",
       config,
     });
+    this.events.setEventPayload("modifierInit", { modifiers: this._createInitPayload() });
   }
   updateModifier(id: string, config: AnyModifierConfig) {
     const modifier = this.modifiers.find(
@@ -66,6 +67,7 @@ export class ManagedParameterImpl implements ManagedParameter {
 
     modifier.config = config;
     this.events.emit("modifierUpdate", { id, type: "change", config });
+    this.events.setEventPayload("modifierInit", { modifiers: this._createInitPayload() });
   }
   removeModifier(id: string) {
     const index = this.modifiers.findIndex(m => m.id === id);
@@ -75,11 +77,13 @@ export class ManagedParameterImpl implements ManagedParameter {
     const { config } = this.modifiers.splice(index, 1)?.[0]!;
     const type = "delete";
     this.events.emit("modifierUpdate", { id, type, config });
+    this.events.setEventPayload("modifierInit", { modifiers: this._createInitPayload() });
   }
   clearModifiers() {
     this.modifiers = [];
     console.log("clearModifiers");
     this.events.emit("modifierClear", {});
+    this.events.setEventPayload("modifierInit", { modifiers: this._createInitPayload() });
   }
   reorderModifier(id: string, direction: "up" | "down") {
     const idx = this.modifiers.findIndex(m => m.id === id);
@@ -109,6 +113,13 @@ export class ManagedParameterImpl implements ManagedParameter {
         config,
       })),
     });
+    this.events.setEventPayload("modifierInit", { modifiers: this._createInitPayload() });
+  }
+  _createInitPayload(): { id: string; config: AnyModifierConfig }[] {
+    return this.modifiers.map(({ id, config }) => ({
+      id,
+      config,
+    }));
   }
   initModifiers(modifiers: ParameterModifier<UniformType>[]) {
     let keys = new Set<string>();
@@ -120,11 +131,6 @@ export class ManagedParameterImpl implements ManagedParameter {
       }
     });
     this.modifiers = dedup;
-    this.events.emit("modifierInit", {
-      modifiers: this.modifiers.map(({ id, config }) => ({
-        id,
-        config,
-      })),
-    });
+    this.events.emit("modifierInit", { modifiers: this._createInitPayload() });
   }
 }
