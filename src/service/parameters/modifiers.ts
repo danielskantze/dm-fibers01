@@ -1,3 +1,4 @@
+import { fps } from "../../config/constants";
 import { blenderFactory } from "../../math/generic/blending";
 import { clamperFactory } from "../../math/generic/clamping";
 import type { BlendFunction } from "../../math/types";
@@ -122,6 +123,16 @@ export abstract class BaseModifier<T extends UniformType, C extends AnyModifierC
     throw new ModifierError("Not implemented");
   }
   transform(frame: number, value: MappedUniformValue<T>): MappedUniformValue<T> {
+    if (this.bypass) {
+      return value;
+    }
+    const startFrame = this.delay * fps;
+    if (frame < startFrame) {
+      return value;
+    }
+    if (this.duration > 0 && frame > startFrame + this.duration * fps) {
+      return value;
+    }
     const signal = this.generate(frame);
     const blended = this._blendFn(value, signal);
     return blended;
