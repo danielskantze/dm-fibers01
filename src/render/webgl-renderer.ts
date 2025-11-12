@@ -65,6 +65,7 @@ type AnyTypedUniformListener = TypedListener<IntUniform> | TypedListener<FloatUn
 export class WebGLRenderer {
   private _isRunning: boolean = false;
   private _frame: number = 0;
+  private _simulationFrame: number = 0;
   private _renderWidth: number;
   private _renderHeight: number;
   private _recorder?: IVideoRecorder | null;
@@ -114,6 +115,7 @@ export class WebGLRenderer {
 
   public reset(): void {
     this._frame = 0;
+    this._simulationFrame = 0;
     stage_accumulate.reset(this._gl, this._stages.accumulate);
     stage_blur.reset(this._gl, this._stages.blur);
     stage_combine.reset(this._gl, this._stages.combine);
@@ -193,10 +195,11 @@ export class WebGLRenderer {
     for (let i = 0; i < updatesPerDraw; i++) {
       // TODO: Fix this - not sure we should update the params inside the renderer
       const numParticles = this._params.getValue<number>("main", "particles");
-      this._updateSimulationStages(numParticles);
-      this._frame++;
+      this._updateSimulationStages(numParticles, this._simulationFrame);
+      this._simulationFrame++;
     }
     this._drawOutputStages({ bloom: bloomState }, isScreenshot);
+    this._frame++;
   }
 
   private _updateUniforms() {
@@ -211,13 +214,12 @@ export class WebGLRenderer {
       });
   }
 
-  private _updateSimulationStages(numParticles: number): void {
+  private _updateSimulationStages(numParticles: number, simFrame: number): void {
     const { maxNumParticles } = this._renderConfig;
-    let frame = this._frame;
     const drawSize = textureSizeFromNumParticles(numParticles, maxNumParticles);
-    stage_simulate.draw(this._gl, this._stages.simulate, frame, drawSize);
-    stage_materialize.draw(this._gl, this._stages.materialize, frame, numParticles);
-    stage_accumulate.draw(this._gl, this._stages.accumulate, frame);
+    stage_simulate.draw(this._gl, this._stages.simulate, simFrame, drawSize);
+    stage_materialize.draw(this._gl, this._stages.materialize, simFrame, numParticles);
+    stage_accumulate.draw(this._gl, this._stages.accumulate, simFrame);
   }
 
   private _drawOutputStages(
