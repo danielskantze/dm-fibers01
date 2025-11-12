@@ -30,9 +30,12 @@ export interface ParameterModifier<T extends UniformType> {
 }
 
 export interface BaseModifierConfig {
+  bypass: boolean;
   type: ModifierType;
   offset: number;
   range: number;
+  delay: number;
+  duration: number;
   blendMode: BlendMode;
 }
 
@@ -53,6 +56,9 @@ export abstract class BaseModifier<T extends UniformType, C extends AnyModifierC
   protected _modifierType: ModifierType;
   public offset: number = 0;
   public range: number = 1.0;
+  public bypass: boolean = false;
+  public delay: number = 0.0;
+  public duration: number = 0.0;
 
   constructor(id: string | undefined, type: T, domainScale: number, config: C) {
     this.id = id ?? generateId();
@@ -73,9 +79,12 @@ export abstract class BaseModifier<T extends UniformType, C extends AnyModifierC
   }
   protected getBaseConfig(): Omit<BaseModifierConfig, "type"> {
     return {
+      bypass: this.bypass,
       blendMode: this._blendMode,
-      offset: this.offset,
       range: this.range,
+      offset: this.offset,
+      delay: this.delay,
+      duration: this.duration,
     };
   }
 
@@ -104,6 +113,9 @@ export abstract class BaseModifier<T extends UniformType, C extends AnyModifierC
     this.offset = config.offset;
     this.range = config.range;
     this.offset = config.offset;
+    this.bypass = config.bypass;
+    this.delay = config.delay;
+    this.duration = config.duration;
   }
 
   generate(_frame: number): MappedUniformValue<T> {
