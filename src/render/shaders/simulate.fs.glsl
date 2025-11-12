@@ -299,14 +299,16 @@ void main() {
     properties.x = clamp(properties.x, 0.1, 50.0);
     vec2 step = 0.75 * vec2(cos(angle * PI2), sin(angle * PI2)) / u_screen_size.x;
     float p = clamp(properties.z / properties.w, 0.0, 1.0);
-    float t = sinBounce(p);
+    //float t = sinBounce(p);
+    float t = clamp(1.0 - sqrt(p + 0.0001), 0.0, 1.0);
 
     position.xy = position.xy + step * max(1.0, properties.y * .25);
+    //properties.y = max(properties.x * t, 2.0); // radius
     properties.y = max(properties.x * t, 2.0); // radius
     properties.z = properties.z + 1.0; //max(1.0, properties.y * .25); // age
 
     float tA = pow(t, 0.33);
-    color.a = mix(0.0, 1.1, tA);
+    color.a = mix(0.0, 1.0, tA);
 
     // TODO: Uncomment this to respond to audio level stats
     // float colorK = mix(1.005, 0.97, u_audio_level_stats.w);
