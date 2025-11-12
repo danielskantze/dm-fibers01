@@ -45,6 +45,20 @@ export function createAudioModifier(
     avgRms5: "R̄MS5",
   };
 
+  const bypassControl = createScalar({
+    name: "Bypass",
+    value: config.bypass ? 1 : 0,
+    min: 0,
+    max: 1.0,
+    step: 1,
+    type: "enum",
+    enumValues: ["No", "Yes"],
+    onChange: (value: number) => {
+      config.bypass = value > 0;
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
   const typeControl = createScalar({
     name: "Type",
     value: audioAnalysisTypeEnumMap.stringToInt(
@@ -108,6 +122,28 @@ export function createAudioModifier(
     },
   } as ScalarProps);
 
+  const delayControl = createScalar({
+    name: "Delay",
+    value: config.delay,
+    min: 0,
+    max: 600,
+    onChange: (value: number) => {
+      config.delay = value;
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
+  const durationControl = createScalar({
+    name: "Duration",
+    value: config.duration,
+    min: 0,
+    max: 600,
+    onChange: (value: number) => {
+      config.duration = value;
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
   const blendControl = createScalar({
     name: "Blend",
     value: blendModeEnumMap.stringToInt(config.blendMode),
@@ -123,11 +159,14 @@ export function createAudioModifier(
   beatPropertyControl.element.classList.add("beat-property");
 
   container.appendChild(header.element);
+  container.appendChild(bypassControl.element);
   container.appendChild(typeControl.element);
   container.appendChild(levelPropertyControl.element);
   container.appendChild(beatPropertyControl.element);
   container.appendChild(rangeControl.element);
   container.appendChild(offsetControl.element);
+  container.appendChild(delayControl.element);
+  container.appendChild(durationControl.element);
   container.appendChild(blendControl.element);
 
   container.dataset.analysisType = config.analysis.type as string;
@@ -141,6 +180,7 @@ export function createAudioModifier(
       }
       config = { ...newConfig };
       config.analysis = { ...config.analysis };
+      bypassControl.update(config.bypass ? 1 : 0);
       typeControl.update?.(
         audioAnalysisTypeEnumMap.stringToInt(config.analysis.type as "levels" | "beat")
       );
@@ -153,6 +193,8 @@ export function createAudioModifier(
       container.dataset.analysisType = config.analysis.type as string;
       rangeControl.update?.(config.range);
       offsetControl.update?.(config.offset);
+      delayControl.update?.(config.delay);
+      durationControl.update?.(config.duration);
       blendControl.update?.(blendModeEnumMap.stringToInt(config.blendMode));
     },
   };

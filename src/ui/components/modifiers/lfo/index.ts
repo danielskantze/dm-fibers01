@@ -34,6 +34,20 @@ export function createLFOModifier(
   outerContainer.appendChild(container);
   container.classList.add("container");
 
+  const bypassControl = createScalar({
+    name: "Bypass",
+    value: config.bypass ? 1 : 0,
+    min: 0,
+    max: 1.0,
+    step: 1,
+    type: "enum",
+    enumValues: ["No", "Yes"],
+    onChange: (value: number) => {
+      config.bypass = value > 0;
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
   const hzControl = createScalar({
     name: "Hz",
     value: config.hz,
@@ -78,6 +92,28 @@ export function createLFOModifier(
     },
   } as ScalarProps);
 
+  const delayControl = createScalar({
+    name: "Delay",
+    value: config.delay,
+    min: 0,
+    max: 600,
+    onChange: (value: number) => {
+      config.delay = value;
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
+  const durationControl = createScalar({
+    name: "Duration",
+    value: config.duration,
+    min: 0,
+    max: 600,
+    onChange: (value: number) => {
+      config.duration = value;
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
   const blendControl = createScalar({
     name: "Blend",
     value: blendModeEnumMap.stringToInt(config.blendMode),
@@ -101,10 +137,13 @@ export function createLFOModifier(
   } as ScalarProps);
 
   container.appendChild(header.element);
+  container.appendChild(bypassControl.element);
   container.appendChild(hzControl.element);
   container.appendChild(rangeControl.element);
   container.appendChild(offsetControl.element);
   container.appendChild(phaseControl.element);
+  container.appendChild(delayControl.element);
+  container.appendChild(durationControl.element);
   container.appendChild(curveControl.element);
   container.appendChild(blendControl.element);
   return {
@@ -115,10 +154,13 @@ export function createLFOModifier(
         throw new Error(`Invalid modifier config: ${JSON.stringify(newConfig)}`);
       }
       config = { ...newConfig };
+      bypassControl.update?.(config.bypass ? 1 : 0);
       hzControl.update?.(config.hz);
       rangeControl.update?.(config.range);
       phaseControl.update?.(config.phase);
       offsetControl.update?.(config.offset);
+      delayControl.update?.(config.delay);
+      durationControl.update?.(config.duration);
       blendControl.update?.(blendModeEnumMap.stringToInt(config.blendMode));
       curveControl.update?.(lfoCurveEnumMap.stringToInt(config.curve));
     },

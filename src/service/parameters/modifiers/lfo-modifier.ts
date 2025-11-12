@@ -30,6 +30,9 @@ const defaultConfig: LFOConfig = {
   offset: 0.0,
   range: 0.25,
   blendMode: "add",
+  bypass: false,
+  delay: 0,
+  duration: 0,
 };
 
 export class LFOModifier<T extends UniformType> extends BaseModifier<T, LFOConfig> {
