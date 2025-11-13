@@ -28,11 +28,13 @@ export function createLFOModifier(
   const emitter = new Emitter<ModifierComponentEventMap>();
   const outerContainer = document.createElement("div");
   const container = document.createElement("div");
+  const baseContainer = document.createElement("div");
   outerContainer.classList.add("ui-component");
   outerContainer.classList.add("modifier");
   outerContainer.classList.add("lfo");
   outerContainer.appendChild(container);
   container.classList.add("container");
+  baseContainer.classList.add("base");
 
   const bypassControl = createScalar({
     name: "Bypass",
@@ -48,17 +50,6 @@ export function createLFOModifier(
     },
   } as ScalarProps);
 
-  const hzControl = createScalar({
-    name: "Hz",
-    value: config.hz,
-    min: 0,
-    max: 2.0,
-    onChange: (value: number) => {
-      config.hz = value;
-      emitter.emit("change", { config });
-    },
-  } as ScalarProps);
-
   const rangeControl = createScalar({
     name: "Range",
     value: config.range,
@@ -66,17 +57,6 @@ export function createLFOModifier(
     max: 1,
     onChange: (value: number) => {
       config.range = value;
-      emitter.emit("change", { config });
-    },
-  } as ScalarProps);
-
-  const phaseControl = createScalar({
-    name: "Phase",
-    value: config.phase,
-    min: -1,
-    max: 1,
-    onChange: (value: number) => {
-      config.phase = value;
       emitter.emit("change", { config });
     },
   } as ScalarProps);
@@ -125,6 +105,28 @@ export function createLFOModifier(
     },
   } as ScalarProps);
 
+  const hzControl = createScalar({
+    name: "Hz",
+    value: config.hz,
+    min: 0,
+    max: 2.0,
+    onChange: (value: number) => {
+      config.hz = value;
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
+  const phaseControl = createScalar({
+    name: "Phase",
+    value: config.phase,
+    min: -1,
+    max: 1,
+    onChange: (value: number) => {
+      config.phase = value;
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
   const curveControl = createScalar({
     name: "Curve",
     value: lfoCurveEnumMap.stringToInt(config.curve),
@@ -136,16 +138,31 @@ export function createLFOModifier(
     },
   } as ScalarProps);
 
+  bypassControl.element.classList.add("base");
+  rangeControl.element.classList.add("base");
+  offsetControl.element.classList.add("base");
+  delayControl.element.classList.add("base");
+  durationControl.element.classList.add("base");
+  blendControl.element.classList.add("base");
+
+  // header
   container.appendChild(header.element);
-  container.appendChild(bypassControl.element);
+
+  // specific
   container.appendChild(hzControl.element);
-  container.appendChild(rangeControl.element);
-  container.appendChild(offsetControl.element);
   container.appendChild(phaseControl.element);
-  container.appendChild(delayControl.element);
-  container.appendChild(durationControl.element);
   container.appendChild(curveControl.element);
-  container.appendChild(blendControl.element);
+
+  // base
+  baseContainer.appendChild(bypassControl.element);
+  baseContainer.appendChild(rangeControl.element);
+  baseContainer.appendChild(offsetControl.element);
+  baseContainer.appendChild(delayControl.element);
+  baseContainer.appendChild(durationControl.element);
+  baseContainer.appendChild(blendControl.element);
+
+  container.appendChild(baseContainer);
+
   return {
     element: outerContainer,
     events: emitter,

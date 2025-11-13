@@ -1,3 +1,9 @@
 .ui-component.modifier.lfo {
   --component-color-background: var(--component-color-background-modifier-lfo);
 }
+
+.ui-component.modifier.lfo .base,
+.ui-component.modifier.lfo .base .parameter,
+.ui-component.modifier.lfo .base .parameter input {
+  background-color: var(--component-color-background-modifier-lfo-base);
+}

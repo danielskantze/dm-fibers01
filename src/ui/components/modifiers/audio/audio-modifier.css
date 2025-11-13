@@ -6,3 +6,9 @@
 .ui-component.modifier.audio {
   --component-color-background: var(--component-color-background-modifier-audio);
 }
+
+.ui-component.modifier.audio .base,
+.ui-component.modifier.audio .base .parameter,
+.ui-component.modifier.audio .base .parameter input {
+  background-color: var(--component-color-background-modifier-audio-base);
+}
