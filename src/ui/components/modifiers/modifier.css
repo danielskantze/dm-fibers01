@@ -13,6 +13,10 @@
   padding-bottom: 2px;
 }
 
+.ui-component.modifier.bypass .container > *:not(.modifier-header) {
+  opacity: 0.5;
+}
+
 .ui-component.modifier-header {
   display: flex;
   flex-direction: row;

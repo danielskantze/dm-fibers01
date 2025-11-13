@@ -47,20 +47,6 @@ export function createAudioModifier(
     avgRms5: "R̄MS5",
   };
 
-  const bypassControl = createScalar({
-    name: "Bypass",
-    value: config.bypass ? 1 : 0,
-    min: 0,
-    max: 1.0,
-    step: 1,
-    type: "enum",
-    enumValues: ["No", "Yes"],
-    onChange: (value: number) => {
-      config.bypass = value > 0;
-      emitter.emit("change", { config });
-    },
-  } as ScalarProps);
-
   const rangeControl = createScalar({
     name: "Range",
     value: config.range,
@@ -160,7 +146,6 @@ export function createAudioModifier(
   levelPropertyControl.element.classList.add("levels-property");
   beatPropertyControl.element.classList.add("beat-property");
 
-  bypassControl.element.classList.add("base");
   rangeControl.element.classList.add("base");
   offsetControl.element.classList.add("base");
   delayControl.element.classList.add("base");
@@ -169,9 +154,15 @@ export function createAudioModifier(
 
   // header
   container.appendChild(header.element);
+  header.setBypass(config.bypass);
+  outerContainer.classList.toggle("bypass", config.bypass);
+  header.setOnBypass((value: boolean) => {
+    config.bypass = value;
+    outerContainer.classList.toggle("bypass", config.bypass);
+    emitter.emit("change", { config });
+  });
 
   // base
-  baseContainer.appendChild(bypassControl.element);
   baseContainer.appendChild(rangeControl.element);
   baseContainer.appendChild(offsetControl.element);
   baseContainer.appendChild(delayControl.element);
@@ -196,7 +187,7 @@ export function createAudioModifier(
       }
       config = { ...newConfig };
       config.analysis = { ...config.analysis };
-      bypassControl.update(config.bypass ? 1 : 0);
+      header.setBypass(config.bypass);
       typeControl.update?.(
         audioAnalysisTypeEnumMap.stringToInt(config.analysis.type as "levels" | "beat")
       );
