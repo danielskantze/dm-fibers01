@@ -6,7 +6,9 @@
   --ui-width: 320px;
   --component-color-background: #222;
   --component-color-background-modifier-audio: #222244;
+  --component-color-background-modifier-audio-base: #1c1c3c;
   --component-color-background-modifier-lfo: #224422;
+  --component-color-background-modifier-lfo-base: #203820;
   --component-color-background-1: #444;
   --component-color-background-down: #1e1e1e;
   --component-color-accent-1: #ddd;

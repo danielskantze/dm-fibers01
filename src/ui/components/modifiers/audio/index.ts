@@ -28,11 +28,13 @@ export function createAudioModifier(
   const emitter = new Emitter<ModifierComponentEventMap>();
   const outerContainer = document.createElement("div");
   const container = document.createElement("div");
+  const baseContainer = document.createElement("div");
   outerContainer.classList.add("ui-component");
   outerContainer.classList.add("modifier");
   outerContainer.classList.add("audio");
   container.classList.add("container");
   outerContainer.appendChild(container);
+  baseContainer.classList.add("base");
 
   const scalarPropertyEnumLabelMap: { [K in ScalarAnalysisProperty]: string } = {
     lastBeatTime: "tBeat",
@@ -55,47 +57,6 @@ export function createAudioModifier(
     enumValues: ["No", "Yes"],
     onChange: (value: number) => {
       config.bypass = value > 0;
-      emitter.emit("change", { config });
-    },
-  } as ScalarProps);
-
-  const typeControl = createScalar({
-    name: "Type",
-    value: audioAnalysisTypeEnumMap.stringToInt(
-      config.analysis.type as "levels" | "beat"
-    ),
-    type: "enum",
-    enumValues: audioAnalysisTypeEnumMap.values,
-    onChange: (value: number) => {
-      const analysisType = audioAnalysisTypeEnumMap.intToString(value);
-      config.analysis.type = analysisType;
-      config.analysis.property = defaultAudioPropertyValueMap[analysisType];
-      emitter.emit("change", { config });
-    },
-  } as ScalarProps);
-
-  const levelPropertyControl = createScalar({
-    name: "Property",
-    value: audioLevelAnalysisPropertyEnumMap.stringToInt(config.analysis.property),
-    type: "enum",
-    enumValues: audioLevelAnalysisPropertyEnumMap.values.map(
-      e => scalarPropertyEnumLabelMap[e]
-    ),
-    onChange: (value: number) => {
-      config.analysis.property = audioLevelAnalysisPropertyEnumMap.intToString(value);
-      emitter.emit("change", { config });
-    },
-  } as ScalarProps);
-
-  const beatPropertyControl = createScalar({
-    name: "Property",
-    value: audioBeatAnalysisPropertyEnumMap.stringToInt(config.analysis.property),
-    type: "enum",
-    enumValues: audioBeatAnalysisPropertyEnumMap.values.map(
-      e => scalarPropertyEnumLabelMap[e]
-    ),
-    onChange: (value: number) => {
-      config.analysis.property = audioBeatAnalysisPropertyEnumMap.intToString(value);
       emitter.emit("change", { config });
     },
   } as ScalarProps);
@@ -155,19 +116,74 @@ export function createAudioModifier(
     },
   } as ScalarProps);
 
+  const typeControl = createScalar({
+    name: "Type",
+    value: audioAnalysisTypeEnumMap.stringToInt(
+      config.analysis.type as "levels" | "beat"
+    ),
+    type: "enum",
+    enumValues: audioAnalysisTypeEnumMap.values,
+    onChange: (value: number) => {
+      const analysisType = audioAnalysisTypeEnumMap.intToString(value);
+      config.analysis.type = analysisType;
+      config.analysis.property = defaultAudioPropertyValueMap[analysisType];
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
+  const levelPropertyControl = createScalar({
+    name: "Property",
+    value: audioLevelAnalysisPropertyEnumMap.stringToInt(config.analysis.property),
+    type: "enum",
+    enumValues: audioLevelAnalysisPropertyEnumMap.values.map(
+      e => scalarPropertyEnumLabelMap[e]
+    ),
+    onChange: (value: number) => {
+      config.analysis.property = audioLevelAnalysisPropertyEnumMap.intToString(value);
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
+  const beatPropertyControl = createScalar({
+    name: "Property",
+    value: audioBeatAnalysisPropertyEnumMap.stringToInt(config.analysis.property),
+    type: "enum",
+    enumValues: audioBeatAnalysisPropertyEnumMap.values.map(
+      e => scalarPropertyEnumLabelMap[e]
+    ),
+    onChange: (value: number) => {
+      config.analysis.property = audioBeatAnalysisPropertyEnumMap.intToString(value);
+      emitter.emit("change", { config });
+    },
+  } as ScalarProps);
+
   levelPropertyControl.element.classList.add("levels-property");
   beatPropertyControl.element.classList.add("beat-property");
 
+  bypassControl.element.classList.add("base");
+  rangeControl.element.classList.add("base");
+  offsetControl.element.classList.add("base");
+  delayControl.element.classList.add("base");
+  durationControl.element.classList.add("base");
+  blendControl.element.classList.add("base");
+
+  // header
   container.appendChild(header.element);
-  container.appendChild(bypassControl.element);
+
+  // base
+  baseContainer.appendChild(bypassControl.element);
+  baseContainer.appendChild(rangeControl.element);
+  baseContainer.appendChild(offsetControl.element);
+  baseContainer.appendChild(delayControl.element);
+  baseContainer.appendChild(durationControl.element);
+  baseContainer.appendChild(blendControl.element);
+
+  // specific
   container.appendChild(typeControl.element);
   container.appendChild(levelPropertyControl.element);
   container.appendChild(beatPropertyControl.element);
-  container.appendChild(rangeControl.element);
-  container.appendChild(offsetControl.element);
-  container.appendChild(delayControl.element);
-  container.appendChild(durationControl.element);
-  container.appendChild(blendControl.element);
+
+  container.appendChild(baseContainer);
 
   container.dataset.analysisType = config.analysis.type as string;
 
