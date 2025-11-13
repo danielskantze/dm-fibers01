@@ -20,7 +20,7 @@
   align-items: center;
   gap: 0.5rem;
   color: var(--component-color-accent-1);
-  padding: 4px 8px 0px 10px;
+  padding: 6px 8px 0px 10px;
   margin-bottom: -3px;
 }
 
@@ -33,9 +33,12 @@
 
 .ui-component.modifier-header button.bypass {
   border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 1000px;
-  height: 20px;
-  max-height: 20px;
+  border-radius: 3px;
+  height: 16px;
+  width: 16px;
+  max-height: 16px;
+  margin-top: -4px;
+  margin-left: -2px;
 }
 
 .ui-component.modifier-header button:hover {
@@ -45,6 +48,19 @@
   overflow: hidden;
   height: 20px;
   width: 20px;
+}
+
+.ui-component.modifier-header button.bypass > svg {
+  width: 16px;
+  height: 16px;
+  max-height: 16px;
+}
+
+.ui-component.modifier-header button.bypass:hover {
+  border-radius: 3px;
+  width: 16px;
+  height: 16px;
+  max-height: 16px;
 }
 
 .ui-component.modifier-header button:disabled {

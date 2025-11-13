@@ -93,8 +93,8 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   }
 
   // put it together
-  container.appendChild(iconElement);
   container.appendChild(signalBypassElement);
+  container.appendChild(iconElement);
   container.appendChild(titleElement);
   container.appendChild(menuElement);
 
