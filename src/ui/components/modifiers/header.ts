@@ -17,6 +17,8 @@ export interface ModifierHeaderComponent extends Component {
   initialize: (id: string) => void;
   setCanMoveDown: (value: boolean) => void;
   setCanMoveUp: (value: boolean) => void;
+  setBypass: (value: boolean) => void;
+  setOnBypass: (callback: (value: boolean) => void) => void;
 }
 
 export function createModifierHeader(props: Props): ModifierHeaderComponent {
@@ -29,9 +31,14 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   }
   // create header row items
   const container = document.createElement("div");
+  const bypassCheckbox = document.createElement("input");
   const iconElement = document.createElement("div");
   const titleElement = document.createElement("div");
   const menuElement = document.createElement("div");
+
+  //<input type="checkbox" class="expand-checkbox" name="type" value="expand"></input>
+  bypassCheckbox.classList.add("bypass");
+  bypassCheckbox.setAttribute("type", "checkbox");
 
   // create menu items
   const menuRemoveElement = document.createElement("button");
@@ -49,6 +56,9 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   titleElement.classList.add("title");
   titleElement.innerText = title;
   menuElement.classList.add("menu");
+  let bypassCallback: (value: boolean) => void = () => {};
+
+  bypassCheckbox.onchange = () => bypassCallback(bypassCheckbox.checked);
 
   // setup menu
   menuElement.appendChild(menuRemoveElement);
@@ -69,8 +79,17 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
     menuMoveDownElement.disabled = value;
   }
 
+  function setBypass(value: boolean) {
+    bypassCheckbox.checked = value;
+  }
+
+  function setOnBypass(callback: (value: boolean) => void) {
+    bypassCallback = callback;
+  }
+
   // put it together
   container.appendChild(iconElement);
+  container.appendChild(bypassCheckbox);
   container.appendChild(titleElement);
   container.appendChild(menuElement);
 
@@ -79,5 +98,7 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
     initialize,
     setCanMoveDown,
     setCanMoveUp,
+    setBypass,
+    setOnBypass,
   };
 }
