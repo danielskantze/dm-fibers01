@@ -29,6 +29,7 @@ export function createLFOModifier(
   const outerContainer = document.createElement("div");
   const container = document.createElement("div");
   const baseContainer = document.createElement("div");
+
   outerContainer.classList.add("ui-component");
   outerContainer.classList.add("modifier");
   outerContainer.classList.add("lfo");
@@ -36,19 +37,19 @@ export function createLFOModifier(
   container.classList.add("container");
   baseContainer.classList.add("base");
 
-  const bypassControl = createScalar({
-    name: "Bypass",
-    value: config.bypass ? 1 : 0,
-    min: 0,
-    max: 1.0,
-    step: 1,
-    type: "enum",
-    enumValues: ["No", "Yes"],
-    onChange: (value: number) => {
-      config.bypass = value > 0;
-      emitter.emit("change", { config });
-    },
-  } as ScalarProps);
+  // const bypassControl = createScalar({
+  //   name: "Bypass",
+  //   value: config.bypass ? 1 : 0,
+  //   min: 0,
+  //   max: 1.0,
+  //   step: 1,
+  //   type: "enum",
+  //   enumValues: ["No", "Yes"],
+  //   onChange: (value: number) => {
+  //     config.bypass = value > 0;
+  //     emitter.emit("change", { config });
+  //   },
+  // } as ScalarProps);
 
   const rangeControl = createScalar({
     name: "Range",
@@ -138,7 +139,7 @@ export function createLFOModifier(
     },
   } as ScalarProps);
 
-  bypassControl.element.classList.add("base");
+  // bypassControl.element.classList.add("base");
   rangeControl.element.classList.add("base");
   offsetControl.element.classList.add("base");
   delayControl.element.classList.add("base");
@@ -147,6 +148,11 @@ export function createLFOModifier(
 
   // header
   container.appendChild(header.element);
+  header.setBypass(config.bypass);
+  header.setOnBypass((value: boolean) => {
+    config.bypass = value;
+    emitter.emit("change", { config });
+  });
 
   // specific
   container.appendChild(hzControl.element);
@@ -154,7 +160,7 @@ export function createLFOModifier(
   container.appendChild(curveControl.element);
 
   // base
-  baseContainer.appendChild(bypassControl.element);
+  // baseContainer.appendChild(bypassControl.element);
   baseContainer.appendChild(rangeControl.element);
   baseContainer.appendChild(offsetControl.element);
   baseContainer.appendChild(delayControl.element);
@@ -171,7 +177,8 @@ export function createLFOModifier(
         throw new Error(`Invalid modifier config: ${JSON.stringify(newConfig)}`);
       }
       config = { ...newConfig };
-      bypassControl.update?.(config.bypass ? 1 : 0);
+      // bypassControl.update?.(config.bypass ? 1 : 0);
+      header.setBypass(config.bypass);
       hzControl.update?.(config.hz);
       rangeControl.update?.(config.range);
       phaseControl.update?.(config.phase);
