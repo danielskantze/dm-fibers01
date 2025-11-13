@@ -42,9 +42,12 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   // bypass
   signalBypassElement.classList.add("bypass");
   signalBypassElement.innerHTML = signalBypassedIcon;
-  signalBypassElement.onclick = () => {
-    setBypass(!isBypassed);
-  };
+  function onClickBypass() {
+    const newValue = !isBypassed;
+    setBypass(newValue);
+    bypassCallback(newValue);
+  }
+  signalBypassElement.addEventListener("click", onClickBypass);
 
   // create menu items
   const menuRemoveElement = document.createElement("button");
@@ -100,6 +103,9 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
 
   return {
     element: container,
+    destroy: () => {
+      signalBypassElement.removeEventListener("click", onClickBypass);
+    },
     initialize,
     setCanMoveDown,
     setCanMoveUp,

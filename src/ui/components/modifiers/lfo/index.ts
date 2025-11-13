@@ -149,8 +149,10 @@ export function createLFOModifier(
   // header
   container.appendChild(header.element);
   header.setBypass(config.bypass);
+  outerContainer.classList.toggle("bypass", config.bypass);
   header.setOnBypass((value: boolean) => {
     config.bypass = value;
+    outerContainer.classList.toggle("bypass", config.bypass);
     emitter.emit("change", { config });
   });
 
