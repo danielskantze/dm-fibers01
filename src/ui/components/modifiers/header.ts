@@ -3,6 +3,8 @@ import "./modifier.css";
 import removeIcon from "../../icons/remove.svg?raw";
 import moveUpIcon from "../../icons/collapse.svg?raw";
 import moveDownIcon from "../../icons/expand.svg?raw";
+import signalBypassedIcon from "../../icons/signal-bypassed.svg?raw";
+import signalFlowingIcon from "../../icons/signal-flowing.svg?raw";
 
 type Props = {
   title: string;
@@ -25,20 +27,24 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   const { title, icon, iconShiftY, onRemove, onMoveDown, onMoveUp } = props;
 
   let modifierId = "";
+  let isBypassed = false;
 
   function initialize(id: string) {
     modifierId = id;
   }
   // create header row items
   const container = document.createElement("div");
-  const bypassCheckbox = document.createElement("input");
   const iconElement = document.createElement("div");
   const titleElement = document.createElement("div");
   const menuElement = document.createElement("div");
+  const signalBypassElement = document.createElement("button");
 
-  //<input type="checkbox" class="expand-checkbox" name="type" value="expand"></input>
-  bypassCheckbox.classList.add("bypass");
-  bypassCheckbox.setAttribute("type", "checkbox");
+  // bypass
+  signalBypassElement.classList.add("bypass");
+  signalBypassElement.innerHTML = signalBypassedIcon;
+  signalBypassElement.onclick = () => {
+    setBypass(!isBypassed);
+  };
 
   // create menu items
   const menuRemoveElement = document.createElement("button");
@@ -57,8 +63,6 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   titleElement.innerText = title;
   menuElement.classList.add("menu");
   let bypassCallback: (value: boolean) => void = () => {};
-
-  bypassCheckbox.onchange = () => bypassCallback(bypassCheckbox.checked);
 
   // setup menu
   menuElement.appendChild(menuRemoveElement);
@@ -80,7 +84,8 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
   }
 
   function setBypass(value: boolean) {
-    bypassCheckbox.checked = value;
+    signalBypassElement.innerHTML = value ? signalBypassedIcon : signalFlowingIcon;
+    isBypassed = value;
   }
 
   function setOnBypass(callback: (value: boolean) => void) {
@@ -89,7 +94,7 @@ export function createModifierHeader(props: Props): ModifierHeaderComponent {
 
   // put it together
   container.appendChild(iconElement);
-  container.appendChild(bypassCheckbox);
+  container.appendChild(signalBypassElement);
   container.appendChild(titleElement);
   container.appendChild(menuElement);
 
