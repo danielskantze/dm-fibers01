@@ -107,6 +107,23 @@ export function createUniformControls(
           "modifiers",
           createModifierEventHandler(registry, group, parameter, audioAnalyzer)
         );
+
+        // Subscribe to parameter modifier events to update button highlight state
+        const param = registry.getParameter(group, parameter);
+        if (param && child.modifierButton) {
+          const updateHighlight = () => {
+            const hasModifiers = param.modifiers.length > 0;
+            child.modifierButton?.setHighlighted(hasModifiers);
+          };
+
+          // Set initial state
+          updateHighlight();
+
+          // Subscribe to modifier events
+          param.events.subscribe("modifierInit", updateHighlight);
+          param.events.subscribe("modifierUpdate", updateHighlight);
+          param.events.subscribe("modifierClear", updateHighlight);
+        }
       }
 
       controlsContainer.appendChild(child.element);

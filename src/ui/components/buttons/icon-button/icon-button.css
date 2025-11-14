@@ -56,3 +56,8 @@
 .ui-component.icon-button button:active {
   background: var(--component-color-background-down);
 }
+
+.ui-component.icon-button.highlighted button {
+  border-color: var(--component-color-accent-1);
+  background: var(--component-color-background-1);
+}

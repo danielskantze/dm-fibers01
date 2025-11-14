@@ -12,6 +12,7 @@ import expandIcon from "../../../icons/expand.svg?raw";
 interface ButtonComponent extends Component {
   updateButton: (svgIcon: string, title?: string) => void;
   setDisabled: (isDisabled: boolean) => void;
+  setHighlighted: (isHighlighted: boolean) => void;
 }
 
 interface ButtonProps {
@@ -66,6 +67,13 @@ export function createIconButton(props: ButtonProps): ButtonComponent {
     setDisabled: isDisabled => {
       button.disabled = isDisabled;
     },
+    setHighlighted: isHighlighted => {
+      if (isHighlighted) {
+        container.classList.add("highlighted");
+      } else {
+        container.classList.remove("highlighted");
+      }
+    },
     destroy: () => {
       button.removeEventListener("click", clickHandler);
     },
@@ -78,6 +86,7 @@ interface ToggleButtonProps extends Omit<ButtonProps, "svgIcon"> {
 
 export interface ToggleButtonComponent extends Component {
   update: (value: boolean) => void;
+  setHighlighted: (isHighlighted: boolean) => void;
 }
 
 export function createIconToggleButton(props: ToggleButtonProps): ToggleButtonComponent {
