@@ -20,6 +20,7 @@ export interface Parameter extends ModifierMutations {
   readonly baseValue: UniformValue;
   readonly value: UniformValue;
   readonly events: Subscribable<ParameterEvents>;
+  readonly modifiers: ReadonlyArray<{ id: string; config: AnyModifierConfig }>;
 }
 
 export type ParameterGroup<G extends string> = {

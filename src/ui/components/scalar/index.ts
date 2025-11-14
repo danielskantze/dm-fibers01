@@ -191,6 +191,7 @@ export function createScalar({
 
   if (hasAccessory) {
     modifierButton = createModifierButton(component, emitter);
+    component.modifierButton = modifierButton;
     wrapper.appendChild(modifierButton.element);
   }
 

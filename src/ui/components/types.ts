@@ -31,6 +31,9 @@ export interface ParameterComponent<TEventMap extends EventMap = ComponentEventM
 export interface ModifierOwnerComponent
   extends ParameterComponent<ModifierOwnerEventMap> {
   events: Subscribable<ModifierOwnerEventMap>;
+  modifierButton?: {
+    setHighlighted: (isHighlighted: boolean) => void;
+  };
 }
 
 // 5. The crucial type guard.

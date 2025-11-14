@@ -79,7 +79,7 @@ export function createVector({
     components?.appendChild(child.element);
     children.push(child);
   }
-  const component = {
+  const component: ModifierOwnerComponent = {
     element: control,
     update: (values: UniformValue) => {
       if (!isVecLike(values)) {
@@ -101,6 +101,7 @@ export function createVector({
 
   if (hasAccessory) {
     modifierButton = createModifierButton(component, emitter);
+    component.modifierButton = modifierButton;
     header.appendChild(modifierButton.element);
   }
 
