@@ -6,7 +6,6 @@ import type {
 } from "../../../types/gl/uniforms";
 import { createEnumMap } from "../../../util/enum";
 import type { Handler } from "../../../util/events";
-import { StreamLogging } from "../../../util/logging";
 import type {
   AudioAnalysisEvents,
   AudioAnalysisType,
@@ -123,7 +122,6 @@ export class AudioAnalysisModifier<T extends UniformType> extends BaseModifier<
       const y = (stats[this._analysisType as AudioAnalysisType] as any)[
         this._analysisProperty
       ];
-      StreamLogging.addOrlog("beat", 30, [this._analysisProperty, y]);
       this._value = this.offset + this.range * y;
     };
     this._analyser.events.subscribe("update", this._handler);

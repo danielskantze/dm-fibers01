@@ -26,7 +26,7 @@ function getValue(value: number, config: ValueConfig): string {
     case "enum":
       return `${enumValues![Math.max(0, Math.min(enumValues!.length, Math.round(value)))]}`;
     default:
-      return value.toFixed(2);
+      return value.toPrecision(4);
   }
 }
 
@@ -68,7 +68,6 @@ export function createScalar({
   const id: string = sanitizeName(name);
   const valueConfig: ValueConfig = { type, enumValues };
 
-  text.setAttribute("disabled", "disabled");
   text.setAttribute("type", "text");
   text.setAttribute("name", "d_" + id);
   input.setAttribute("name", "r_" + id);
@@ -101,6 +100,69 @@ export function createScalar({
   };
   input.addEventListener("input", onInputChange);
 
+  const handleNumberChange = (textValue: string) => {
+    let newValue = parseFloat(textValue);
+    if (isNaN(newValue)) {
+      return null;
+    }
+    if (min !== undefined) {
+      newValue = Math.max(min, newValue);
+    }
+    if (max !== undefined) {
+      newValue = Math.min(max, newValue);
+    }
+    if (type === "int") {
+      newValue = Math.round(newValue);
+    }
+    return newValue;
+  };
+
+  const handleEnumChange = (textValue: any, enumValues: string[]) => {
+    let newValue: number;
+    const enumIndex = enumValues.findIndex(
+      v => v.toLowerCase() === textValue.toLowerCase()
+    );
+    if (enumIndex !== -1) {
+      newValue = enumIndex;
+    } else {
+      const parsed = parseFloat(textValue);
+      if (isNaN(parsed)) {
+        return null;
+      }
+      newValue = Math.max(0, Math.min(enumValues.length - 1, Math.round(parsed)));
+    }
+    return newValue;
+  };
+
+  // Add event listener for text input - make sure to update input (slider) too
+  const onTextChange = (e: Event) => {
+    const textValue = (e.target as HTMLInputElement).value;
+    let newValue: number | null;
+
+    // Handle enum type differently
+    if (type === "enum" && enumValues) {
+      newValue = handleEnumChange(textValue, enumValues);
+    } else {
+      newValue = handleNumberChange(textValue);
+    }
+
+    if (newValue === null) {
+      text.value = getValue(parseFloat(input.value), valueConfig);
+    } else {
+      // Update slider and trigger onChange
+      input.value = newValue.toString();
+      onChange(newValue);
+      text.value = getValue(newValue, valueConfig);
+    }
+  };
+
+  const onTextBlur = () => {
+    text.value = getValue(parseFloat(input.value), valueConfig);
+  };
+
+  text.addEventListener("change", onTextChange);
+  text.addEventListener("blur", onTextBlur);
+
   label.textContent = name;
   label.setAttribute("for", inputId);
 
@@ -123,6 +185,8 @@ export function createScalar({
     destroy: () => {
       accessoryButton?.destroy?.();
       input.removeEventListener("input", onInputChange);
+      text.removeEventListener("change", onTextChange);
+      text.removeEventListener("blur", onTextBlur);
       emitter.destroy();
     },
     events: emitter,
