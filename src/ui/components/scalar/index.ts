@@ -1,10 +1,7 @@
 import type { ScalarValueType, UniformValue } from "../../../types/gl/uniforms";
 import { Emitter } from "../../../util/events";
-import {
-  createAccessoryButton,
-  type ToggleButtonComponent,
-} from "../buttons/icon-button";
-import type { AccessoryOwnerComponent, AccessoryOwnerEventMap } from "../types";
+import { createModifierButton, type ToggleButtonComponent } from "../buttons/icon-button";
+import type { ModifierOwnerComponent, ModifierOwnerEventMap } from "../types";
 import "./scalar.css";
 
 let idSeq = 1;
@@ -52,9 +49,9 @@ export function createScalar({
   step,
   type = "float",
   enumValues,
-}: ScalarProps): AccessoryOwnerComponent {
+}: ScalarProps): ModifierOwnerComponent {
   const container: HTMLDivElement = document.createElement("div");
-  const emitter = new Emitter<AccessoryOwnerEventMap>();
+  const emitter = new Emitter<ModifierOwnerEventMap>();
   container.classList.add("scalar");
   container.classList.add("ui-control");
 
@@ -64,7 +61,7 @@ export function createScalar({
   const input: HTMLInputElement = document.createElement("input");
   const text: HTMLInputElement = document.createElement("input");
 
-  let accessoryButton: ToggleButtonComponent | undefined;
+  let modifierButton: ToggleButtonComponent | undefined;
   const id: string = sanitizeName(name);
   const valueConfig: ValueConfig = { type, enumValues };
 
@@ -172,7 +169,7 @@ export function createScalar({
   text.classList.add("digits");
   wrapper.classList.add("parameter");
 
-  const component: AccessoryOwnerComponent = {
+  const component: ModifierOwnerComponent = {
     element: container,
     update: (value: UniformValue) => {
       if (typeof value === "number") {
@@ -183,7 +180,7 @@ export function createScalar({
       }
     },
     destroy: () => {
-      accessoryButton?.destroy?.();
+      modifierButton?.destroy?.();
       input.removeEventListener("input", onInputChange);
       text.removeEventListener("change", onTextChange);
       text.removeEventListener("blur", onTextBlur);
@@ -193,8 +190,8 @@ export function createScalar({
   };
 
   if (hasAccessory) {
-    accessoryButton = createAccessoryButton(component, emitter);
-    wrapper.appendChild(accessoryButton.element);
+    modifierButton = createModifierButton(component, emitter);
+    wrapper.appendChild(modifierButton.element);
   }
 
   container.appendChild(wrapper);
