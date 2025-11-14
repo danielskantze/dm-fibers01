@@ -2,17 +2,14 @@ import { createScalar } from "../scalar";
 import { isVecLike } from "../../../math/types";
 import type { UniformValue } from "../../../types/gl/uniforms";
 import type {
-  AccessoryOwnerComponent,
-  AccessoryOwnerEventMap,
+  ModifierOwnerComponent,
+  ModifierOwnerEventMap,
   ParameterComponent,
 } from "../types";
 import "./vector.css";
 import template from "./vector.html?raw";
 import { Emitter } from "../../../util/events";
-import {
-  createAccessoryButton,
-  type ToggleButtonComponent,
-} from "../buttons/icon-button";
+import { createModifierButton, type ToggleButtonComponent } from "../buttons/icon-button";
 
 const VECTOR_COMPONENTS = ["x", "y", "z", "w"];
 
@@ -41,13 +38,13 @@ export function createVector({
   max,
   step,
   hasAccessory,
-}: VectorProps): AccessoryOwnerComponent {
+}: VectorProps): ModifierOwnerComponent {
   const tmp: HTMLDivElement = document.createElement("div");
   tmp.innerHTML = template;
   const control = tmp.firstElementChild as HTMLDivElement;
 
-  const emitter = new Emitter<AccessoryOwnerEventMap>();
-  let accessoryButton: ToggleButtonComponent | undefined;
+  const emitter = new Emitter<ModifierOwnerEventMap>();
+  let modifierButton: ToggleButtonComponent | undefined;
 
   control.dataset.expanded = "0";
   const label = control.querySelector("header .label")! as HTMLDivElement;
@@ -92,7 +89,7 @@ export function createVector({
       children.forEach((c, i) => c.update!(values[i]));
     },
     destroy: () => {
-      accessoryButton?.destroy?.();
+      modifierButton?.destroy?.();
       expandRadio.removeEventListener("click", onExpandClick);
       for (const child of children) {
         child.destroy!();
@@ -103,8 +100,8 @@ export function createVector({
   };
 
   if (hasAccessory) {
-    accessoryButton = createAccessoryButton(component, emitter);
-    header.appendChild(accessoryButton.element);
+    modifierButton = createModifierButton(component, emitter);
+    header.appendChild(modifierButton.element);
   }
 
   return component;

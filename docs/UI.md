@@ -13,4 +13,4 @@ The UI is currently strongly connected to the ParameterService (/service/paramet
 
 Another reason for the parameter service is that I will hook up other input sources too. For example MIDI controllers or automation curves.
 
-Yet another aspect (that I have not implemented yet) will be to handle delta parameters. Some parameters will be connected to audio changes. I want those changes to be relative to the base value set in the user-interface. Same thing if I implement LFO-parameters. I have not figured all of this out fully yet (do I use two parameter services that I merge or do I extend the existing one? etc.) but I am mentioning this just so you know a little of what is coming.
+Each parameter also have a list of modifiers. A modifier is a way of adding relative changes (or even overwriting) a signal. Typical modifiers would be an LFO or a audio analysis of a feature of the sound wave (e.g. rms power etc). A modifier has its own UI, in addition to the parameters.

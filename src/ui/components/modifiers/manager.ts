@@ -7,8 +7,8 @@ import type {
   AnyModifierConfig,
   BlendMode,
 } from "../../../service/parameters/modifiers/types";
-import { attachAccessoryView, removeAccessoryView } from "../decorators/accessory-view";
-import type { AccessoryOwnerComponent } from "../types";
+import { attachModifierPanel, removeModifierPanel } from "../decorators/accessory-view";
+import type { ModifierOwnerComponent } from "../types";
 import { createModifiers, type ModifiersComponent } from "./index";
 
 export const blendModeEnumLabelMap: { [K in BlendMode]: string } = {
@@ -18,7 +18,7 @@ export const blendModeEnumLabelMap: { [K in BlendMode]: string } = {
 };
 
 export function manageModifiersFor(
-  owner: AccessoryOwnerComponent,
+  owner: ModifierOwnerComponent,
   param: Parameter,
   audioAnalyzer: PublicAudioStatsCollector
 ): () => void {
@@ -58,7 +58,7 @@ export function manageModifiersFor(
       updateSub?.();
       if (component) {
         // Should not happen with sticky event, but good practice
-        removeAccessoryView(owner);
+        removeModifierPanel(owner);
         component.destroy?.();
       }
 
@@ -69,7 +69,7 @@ export function manageModifiersFor(
         onRemove,
         onReorder,
       });
-      attachAccessoryView(owner, component);
+      attachModifierPanel(owner, component);
 
       updateSub = param.events.subscribe("modifierUpdate", ({ id, type, config }) => {
         if (!component) return;
@@ -90,7 +90,7 @@ export function manageModifiersFor(
   );
 
   return () => {
-    removeAccessoryView(owner);
+    removeModifierPanel(owner);
     initSub?.();
     updateSub?.();
     component?.destroy?.();

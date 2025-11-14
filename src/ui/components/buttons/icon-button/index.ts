@@ -1,7 +1,7 @@
 import type { Emitter } from "../../../../util/events";
 import type {
-  AccessoryOwnerComponent,
-  AccessoryOwnerEventMap,
+  ModifierOwnerComponent,
+  ModifierOwnerEventMap,
   Component,
 } from "../../types";
 import "./icon-button.css";
@@ -92,25 +92,25 @@ export function createIconToggleButton(props: ToggleButtonProps): ToggleButtonCo
   };
 }
 
-export function createAccessoryButton(
-  sender: AccessoryOwnerComponent,
-  emitter: Emitter<AccessoryOwnerEventMap>
+export function createModifierButton(
+  sender: ModifierOwnerComponent,
+  emitter: Emitter<ModifierOwnerEventMap>
 ) {
-  let isAccessoryCollapsed = true;
-  const accessoryButton = createIconToggleButton({
+  let isModifierPanelCollapsed = true;
+  const modifierButton = createIconToggleButton({
     svgIcons: [expandIcon, collapseIcon],
     size: "small",
     circular: true,
     onClick: function (): void {
-      isAccessoryCollapsed = !isAccessoryCollapsed;
-      accessoryButton.update?.(isAccessoryCollapsed);
-      emitter.emit("accessory", {
+      isModifierPanelCollapsed = !isModifierPanelCollapsed;
+      modifierButton.update?.(isModifierPanelCollapsed);
+      emitter.emit("modifiers", {
         open: {
           sender,
-          isOpen: !isAccessoryCollapsed,
+          isOpen: !isModifierPanelCollapsed,
         },
       });
     },
   });
-  return accessoryButton;
+  return modifierButton;
 }

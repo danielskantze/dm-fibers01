@@ -11,10 +11,10 @@ export interface Component<TEventMap extends EventMap = EventMap> {
 // 2. Role-specific Event Maps.
 export interface ComponentEventMap extends EventMap {} // A base map for common events.
 
-export interface AccessoryOwnerEventMap extends ComponentEventMap {
-  accessory: {
+export interface ModifierOwnerEventMap extends ComponentEventMap {
+  modifiers: {
     open: {
-      sender: AccessoryOwnerComponent;
+      sender: ModifierOwnerComponent;
       isOpen: boolean;
     };
   };
@@ -26,17 +26,18 @@ export interface ParameterComponent<TEventMap extends EventMap = ComponentEventM
   update: (value: UniformValue) => void;
 }
 
-// 4. Define AccessoryOwnerComponent using the specific event map.
-export interface AccessoryOwnerComponent
-  extends ParameterComponent<AccessoryOwnerEventMap> {
-  events: Subscribable<AccessoryOwnerEventMap>;
+// 4. Define ModifierOwnerComponent using the specific event map.
+// This component can display a modifier panel for managing parameter modifiers (LFO, audio analysis, etc.)
+export interface ModifierOwnerComponent
+  extends ParameterComponent<ModifierOwnerEventMap> {
+  events: Subscribable<ModifierOwnerEventMap>;
 }
 
 // 5. The crucial type guard.
-export function isAccessoryOwnerComponent(
+export function isModifierOwnerComponent(
   component: ParameterComponent
-): component is AccessoryOwnerComponent {
-  // A component is an accessory owner if it has an event bus.
-  // In our design, only accessory owners will emit events.
+): component is ModifierOwnerComponent {
+  // A component is a modifier owner if it has an event bus.
+  // In our design, only modifier owners will emit events.
   return component.events !== undefined;
 }

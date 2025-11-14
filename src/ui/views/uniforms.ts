@@ -12,7 +12,7 @@ import {
 import type { Emitter, Handler } from "../../util/events";
 import { manageModifiersFor } from "../components/modifiers/manager";
 import {
-  isAccessoryOwnerComponent,
+  isModifierOwnerComponent,
   type ComponentEventMap,
   type ParameterComponent,
 } from "../components/types";
@@ -23,12 +23,12 @@ function uniformElementId(group: string, id: string): string {
   return `__param-u-${group}-${id}`;
 }
 
-function createAccessoryEventHandler(
+function createModifierEventHandler(
   registry: ParameterRegistry,
   group: ParameterGroupKey,
   parameter: string,
   audioAnalyzer: PublicAudioStatsCollector
-): Handler<ComponentEventMap, "accessory"> {
+): Handler<ComponentEventMap, "modifiers"> {
   let destroyManager: (() => void) | null = null;
 
   return (props: any) => {
@@ -102,10 +102,10 @@ export function createUniformControls(
 
       const child = factory(props);
 
-      if (isAccessoryOwnerComponent(child)) {
+      if (isModifierOwnerComponent(child)) {
         child.events.subscribe(
-          "accessory",
-          createAccessoryEventHandler(registry, group, parameter, audioAnalyzer)
+          "modifiers",
+          createModifierEventHandler(registry, group, parameter, audioAnalyzer)
         );
       }
 
