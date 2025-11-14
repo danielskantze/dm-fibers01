@@ -6,10 +6,12 @@
 
 ParameterService modifiers
 
-- Implement new architecture
-- Implement LFOModifier (no further explanation needed)
-- Implement ChasedValueModifier (gradually transition a value into the target value, simplest is Chroma style exp v = tv _ 0.01 + v _ 0.99)
-- Update data format and presets
+- [ ] Accessory handle should show if there are modifiers or not
+- [x] Text input for scalars
+- [x] Implement new architecture
+- [x] Implement LFOModifier (no further explanation needed)
+- [ ] Implement ChasedValueModifier (gradually transition a value into the target value, simplest is Chroma style exp v = tv _ 0.01 + v _ 0.99)
+- [x] Update data format and presets
 
 Research a way of automating preset transitions (for novelty / state changes)
 
