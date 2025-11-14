@@ -92,7 +92,7 @@ function loadShaders(gl: WebGL2RenderingContext): ShaderPrograms {
         strokeNoise: {
           location: strokeNoisePLocation,
           domain: {
-            min: -5.0,
+            min: 0.0,
             max: 5.0,
           },
           ui: {
