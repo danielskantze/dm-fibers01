@@ -27,6 +27,11 @@ function getValue(value: number, config: ValueConfig): string {
   }
 }
 
+type InputMapping = {
+  inputToValue: (inputValue: number) => number;
+  valueToInput: (value: number) => number;
+};
+
 export type ScalarProps = {
   name: string;
   value: number;
@@ -37,6 +42,7 @@ export type ScalarProps = {
   step?: number;
   type?: ScalarValueType;
   enumValues?: string[];
+  inputMapping?: InputMapping;
 };
 
 export function createScalar({
@@ -48,6 +54,7 @@ export function createScalar({
   max,
   step,
   type = "float",
+  inputMapping,
   enumValues,
 }: ScalarProps): ModifierOwnerComponent {
   const container: HTMLDivElement = document.createElement("div");
@@ -83,15 +90,23 @@ export function createScalar({
   } else {
     input.step = "any";
   }
+
+  function setSliderValue(newValue: number) {
+    input.value = (inputMapping?.valueToInput?.(newValue) ?? newValue).toString();
+  }
+  function getSliderValue() {
+    const sliderValue = parseFloat(input.value);
+    return inputMapping?.inputToValue?.(sliderValue) ?? sliderValue;
+  }
   if (value !== undefined) {
-    input.value = value.toString();
+    setSliderValue(value);
     text.value = getValue(value, valueConfig);
   }
   const inputId = `control_${idSeq}`;
   input.id = inputId;
 
-  const onInputChange = (e: Event) => {
-    const newValue = parseFloat((e.target as HTMLInputElement).value);
+  const onInputChange = (_: Event) => {
+    const newValue = getSliderValue();
     onChange(newValue);
     text.value = getValue(newValue, valueConfig);
   };
@@ -147,7 +162,7 @@ export function createScalar({
       text.value = getValue(parseFloat(input.value), valueConfig);
     } else {
       // Update slider and trigger onChange
-      input.value = newValue.toString();
+      setSliderValue(newValue);
       onChange(newValue);
       text.value = getValue(newValue, valueConfig);
     }
@@ -173,7 +188,7 @@ export function createScalar({
     element: container,
     update: (value: UniformValue) => {
       if (typeof value === "number") {
-        input.value = value.toString();
+        setSliderValue(value);
         text.value = getValue(value as number, valueConfig);
       } else {
         console.warn("Scalar component received non-number value:", value);

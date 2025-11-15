@@ -29,6 +29,10 @@ export function createSmootherModifier(
       config.strength = value;
       emitter.emit("change", { config });
     },
+    inputMapping: {
+      inputToValue: v => Math.pow(v, 1 / 10),
+      valueToInput: v => Math.pow(v, 10),
+    },
   } as ScalarProps);
 
   strengthControl.element.classList.add("smoother-property");
