@@ -3,6 +3,7 @@ import type { Parameter } from "../../../service/parameters";
 import type { ModifierType } from "../../../service/parameters/modifiers";
 import { AudioAnalysisModifier } from "../../../service/parameters/modifiers/audio-analysis-modifier";
 import { LFOModifier } from "../../../service/parameters/modifiers/lfo-modifier";
+import { SmootherModifier } from "../../../service/parameters/modifiers/smoother";
 import type {
   AnyModifierConfig,
   BlendMode,
@@ -37,6 +38,11 @@ export function manageModifiersFor(
           new AudioAnalysisModifier(undefined, type ?? "float", domain, audioAnalyzer, {})
         );
         break;
+      case "smoother":
+        param.addModifier(new SmootherModifier(undefined, type ?? "float", domain, {}));
+        break;
+      default:
+        throw new Error("Missing handler for added modifier type:", modifierType);
     }
   };
 
