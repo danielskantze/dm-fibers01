@@ -1,3 +1,6 @@
 .ui-component.modifier.smoother {
   --component-color-background: var(--component-color-background-modifier-smoother);
 }
+.ui-component.modifier.smoother .ui-control:last-child {
+  margin-bottom: 0 !important;
+}

@@ -2,11 +2,17 @@
   padding-left: 1rem;
   --ui-width: calc(var(--ui-width) - 1rem);
   --component-color-background: var(--component-color-background-modifier);
+  margin-bottom: 2px;
 }
 
 .ui-component.modifier .container {
   background-color: var(--component-color-background);
   border-radius: 6px;
+}
+
+.ui-component.modifier .container .base {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 
 .ui-component.modifier .container > *:last-child {
