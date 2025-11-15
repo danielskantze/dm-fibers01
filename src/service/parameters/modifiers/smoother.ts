@@ -59,8 +59,8 @@ export class SmootherModifier<T extends UniformType> extends BaseModifier<
     _frame: number,
     value: MappedUniformValue<T>
   ): MappedUniformValue<T> {
-    const smoothed = this._transformFn(this._currentValue ?? value, value);
+    const smoothed = this._transformFn(value, this._currentValue ?? value);
     this._currentValue = smoothed;
-    return smoothed;
+    return this.bypass ? value : smoothed;
   }
 }
