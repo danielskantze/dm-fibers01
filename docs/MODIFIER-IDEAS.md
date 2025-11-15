@@ -8,7 +8,6 @@ In this document we collect ideas about which modifiers to consider for addition
 
 Can be implemented without large refactoring or new development
 
-- [ ] Smoother (Chroma style smoothing, speed param)
 - [ ] Transfer (log, exp, pow etc)
 - [ ] Adapter (vec3 > 3 scalar slots). Use for palette
 - [ ] DomainMapper (good for sections)
@@ -17,6 +16,7 @@ Can be implemented without large refactoring or new development
 - [ ] VectorRotator
 - [ ] LFO for vectors (component wise support)
 - [ ] Quantizer
+- [x] Smoother (Chroma style smoothing, speed param)
 - [x] Scaler / offset (just a basemod)
 - [x] LFO for ints (particles)
 - [x] Modifier for audio stats (works as lfo, feature value is y, consider supporting smoothing)
