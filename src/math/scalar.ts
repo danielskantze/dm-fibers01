@@ -74,3 +74,9 @@ export function createBlendFn(
       return (_, b) => scale * b;
   }
 }
+
+export function createSmoothingFn(strength: number): BlendFunction<number> {
+  return (a: number, b: number) => {
+    return mix(a, b, strength);
+  };
+}

@@ -213,3 +213,7 @@ export function createDomainFn(a: Range<Vec3>, b: Range<Vec3>): DomainFunction<V
   const scale = hasZero(rangeA) ? createZero() : div(rangeB, rangeA);
   return (x: Vec3) => add(b.min, mul(scale, sub(x, a.min)));
 }
+
+export function createSmoothingFn(strength: number): BlendFunction<Vec3> {
+  return (a: Vec3, b: Vec3) => mix(a, b, strength);
+}

@@ -6,7 +6,7 @@ import type {
   Vec4,
   DomainFunction,
 } from "./types";
-import { clamp as clampScalar } from "./scalar";
+import { clamp as clampScalar, mix as mixScalar } from "./scalar";
 
 export function create(a: [number, number, number, number] | Float32Array): Vec4 {
   return new Float32Array(a);
@@ -73,6 +73,20 @@ export function clampS(value: Vec4, min: number, max: number): Vec4 {
   );
 }
 
+export function mix(a: Vec4, b: Vec4, t: number): Vec4 {
+  if (t < 0) {
+    return a;
+  } else if (t > 1.0) {
+    return b;
+  }
+  return fromValues(
+    mixScalar(a[0], b[0], t),
+    mixScalar(a[1], b[1], t),
+    mixScalar(a[2], b[2], t),
+    mixScalar(a[3], b[3], t)
+  );
+}
+
 export function createBlendFn(blendMode: BlendMode, s: number): BlendFunction<Vec4> {
   switch (blendMode) {
     case "add":
@@ -93,4 +107,8 @@ export function createDomainFn(a: Range<Vec4>, b: Range<Vec4>): DomainFunction<V
   const rangeB = sub(b.max, b.min);
   const scale = hasZero(rangeA) ? createZero() : div(rangeB, rangeA);
   return (x: Vec4) => add(b.min, mul(scale, sub(x, a.min)));
+}
+
+export function createSmoothingFn(strength: number): BlendFunction<Vec4> {
+  return (a: Vec4, b: Vec4) => mix(a, b, strength);
 }
