@@ -17,7 +17,7 @@ export type ParameterModifierTransformFn<T extends UniformType> = (
   value: MappedUniformValue<T>
 ) => MappedUniformValue<T>;
 
-export type ModifierType = "lfo" | "audio";
+export type ModifierType = "lfo" | "audio" | "smoother";
 
 export interface ParameterModifierMapping {
   blendMode: BlendMode;
@@ -51,10 +51,10 @@ export abstract class BaseModifier<T extends UniformType, C extends AnyModifierC
 {
   public readonly id: string;
   private _type: T;
-  private _blendMode: BlendMode = "add";
-  private _blendFn: BlendFunction<MappedUniformValue<T>>;
   private _domainScale: number;
   protected _modifierType: ModifierType;
+  private _blendMode: BlendMode = "add";
+  private _blendFn: BlendFunction<MappedUniformValue<T>>;
   public offset: number = 0;
   public range: number = 1.0;
   public bypass: boolean = false;
