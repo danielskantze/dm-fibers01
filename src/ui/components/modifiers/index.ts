@@ -8,6 +8,7 @@ import { createLFOModifier } from "./lfo";
 import "./modifier.css";
 import clearIcon from "../../icons/clear.svg?raw";
 import audioStatsIcon from "../../icons/audiostats.svg?raw";
+import smootherIcon from "../../icons/smoothing.svg?raw";
 import lfoIcon from "../../icons/lfo.svg?raw";
 import { createModifierHeader, type ModifierHeaderComponent } from "./header";
 import { createSmootherModifier } from "./smoother";
@@ -46,7 +47,7 @@ export function createModifiers(props: Props): ModifiersComponent {
   const buttons = createButtons([
     {
       id: "clear",
-      title: "! Clear",
+      title: "Clear all modifiers",
       svgIcon: clearIcon,
       color: 5,
       onClick: () => {
@@ -55,19 +56,19 @@ export function createModifiers(props: Props): ModifiersComponent {
     },
     {
       id: "lfo",
-      title: "+ LFO",
+      title: "Add LFO",
       svgIcon: lfoIcon,
       onClick: () => props.onAdd("lfo"),
     },
     {
       id: "smoother",
-      title: "+ Smoother",
-      svgIcon: lfoIcon,
+      title: "Add value smoother",
+      svgIcon: smootherIcon,
       onClick: () => props.onAdd("smoother"),
     },
     {
       id: "audio",
-      title: "+ Audio",
+      title: "Add audio analyzer",
       svgIcon: audioStatsIcon,
       onClick: () => props.onAdd("audio"),
     },
@@ -118,7 +119,7 @@ export function createModifiers(props: Props): ModifiersComponent {
       case "smoother":
         header = createModifierHeader({
           title: "Smoother",
-          icon: lfoIcon,
+          icon: smootherIcon,
           iconShiftY: -2,
           onRemove,
           onMoveUp,
